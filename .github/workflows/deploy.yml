@@ -8,7 +8,6 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
-      # Форсируем использование Node 24 для всех экшенов
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true 
     steps:
       - name: Checkout code
@@ -22,15 +21,15 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /var/www/smartcookie
-            # Сброс локальных изменений, чтобы git pull не падал
+            # Принудительное обновление без конфликтов
             git fetch origin main
             git reset --hard origin/main
             
-            # Обновление проекта
+            # Установка и сборка
             composer install --no-dev --optimize-autoloader
             npm install
             npm run build
-            php artisan migrate --force
             
-            # Оптимизация кэша
+            # Миграции и кэш
+            php artisan migrate --force
             php artisan optimize
