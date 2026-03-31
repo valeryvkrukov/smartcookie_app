@@ -34,9 +34,6 @@ class CalendarController extends Controller
 
             $title = "{$tutorName}-{$session->duration} {$studentName}";
             
-            // Old format: TutorName-Duration StudentName
-            //$title = "{$session->tutor->last_name}-{$session->duration} {$session->student->last_name}";
-
             return [
                 'id' => $session->id,
                 'title' => $title,
@@ -73,12 +70,7 @@ class CalendarController extends Controller
 
             return [
                 'id'                => $session->id,
-                // Format: [Tutor] Name | [Student] Name
-                //'title'             => "{$session->tutor->last_name} | {$session->subject}",
-                // app/Http/Controllers/Admin/CalendarController.php
-
                 'title'             => ($session->tutor?->last_name ?? 'No Tutor') . " | " . ($session->subject ?? 'No Subject'),
-
                 'start'             => $startIso,
                 'end'               => $endIso,
                 'backgroundColor'   => $hasCredits ? '#4f46e5' : '#ef4444',
