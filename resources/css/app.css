@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+    .btn-primary {
+        @apply w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-95 transition-all;
+    }
+    .input-premium {
+        @apply w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800 transition-colors placeholder:text-slate-300;
+    }
+    .label-premium {
+        @apply text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1;
+    }
+}
+
+[x-cloak] { 
+    display: none !important; 
+}
