@@ -5,8 +5,6 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
-use App\Models\Tutor;
-use App\Models\Student;
 use App\Models\Credit;
 use App\Models\CreditPurchase;
 use App\Models\TutoringSession;
@@ -21,12 +19,14 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $faker = \Faker\Factory::create();
-        
+
         \Schema::disableForeignKeyConstraints();
-        User::truncate();
-        Credit::truncate();
-        CreditPurchase::truncate();
+        \DB::table('tutor_student_assignments')->truncate();
         TutoringSession::truncate();
+        CreditPurchase::truncate();
+        Credit::truncate();
+        User::truncate();
+        \Schema::enableForeignKeyConstraints();
 
         // --- 1. ADMINS ---
         $admins = [
@@ -34,122 +34,74 @@ class DatabaseSeeder extends Seeder
             ['first_name' => 'Sofi', 'last_name' => 'Admin', 'email' => 'sofi@smartcookie.com'],
         ];
 
-        foreach ($admins as $a) {
-            User::create(array_merge($a, [
-                'password' => \Hash::make('password123'),
-                'role' => 'admin',
+        foreach ($admins as $admin) {
+            User::factory()->admin()->create(array_merge($admin, [
                 'email_verified_at' => now(),
             ]));
         }
 
-        // --- 2. TUTORS (with different rates) ---
-        $tutors = [];
-        $tutorData = [
-            ['first_name' => 'Alex', 'last_name' => 'Math-Pro', 'email' => 'alex@tutor.com'],
-            ['first_name' => 'Maria', 'last_name' => 'English-Expert', 'email' => 'maria@tutor.com'],
-        ];
+        // --- 2. TUTORS ---
+        $tutors = User::factory()->count(8)->tutor()->create();
 
-        foreach ($tutorData as $t) {
-            $tutors[] = Tutor::create(array_merge($t, [
-                'password' => \Hash::make('password123'),
-                'role' => 'tutor',
-                'blurb' => $faker->paragraph(),
-                'tutoring_goals' => $faker->sentence(),
-                'is_subscribed' => true,
-            ]));
-        }
+        // --- 3. CUSTOMERS ---
+        $customers = User::factory()->count(14)->customer()->create();
 
-        // --- 3. PARENTS AND CHILDREN (Families) ---
-        $families = [
-            [
-                'parent' => ['first_name' => 'Sarah', 'last_name' => 'Johnson', 'email' => 'sarah@parent.com'],
-                'children' => [
-                    ['first_name' => 'Leo', 'last_name' => 'Johnson', 'student_grade' => '5th Grade', 'blurb' => $faker->paragraph()],
-                    ['first_name' => 'Emma', 'last_name' => 'Johnson', 'student_grade' => '8th Grade', 'blurb' => $faker->paragraph()],
-                ],
-                'balance' => 450.00,
-                'payments' => [200.00, 250.00]
-            ],
-            [
-                'parent' => ['first_name' => 'Michael', 'last_name' => 'Smith', 'email' => 'mike@parent.com'],
-                'children' => [
-                    ['first_name' => 'Chris', 'last_name' => 'Smith', 'student_grade' => '10th Grade', 'blurb' => $faker->paragraph(),],
-                ],
-                'balance' => 120.00,
-                'payments' => [120.00]
-            ]
-        ];
+        $customers->each(function (User $customer) use ($faker) {
+            Credit::create([
+                'user_id' => $customer->id,
+                'credit_balance' => $faker->randomFloat(2, 0, 800),
+            ]);
 
-        foreach ($families as $f) {
-            $parent = User::create(array_merge($f['parent'], [
-                'password' => \Hash::make('password123'),
-                'role' => 'customer',
-            ]));
+            foreach (range(1, rand(1, 3)) as $index) {
+                $amount = $faker->randomFloat(2, 20, 250);
 
-            // Balance and payment history for the parent
-            Credit::create(['user_id' => $parent->id, 'credit_balance' => $f['balance']]);
-            foreach ($f['payments'] as $amt) {
                 CreditPurchase::create([
-                    'user_id' => $parent->id,
-                    'amount' => $amt,
-                    'total_paid' => $amt,
-                    'type' => 'deposit'
+                    'user_id' => $customer->id,
+                    'amount' => $amount,
+                    'total_paid' => $amount,
                 ]);
             }
+        });
 
-            // Making students and assigning random tutors
-            foreach ($f['children'] as $child) {
-                $student = Student::create(array_merge($child, [
-                    'parent_id' => $parent->id,
-                    'role' => 'student',
-                    'email' => strtolower($child['first_name'].'.'.$child['last_name'].'@smartcookie.local'),
-                    'tutoring_goals' => $faker->sentence(),
-                    'password' => \Hash::make('password123'),
-                ]));
-            }
-        }
+        // --- 4. STUDENTS ---
+        $students = $customers->flatMap(function (User $customer) use ($faker) {
+            return User::factory()
+                ->count(rand(1, 3))
+                ->student()
+                ->create([
+                    'parent_id' => $customer->id,
+                    'email_verified_at' => now(),
+                ]);
+        });
 
-        // --- 4. HISTORY OF SESSIONS (For Net Profit) ---
-        // Creating several completed sessions to see "expenses" in Financials
-        $subjects = ['Math', 'English', 'Science', 'History'];
+        $students->each(function (User $student) use ($tutors, $faker) {
+            $tutor = $tutors->random();
 
-        $allStudents = Student::all();
-        $assigned = [];
-        
+            $tutor->assignedStudents()->syncWithoutDetaching($student->id, [
+                'hourly_payout' => $faker->randomFloat(2, 25, 50),
+            ]);
+        });
+
+        // --- 5. TUTORING SESSIONS ---
+        $subjects = ['Math', 'English', 'Science', 'History', 'Physics', 'Chemistry'];
+
         foreach (range(1, 30) as $i) {
-            $tutorId = $tutors[array_rand($tutors)]->id;
-            $date = now()->subDays(rand(1, 30));
-            $time = random_int(8, 20) . ':00';
+            $tutor = $tutors->random();
+            $student = $students->random();
 
-            if (!isset($assigned[$tutorId]) || 
-                !collect($assigned[$tutorId])->contains(function($s) use ($date, $time) {
-                    return $s['date'] === $date->toDateString() && $s['start_time'] === $time;
-            })) {
-                $student = $allStudents->random();
-
-                $session = TutoringSession::create([
-                    'student_id' => $student->id,
-                    'tutor_id' => $tutorId,
-                    'subject' => array_rand(array_flip($subjects)),
-                    'date' => $date,
-                    'start_time' => $time,
-                    'duration' => '1:' . array_rand(['00', '30']),
-                    'status' => 'completed',
-                    'tutor_rate' => rand(30, 50)
-                ]);
-
-                $student->assignedTutors()->syncWithoutDetaching($tutorId, [
-                    'hourly_payout' => rand(25, 40) // Random payout between $25 and $40
-                ]);
-
-                $assigned[$tutorId][] = [
-                    'date' => $session->date->toDateString(),
-                    'start_time' => $session->start_time,
-                ];
-            }
+            TutoringSession::create([
+                'tutor_id' => $tutor->id,
+                'student_id' => $student->id,
+                'subject' => $faker->randomElement($subjects),
+                'date' => now()->subDays(rand(0, 90)),
+                'start_time' => sprintf('%02d:%02d:00', rand(8, 18), rand(0, 1) * 30),
+                'duration' => $faker->randomElement(['0:30', '1:00', '1:30', '2:00']),
+                'location' => $faker->optional()->streetAddress(),
+                'is_initial' => $faker->boolean(20),
+                'recurs_weekly' => $faker->boolean(10),
+                'status' => $faker->randomElement(['Scheduled', 'Completed', 'Canceled']),
+                'tutor_rate' => $faker->randomFloat(2, 25, 80),
+            ]);
         }
-
-        \Schema::enableForeignKeyConstraints();
     }
-
 }

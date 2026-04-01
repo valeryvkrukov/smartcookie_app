@@ -54,7 +54,7 @@
                     <div class="pt-1 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Learning Goal</p>
                         <p class="text-xs text-slate-600 italic leading-relaxed">
-                            {{ $student->goal ? '"' . $student->goal . '"' : 'No specific goals set yet.' }}
+                            {{ $student->tutoring_goals ? '"' . $student->tutoring_goals . '"' : 'No specific goals set yet.' }}
                         </p>
                     </div>
                 </div>
