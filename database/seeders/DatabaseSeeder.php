@@ -95,13 +95,16 @@ class DatabaseSeeder extends Seeder
 
             // Making students and assigning random tutors
             foreach ($f['children'] as $child) {
-                Student::create(array_merge($child, [
+                $student = Student::create(array_merge($child, [
                     'parent_id' => $parent->id,
                     'role' => 'student',
                     'email' => strtolower($child['first_name'].'.'.$child['last_name'].'@smartcookie.local'),
                     'password' => \Hash::make('password123'),
-                    'tutor' => $tutors[array_rand($tutors)]->id, // Random tutor
+                    //'tutor_id' => $tutors[array_rand($tutors)]->id, // Random tutor
                 ]));
+                $student->assignedTutors()->attach($tutors[array_rand($tutors)]->id, [
+                    'hourly_payout' => rand(25, 40) // Random payout between $25 and $40
+                ]);
             }
         }
 
