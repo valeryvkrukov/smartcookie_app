@@ -28,7 +28,6 @@
         isEdit = $event.detail.isEdit || false;
         isRecurring = $event.detail.isRecurring || false;
         studentId = $event.detail.studentId || '';
-        name = $event.detail.name || '';
         firstName = $event.detail.firstName || '';
         lastName = $event.detail.lastName || '';
         grade = $event.detail.grade || '';
@@ -61,7 +60,7 @@
             }
         }
     "
-    @confirm-delete.window="open = true; name = $event.detail.name; formId = $event.detail.formId; isRecurring = $event.detail.isRecurring || false"
+    @confirm-delete.window="open = true; name = $event.detail.name || ''; formId = $event.detail.formId; isRecurring = $event.detail.isRecurring || false"
     @set-error.window="errorMessage = ($event.detail && $event.detail.message) ? $event.detail.message : 'Something went wrong'"
     @close-modal.window="open = false"
     x-show="open" 
