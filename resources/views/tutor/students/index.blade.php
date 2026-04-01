@@ -74,7 +74,7 @@
                         </a>
                     </div>
 
-                    <a href="#"
+                    <button type="button"
                         @click="$dispatch('open-modal', { 
                             type: 'tutor-schedule-session', 
                             studentId: '{{ $student->id }}', 
@@ -82,7 +82,7 @@
                         })"
                         class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
                         Schedule Session
-                    </a>
+                    </button>
                     
                     <!--a href="{{ route('tutor.sessions.create', ['student_id' => $student->id]) }}" 
                        class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
