@@ -69,8 +69,11 @@
         <template x-if="isEdit">
             <button type="button" 
                 :onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { 
-                    formId: 'delete-session-form', 
-                    isRecurring: isRecurring 
+                    detail: {
+                        name: 'this tutoring session', 
+                        formId: 'delete-session-form', 
+                        isRecurring: isRecurring 
+                    }
                 }))"
                 class="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 transition-colors">
                 Cancel Session
