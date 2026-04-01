@@ -67,7 +67,9 @@
                     </p>
                     <div class="bg-slate-50 p-6 rounded-3xl border border-slate-100">
                         <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Zelle Email</p>
-                        <p class="text-lg font-black text-slate-900 tracking-tight">payments@smartcookie.com</p>
+                        <p class="text-lg font-black text-slate-900 tracking-tight">{{ config('payments.zelle.email') }}</p>
+                        <p class="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 mt-3">Payment Note</p>
+                        <p class="text-sm text-slate-600">{{ config('payments.zelle.note') }}</p>
                     </div>
                     <p class="text-[9px] font-bold text-rose-500 uppercase tracking-widest italic">
                         * Note: Credits will be added manually after confirmation.

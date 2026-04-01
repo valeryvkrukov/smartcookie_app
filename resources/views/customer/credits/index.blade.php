@@ -2,7 +2,15 @@
     <x-slot name="header_title">Financial Hub</x-slot>
 
     <div class="max-w-5xl mx-auto space-y-12">
-        
+        @if(session('payment_instructions'))
+            <div class="p-6 rounded-[2.5rem] bg-emerald-50 border border-emerald-100 shadow-sm">
+                <p class="text-sm font-black text-emerald-900">Payment instructions for {{ session('payment_instructions.method') }}:</p>
+                <p class="mt-4 text-sm text-slate-600">Send your transfer to <span class="font-black text-slate-900">{{ session('payment_instructions.email') }}</span>.</p>
+                <p class="mt-2 text-sm text-slate-600">Use note: <span class="font-black text-slate-900">{{ session('payment_instructions.note') }}</span>.</p>
+                <p class="mt-3 text-[10px] uppercase tracking-[0.3em] text-slate-400">Credits will be added after payment confirmation.</p>
+            </div>
+        @endif
+
         <!-- MAIN CREDIT CARD -->
         <div class="relative overflow-hidden bg-[#1A1A19] rounded-[3.5rem] p-12 shadow-2xl shadow-indigo-500/20 group">
             <!-- Decorative Gradients -->
@@ -34,7 +42,8 @@
             <!-- STRIPE (Credit Card / Apple Pay) -->
             <form action="{{ route('customer.credits.purchase') }}" method="POST" class="h-full">
                 @csrf
-                <button class="w-full h-full text-left p-10 bg-white rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden">
+                <input type="hidden" name="payment_method" value="stripe">
+                <button type="submit" class="w-full h-full text-left p-10 bg-white rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden">
                     <div class="absolute -right-4 -top-4 w-24 h-24 bg-indigo-50 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
                     
                     <div class="relative z-10">
@@ -45,16 +54,17 @@
                         <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2 leading-relaxed">
                             Cards, Apple Pay,<br>Google Pay
                         </p>
-                        <div class="mt-8 flex items-center text-[9px] font-black text-indigo-600 uppercase tracking-widest">
-                            Instant Refill <i class="ti-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i>
+                        <div class="mt-8 flex flex-col gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest">
+                            <span>Instant Refill</span>
+                            <span class="flex items-center">Stripe payment <i class="ti-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i></span>
                         </div>
                     </div>
                 </button>
             </form>
 
             <!-- VENMO (Mobile First) -->
-            <a href="venmo://paycharge?txn=pay&recipients={{ $paymentMethods['venmo'] }}&note=SmartCookie%20Credits" 
-               class="text-left p-10 bg-[#3d95ce] rounded-[3rem] text-white shadow-xl shadow-sky-200/50 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden">
+            <a href="{{ $paymentMethods['venmo']['web_url'] }}" 
+               class="text-left p-10 bg-[#3d95ce] rounded-[3rem] text-white shadow-xl shadow-sky-200/50 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden" target="_blank" rel="noopener noreferrer">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-white/10 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
                 
                 <div class="relative z-10">
@@ -72,7 +82,7 @@
             </a>
 
             <!-- ZELLE (Instructional) -->
-            <button @click="$dispatch('open-modal', { type: 'zelle-info', title: 'Payment Instruction' })"
+            <button type="button" @click="$dispatch('open-modal', { type: 'zelle-info', title: 'Payment Instruction' })"
                     class="text-left p-10 bg-white rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-2 transition-all duration-500 group relative overflow-hidden">
                 <div class="absolute -right-4 -top-4 w-24 h-24 bg-purple-50 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500"></div>
                 
