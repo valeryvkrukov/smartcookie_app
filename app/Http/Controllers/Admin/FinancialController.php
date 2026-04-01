@@ -14,26 +14,31 @@ class FinancialController extends Controller
 {
     public function index(Request $request)
     {
+        $period = $request->get('period', 'all');
+        $query = CreditPurchase::with('user');
+
+        if ($period === 'month') {
+            $query->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+        } elseif ($period === 'quarter') {
+            $query->whereBetween('created_at', [now()->startOfQuarter(), now()->endOfQuarter()]);
+        } elseif ($period === 'year') {
+            $query->whereYear('created_at', now()->year);
+        }
+
         // Key financial stats
         $stats = [
-            'total_revenue' => CreditPurchase::sum('total_paid'),
+            'total_revenue' => (clone $query)->sum('total_paid'),
             'tutor_payouts' => TutoringSession::where('status', 'completed')->sum('tutor_rate'),
             'client_balances' => Credit::sum('credit_balance'),
         ];
 
+        // Net profit (Revenue - Payouts)
+        $stats['net_profit'] = $stats['total_revenue'] - $stats['tutor_payouts'];
+
         // Transactions list with filter and pagination
-        $transactions = CreditPurchase::with('user')
-            ->orderBy('created_at', 'desc')
-            ->paginate(15);
+        $transactions = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        if ($request->filled('search')) {
-            $transactions->whereHas('user', function($q) use ($request) {
-                $q->where('first_name', 'like', "%{$request->search}%")
-                    ->orWhere('last_name', 'like', "%{$request->search}%");
-            });
-        }
-
-        return view('admin.financials.index', compact('stats', 'transactions'));
+        return view('admin.financials.index', compact('stats', 'transactions', 'period'));
 
         /*$clientQuery = User::where('role', 'customer')->with('credit');
 

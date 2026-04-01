@@ -59,6 +59,7 @@ class DatabaseSeeder extends Seeder
                 'user_id' => $parent->id,
                 'amount' => $p['amount'],
                 'total_paid' => $p['total_paid'],
+                'type' => 'withdrawal', // Assuming these are withdrawals for the sake of financial stats
             ]);
         }
 

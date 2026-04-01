@@ -1,27 +1,45 @@
 <x-app-layout>
-    <x-slot name="header_title text-slate-900">Financial Intelligence</x-slot>
+    <x-slot name="header_title">Financial Intelligence</x-slot>
 
     <div class="max-w-7xl mx-auto space-y-10 pb-20">
         
-        <!-- TOP STATS CARDS -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <!-- Revenue -->
-            <div class="bg-[#1A1A19] rounded-[3.5rem] p-10 text-white shadow-2xl relative overflow-hidden group">
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-indigo-600/20 blur-[80px] rounded-full group-hover:scale-125 transition-transform duration-700"></div>
-                <p class="text-[10px] font-black uppercase tracking-[0.4em] text-white/40 mb-4">Gross Revenue</p>
-                <h2 class="text-5xl font-black tracking-tighter">${{ number_format($stats['total_revenue'], 2) }}</h2>
+        <!-- PERIOD SELECTOR (Modern Pill Style) -->
+        <div class="flex justify-center">
+            <div class="inline-flex bg-white p-1.5 rounded-[2rem] border border-slate-100 shadow-xl">
+                @foreach(['all' => 'All Time', 'month' => 'This Month', 'quarter' => 'Quarter', 'year' => 'Year'] as $key => $label)
+                    <a href="{{ route('admin.financials.index', ['period' => $key]) }}" 
+                       class="px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all {{ $period === $key ? 'bg-[#212120] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600' }}">
+                        {{ $label }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+
+        <!-- STATS GRID -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Net Profit (Главная метрика для Софи) -->
+            <div class="bg-[#1A1A19] rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group border border-white/5">
+                <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/20 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-700"></div>
+                <p class="text-[9px] font-black uppercase tracking-[0.4em] text-emerald-400 mb-4">Net Profit</p>
+                <h2 class="text-4xl font-black tracking-tighter">${{ number_format($stats['net_profit'], 2) }}</h2>
+            </div>
+
+            <!-- Gross Revenue -->
+            <div class="bg-white rounded-[3.5rem] p-8 border border-slate-100 shadow-xl">
+                <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Gross Revenue</p>
+                <h2 class="text-4xl font-black tracking-tighter text-slate-900">${{ number_format($stats['total_revenue'], 2) }}</h2>
             </div>
 
             <!-- Payouts -->
-            <div class="bg-white rounded-[3.5rem] p-10 border border-slate-100 shadow-xl shadow-slate-200/50">
-                <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4 text-rose-500">Tutor Payouts (Due)</p>
-                <h2 class="text-5xl font-black tracking-tighter text-slate-900">${{ number_format($stats['tutor_payouts'], 2) }}</h2>
+            <div class="bg-white rounded-[3.5rem] p-8 border border-slate-100 shadow-xl">
+                <p class="text-[9px] font-black uppercase tracking-[0.4em] text-rose-500 mb-4">Tutor Payouts</p>
+                <h2 class="text-4xl font-black tracking-tighter text-slate-900">${{ number_format($stats['tutor_payouts'], 2) }}</h2>
             </div>
 
             <!-- Liabilities -->
-            <div class="bg-white rounded-[3.5rem] p-10 border border-slate-100 shadow-xl shadow-slate-200/50">
-                <p class="text-[10px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4 text-emerald-500">Held in Credits</p>
-                <h2 class="text-5xl font-black tracking-tighter text-slate-900">${{ number_format($stats['client_balances'], 2) }}</h2>
+            <div class="bg-white rounded-[3.5rem] p-8 border border-slate-100 shadow-xl">
+                <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Client Credits</p>
+                <h2 class="text-4xl font-black tracking-tighter text-slate-900">${{ number_format($stats['client_balances'], 2) }}</h2>
             </div>
         </div>
 
@@ -57,7 +75,7 @@
                         </td>
                         <td class="p-8">
                             <span class="px-4 py-1.5 {{ $t->type === 'deposit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }} rounded-xl text-[9px] font-black uppercase tracking-widest">
-                                {{ $t->type }}
+                                {{ $t->type ?? 'Deposit' }}
                             </span>
                         </td>
                         <td class="p-8">
