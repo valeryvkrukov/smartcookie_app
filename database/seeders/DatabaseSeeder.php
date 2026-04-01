@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Tutor;
 use App\Models\Student;
 use App\Models\Credit;
 use App\Models\CreditPurchase;
@@ -47,7 +48,7 @@ class DatabaseSeeder extends Seeder
         ];
 
         foreach ($tutorData as $t) {
-            $tutors[] = \App\Models\User::create(array_merge($t, [
+            $tutors[] = Tutor::create(array_merge($t, [
                 'password' => \Hash::make('password123'),
                 'role' => 'tutor',
                 'is_subscribed' => true,
@@ -99,7 +100,7 @@ class DatabaseSeeder extends Seeder
                     'role' => 'student',
                     'email' => strtolower($child['first_name'].'.'.$child['last_name'].'@smartcookie.local'),
                     'password' => \Hash::make('password123'),
-                    'tutor_id' => $tutors[array_rand($tutors)]->id, // Random tutor
+                    'tutor' => $tutors[array_rand($tutors)]->id, // Random tutor
                 ]));
             }
         }
