@@ -3,10 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Attributes\Fillable;
 
-
-#[Fillable(['first_name', 'last_name', 'email', 'password', 'role', 'tutor_id'])]
 class Student extends User
 {
     protected $table = 'users';

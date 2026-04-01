@@ -25,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'is_admin', 
     'is_subscribed',
     'parent_id',
+    'tutor_id',
     'student_grade',
     'student_school',
     'tutoring_subject',
