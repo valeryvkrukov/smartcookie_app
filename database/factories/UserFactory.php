@@ -76,6 +76,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'tutor',
+            'password' => Hash::make('password'),
             'is_admin' => false,
             'can_tutor' => true,
             'is_subscribed' => $this->faker->boolean(90),
@@ -88,6 +89,7 @@ class UserFactory extends Factory
     {
         return $this->state(fn (array $attributes) => [
             'role' => 'customer',
+            'password' => Hash::make('password'),
             'is_admin' => false,
             'can_tutor' => false,
         ]);

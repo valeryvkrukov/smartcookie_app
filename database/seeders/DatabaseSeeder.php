@@ -8,6 +8,9 @@ use App\Models\User;
 use App\Models\Credit;
 use App\Models\CreditPurchase;
 use App\Models\TutoringSession;
+use App\Models\Timesheet;
+use App\Models\Agreement;
+use App\Models\AgreementRequest;
 
 class DatabaseSeeder extends Seeder
 {
@@ -50,6 +53,7 @@ class DatabaseSeeder extends Seeder
             Credit::create([
                 'user_id' => $customer->id,
                 'credit_balance' => $faker->randomFloat(2, 0, 800),
+                'dollar_cost_per_credit' => $faker->randomFloat(2, 0.50, 5),
             ]);
 
             foreach (range(1, rand(1, 3)) as $index) {
@@ -85,11 +89,13 @@ class DatabaseSeeder extends Seeder
         // --- 5. TUTORING SESSIONS ---
         $subjects = ['Math', 'English', 'Science', 'History', 'Physics', 'Chemistry'];
 
+        $sessions = collect();
+
         foreach (range(1, 30) as $i) {
             $tutor = $tutors->random();
             $student = $students->random();
 
-            TutoringSession::create([
+            $session = TutoringSession::create([
                 'tutor_id' => $tutor->id,
                 'student_id' => $student->id,
                 'subject' => $faker->randomElement($subjects),
@@ -101,6 +107,47 @@ class DatabaseSeeder extends Seeder
                 'recurs_weekly' => $faker->boolean(10),
                 'status' => $faker->randomElement(['Scheduled', 'Completed', 'Canceled']),
                 'tutor_rate' => $faker->randomFloat(2, 25, 80),
+            ]);
+
+            $sessions->push($session);
+        }
+
+        // --- 6. TIMESHEETS ---
+        $sessions->each(function (TutoringSession $session) use ($faker) {
+            Timesheet::create([
+                'tutoring_session_id' => $session->id,
+                'tutor_id' => $session->tutor_id,
+                'parent_id' => $session->student->parent_id,
+                'credits_spent' => Timesheet::calculateCredits($session->duration),
+                'tutor_payout' => $faker->randomFloat(2, 20, 60),
+                'period' => $session->date->format('Y-m'),
+            ]);
+        });
+
+        // --- 7. AGREEMENTS ---
+        $agreements = collect();
+
+        foreach (range(1, 6) as $i) {
+            $agreement = Agreement::create([
+                'name' => 'Agreement ' . $i,
+                'pdf_path' => 'agreements/agreement-' . $i . '.pdf',
+            ]);
+
+            $agreements->push($agreement);
+        }
+
+        // --- 8. AGREEMENT REQUESTS ---
+        $usersForAgreements = $customers->concat($tutors)->shuffle();
+
+        foreach ($usersForAgreements->take(20) as $user) {
+            $isSigned = $faker->boolean(60);
+            AgreementRequest::create([
+                'agreement_id' => $agreements->random()->id,
+                'user_id' => $user->id,
+                'status' => $isSigned ? 'Signed' : 'Awaiting signature',
+                'signed_full_name' => $isSigned ? $user->first_name . ' ' . $user->last_name : null,
+                'signed_date_manual' => $isSigned ? now()->subDays(rand(0, 30))->toDateString() : null,
+                'signed_at' => $isSigned ? now()->subDays(rand(0, 30)) : null,
             ]);
         }
     }
