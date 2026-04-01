@@ -73,11 +73,21 @@
                             <i class="ti-email text-sm"></i>
                         </a>
                     </div>
-                    
-                    <a href="{{ route('tutor.sessions.create', ['student_id' => $student->id]) }}" 
-                       class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
+
+                    <a href="#"
+                        @click="$dispatch('open-modal', { 
+                            type: 'tutor-schedule-session', 
+                            studentId: '{{ $student->id }}', 
+                            title: 'Schedule Session for {{ $student->first_name }}' 
+                        })"
+                        class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
                         Schedule Session
                     </a>
+                    
+                    <!--a href="{{ route('tutor.sessions.create', ['student_id' => $student->id]) }}" 
+                       class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
+                        Schedule Session
+                    </a-->
                 </div>
             </div>
         @empty
