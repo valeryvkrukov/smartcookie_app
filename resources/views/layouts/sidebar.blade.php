@@ -34,38 +34,25 @@
                 </a>
                 @endif
             @endforeach
-
-            @if(auth()->user()->role === 'customer')
-                <!--a href="{{ route('customer.students.index') }}" 
-                    class="flex items-center p-3 rounded-2xl transition-all duration-300 group/item {{ request()->routeIs('customer.students.*') ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200' }}">
-                    <i class="ti-id-badge text-xl shrink-0"></i>
-                    <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">My Students</span>
-                </a>
-                <a href="{{ route('customer.agreements.index') }}" 
-                    class="flex items-center p-3 rounded-2xl transition-all duration-300 group/item {{ request()->routeIs('customer.agreements.*') ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200' }}">
-                    <i class="ti-write text-xl shrink-0"></i>
-                    <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Agreements</span>
-                </a>
-                <a href="{{ route('customer.credits.index') }}" 
-                    class="flex items-center p-3 rounded-2xl transition-all duration-300 group/item {{ request()->routeIs('customer.credits.*') ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200' }}">
-                    <i class="ti-wallet text-xl shrink-0"></i>
-                    <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Billing & Credits</span>
-                </a-->
-            @endif
-
-            @if(auth()->user()->role === 'tutor')
-                <!--a href="{{ route('tutor.timesheets.index') }}" 
-                    class="flex items-center p-3 rounded-2xl transition-all duration-300 group/item {{ request()->routeIs('customer.timesheets.*') ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200' }}">
-                    <i class="ti-timer text-xl shrink-0"></i>
-                    <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Timesheets</span>
-                </a-->
-            @endif
         </nav>
 
         <!-- Profile Link -->
         <a href="{{ route('profile.edit') }}" class="flex items-center p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
             <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-700 shrink-0 border border-white/10">
-                <img src="{{ auth()->user()->photo ? asset('storage/'.auth()->user()->photo) : asset('images/generic-avatar.png') }}" class="w-full h-full object-cover">
+                @php
+                    $photo = auth()->user()->photo;
+                    if ($photo && preg_match('/^https?:\/\//i', $photo)) {
+                        $photoUrl = $photo;
+                    } elseif ($photo) {
+                        $photoPath = ltrim($photo, '/');
+                        $photoUrl = str_starts_with($photoPath, 'storage/')
+                            ? asset($photoPath)
+                            : asset('storage/'.$photoPath);
+                    } else {
+                        $photoUrl = asset('images/generic-avatar.png');
+                    }
+                @endphp
+                <img src="{{ $photoUrl }}" class="w-full h-full object-cover">
             </div>
             <div class="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <p class="text-[10px] font-black text-white uppercase tracking-widest leading-none">{{ auth()->user()->first_name }}</p>
