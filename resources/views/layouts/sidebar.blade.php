@@ -39,20 +39,7 @@
         <!-- Profile Link -->
         <a href="{{ route('profile.edit') }}" class="flex items-center p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
             <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-700 shrink-0 border border-white/10">
-                @php
-                    $photo = auth()->user()->photo;
-                    if ($photo && preg_match('/^https?:\/\//i', $photo)) {
-                        $photoUrl = $photo;
-                    } elseif ($photo) {
-                        $photoPath = ltrim($photo, '/');
-                        $photoUrl = str_starts_with($photoPath, 'storage/')
-                            ? asset($photoPath)
-                            : asset('storage/'.$photoPath);
-                    } else {
-                        $photoUrl = asset('images/generic-avatar.png');
-                    }
-                @endphp
-                <img src="{{ $photoUrl }}" class="w-full h-full object-cover">
+                <img src="{{ auth()->user()->photo_url ?? asset('images/generic-avatar.png') }}" class="w-full h-full object-cover">
             </div>
             <div class="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <p class="text-[10px] font-black text-white uppercase tracking-widest leading-none">{{ auth()->user()->first_name }}</p>

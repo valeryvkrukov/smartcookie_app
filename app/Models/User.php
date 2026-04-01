@@ -12,6 +12,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Services\PhotoPathResolver;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 #[Fillable([
@@ -63,6 +64,14 @@ class User extends Authenticatable
     public function getFullNameAttribute(): string
     {
         return "{$this->first_name} {$this->last_name}";
+    }
+
+    /**
+     * Accessor for the resolved profile photo URL.
+     */
+    public function getPhotoUrlAttribute(): ?string
+    {
+        return PhotoPathResolver::resolve($this->photo);
     }
 
     /**
