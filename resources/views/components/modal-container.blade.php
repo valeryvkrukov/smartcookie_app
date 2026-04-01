@@ -1,65 +1,6 @@
-<div x-data="{ 
-        open: false, 
-        isEdit: false,
-        studentId: '', 
-        requestId: '',
-        isRecurring: false,
-        sessionId: null,
-        name: '',
-        date: '', 
-        formId: null,
-        tutorId: '',
-        subject: '',
-        duration: '1:00',
-        blurb: '',
-        firstName: '',
-        lastName: '',
-        grade: '',
-        time_h: '09', 
-        time_m: '00', 
-        time_ampm: 'AM',
-        type: 'tutor', // 'tutor' or 'admin'
-        title: 'New Session',
-        errorMessage: ''
-    }"
-    @open-modal.window="
-        open = true; 
-        errorMessage = '';
-        isEdit = $event.detail.isEdit || false;
-        isRecurring = $event.detail.isRecurring || false;
-        studentId = $event.detail.studentId || '';
-        firstName = $event.detail.firstName || '';
-        lastName = $event.detail.lastName || '';
-        grade = $event.detail.grade || '';
-        requestId = $event.detail.requestId || '';
-        tutorId = $event.detail.tutorId || '';
-        sessionId = $event.detail.sessionId || null;
-        type = $event.detail.type || 'tutor';
-        title = $event.detail.title || 'New Session';
-        blurb = $event.detail.blurb || '';
-        date = $event.detail.date || '';
-
-        if (isEdit) {
-            date = $event.detail.date;
-            studentId = $event.detail.studentId || '';
-            tutorId = $event.detail.tutorId || '';
-            subject = $event.detail.subject || '';
-            duration = $event.detail.duration || '1:00';
-            time_h = $event.detail.time_h;
-            time_m = $event.detail.time_m;
-            time_ampm = $event.detail.time_ampm;
-        } else {
-            date = $event.detail.date;
-            //subject = '';
-            //studentId = '';
-            tutorId = '';
-            if($event.detail.time_h) {
-                time_h = $event.detail.time_h;
-                time_m = $event.detail.time_m;
-                time_ampm = $event.detail.time_ampm;
-            }
-        }
-    "
+<div x-data="modalData()"
+    @open-session-modal.window="openModal($event)"
+    @open-modal.window="openModal($event)"
     @confirm-delete.window="open = true; name = $event.detail.name || ''; formId = $event.detail.formId; isRecurring = $event.detail.isRecurring || false"
     @set-error.window="errorMessage = ($event.detail && $event.detail.message) ? $event.detail.message : 'Something went wrong'"
     @close-modal.window="open = false"
@@ -256,4 +197,59 @@
             </template>
         </div>
     </div>
+
+<script>
+    window.modalData = function () {
+        return {
+            open: false,
+            isEdit: false,
+            studentId: '',
+            requestId: '',
+            isRecurring: false,
+            sessionId: null,
+            name: '',
+            date: '',
+            formId: null,
+            tutorId: '',
+            subject: '',
+            duration: '1:00',
+            blurb: '',
+            firstName: '',
+            lastName: '',
+            grade: '',
+            time_h: '09',
+            time_m: '00',
+            time_ampm: 'AM',
+            type: 'tutor',
+            title: 'New Session',
+            errorMessage: '',
+
+            openModal(event) {
+                const detail = event?.detail || {};
+
+                this.open = true;
+                this.errorMessage = '';
+                this.isEdit = detail.isEdit || false;
+                this.isRecurring = detail.isRecurring || false;
+                this.studentId = detail.studentId || '';
+                this.requestId = detail.requestId || '';
+                this.sessionId = detail.sessionId ?? null;
+                this.firstName = detail.firstName || '';
+                this.lastName = detail.lastName || '';
+                this.grade = detail.grade || '';
+                this.tutorId = detail.tutorId || '';
+                this.type = detail.type || 'tutor';
+                this.title = detail.title || 'New Session';
+                this.blurb = detail.blurb || '';
+                this.date = detail.date || '';
+                this.subject = detail.subject || '';
+                this.duration = detail.duration || '1:00';
+                this.time_h = detail.time_h || '09';
+                this.time_m = detail.time_m || '00';
+                this.time_ampm = detail.time_ampm || 'AM';
+            },
+        };
+    };
+</script>
+
 </div>

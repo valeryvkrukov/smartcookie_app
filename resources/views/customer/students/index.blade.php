@@ -15,7 +15,7 @@
                     detail: { 
                         type: 'add-student',
                         isEdit: false,
-                        date: ''
+                        date: '',
                         title: 'Register New Student' 
                     } 
                 }))"
