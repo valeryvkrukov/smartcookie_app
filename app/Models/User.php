@@ -33,7 +33,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'tutoring_goals',
     'photo',
     'blurb',
-    'can_tutor'
+    'can_tutor',
+    'time_zone'
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable

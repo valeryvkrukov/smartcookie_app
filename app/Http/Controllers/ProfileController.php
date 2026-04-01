@@ -32,6 +32,7 @@ class ProfileController extends Controller
             'last_name'     => ['nullable', 'string', 'max:255'],
             'phone'         => ['required', 'string', 'max:20'],
             'address'       => ['required', 'string', 'max:500'],
+            'time_zone'     => ['required', 'string', 'max:255'],
             'is_subscribed' => ['nullable', 'boolean'],
             'photo'         => ['nullable', 'image', 'max:2048'],
         ]);
@@ -52,7 +53,7 @@ class ProfileController extends Controller
         }
 
         // Fill data excl. `email`
-        $user->fill($request->only(['first_name', 'last_name', 'phone', 'address']));
+        $user->fill($request->only(['first_name', 'last_name', 'phone', 'address', 'time_zone']));
 
         $user->is_subscribed = $request->has('is_subscribed');
         $user->save();
