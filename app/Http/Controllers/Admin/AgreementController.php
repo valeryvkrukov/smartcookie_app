@@ -3,15 +3,39 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\AgreementRequest;
 use Illuminate\Http\Request;
 
 class AgreementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $requests = \App\Models\AgreementRequest::with('user', 'agreement')
-            ->orderBy('status', 'desc') // Show awaiting first, then signed
-            ->get();
+        $status = $request->input('status', 'Signed');
+        $search = $request->input('search');
+
+        $query = AgreementRequest::with('user', 'agreement');
+
+        if ($status === 'Pending') {
+            $query->where('status', 'Awaiting signature');
+        } else {
+            $query->where('status', 'Signed');
+        }
+
+        if ($search) {
+            $query->where(function ($query) use ($search) {
+                $query->whereHas('user', function ($query) use ($search) {
+                    $query->where('first_name', 'like', "%{$search}%")
+                        ->orWhere('last_name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                })
+                ->orWhereHas('agreement', function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%")
+                        ->orWhere('description', 'like', "%{$search}%");
+                });
+            });
+        }
+
+        $requests = $query->orderByRaw("FIELD(status, 'Awaiting signature', 'Signed')")->get();
 
         return view('admin.agreements.index', compact('requests'));
     }

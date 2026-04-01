@@ -4,6 +4,7 @@
     <!-- Filters and Search in "Glass" -->
     <div class="mb-10 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-wrap gap-4 items-center justify-between">
         <form action="{{ route('admin.agreements.index') }}" method="GET" class="flex flex-1 max-w-md relative group">
+            <input type="hidden" name="status" value="{{ request('status', 'Signed') }}">
             <input type="text" name="search" value="{{ request('search') }}" 
                    class="w-full pl-5 pr-12 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 transition-all" 
                    placeholder="Search client or document...">
@@ -14,8 +15,8 @@
 
         <div class="flex bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
             @foreach(['Signed' => 'emerald', 'Pending' => 'amber'] as $status => $color)
-                <a href="{{ route('admin.agreements.index', ['status' => $status]) }}" 
-                   class="px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ request('status') == $status ? 'bg-white text-'.$color.'-600 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">
+                <a href="{{ route('admin.agreements.index', array_filter(['status' => $status, 'search' => request('search')])) }}" 
+                   class="px-6 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all {{ request('status', 'Signed') == $status ? 'bg-white text-'.$color.'-600 shadow-sm' : 'text-slate-400 hover:text-slate-600' }}">
                     {{ $status }}
                 </a>
             @endforeach
