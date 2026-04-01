@@ -52,7 +52,7 @@ class CreditController extends Controller
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => route('customer.credits.success', ['session_id' => '{CHECKOUT_SESSION_ID}']),
+                'success_url' => route('customer.credits.success').'?session_id={CHECKOUT_SESSION_ID}',
                 'cancel_url' => route('customer.credits.index'),
                 'customer_email' => auth()->user()->email,
             ]);
