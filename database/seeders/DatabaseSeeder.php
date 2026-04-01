@@ -91,26 +91,29 @@ class DatabaseSeeder extends Seeder
 
         $sessions = collect();
 
-        foreach (range(1, 30) as $i) {
-            $tutor = $tutors->random();
-            $student = $students->random();
+        $tutors->each(function (User $tutor) use ($faker, $students, $subjects, $sessions) {
+            $count = rand(5, 10);
 
-            $session = TutoringSession::create([
-                'tutor_id' => $tutor->id,
-                'student_id' => $student->id,
-                'subject' => $faker->randomElement($subjects),
-                'date' => now()->subDays(rand(0, 90)),
-                'start_time' => sprintf('%02d:%02d:00', rand(8, 18), rand(0, 1) * 30),
-                'duration' => $faker->randomElement(['0:30', '1:00', '1:30', '2:00']),
-                'location' => $faker->optional()->streetAddress(),
-                'is_initial' => $faker->boolean(20),
-                'recurs_weekly' => $faker->boolean(10),
-                'status' => $faker->randomElement(['Scheduled', 'Completed', 'Canceled']),
-                'tutor_rate' => $faker->randomFloat(2, 25, 80),
-            ]);
+            foreach (range(1, $count) as $i) {
+                $student = $students->random();
 
-            $sessions->push($session);
-        }
+                $session = TutoringSession::create([
+                    'tutor_id' => $tutor->id,
+                    'student_id' => $student->id,
+                    'subject' => $faker->randomElement($subjects),
+                    'date' => now()->subDays(rand(0, 90)),
+                    'start_time' => sprintf('%02d:%02d:00', rand(8, 18), rand(0, 1) * 30),
+                    'duration' => $faker->randomElement(['0:30', '1:00', '1:30', '2:00']),
+                    'location' => $faker->optional()->streetAddress(),
+                    'is_initial' => $faker->boolean(20),
+                    'recurs_weekly' => $faker->boolean(10),
+                    'status' => $faker->randomElement(['Scheduled', 'Completed', 'Canceled']),
+                    'tutor_rate' => $faker->randomFloat(2, 25, 80),
+                ]);
+
+                $sessions->push($session);
+            }
+        });
 
         // --- 6. TIMESHEETS ---
         $sessions->each(function (TutoringSession $session) use ($faker) {
