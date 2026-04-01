@@ -9,10 +9,7 @@
 
     <form :action="isEdit ? '/admin/sessions/' + sessionId : '/admin/sessions'" method="POST" class="space-y-6">
         @csrf
-        <div class="space-y-1">
-            <label class="label-premium">Date</label>
-            <input type="date" name="date" x-model="date" class="input-premium text-sm" required>
-        </div>
+        
         <input type="hidden" name="location" value="Online">
 
         <template x-if="isEdit">
@@ -39,6 +36,11 @@
         <div class="space-y-1">
             <label class="label-premium">Subject</label>
             <input x-model="subject" type="text" name="subject" class="input-premium" placeholder="e.g. Mathematics" required>
+        </div>
+
+        <div class="space-y-1">
+            <label class="label-premium">Date</label>
+            <input type="date" name="date" x-model="date" class="input-premium text-sm" required>
         </div>
 
         <!-- Time (using Alpine variables from modal-container) -->
