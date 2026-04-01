@@ -7,8 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,13 +19,10 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             cd /var/www/smartcookie
-
             git fetch origin main
             git reset --hard origin/main
-
             composer install --no-dev --optimize-autoloader
             npm install
             npm run build
-
             php artisan migrate --force
             php artisan optimize
