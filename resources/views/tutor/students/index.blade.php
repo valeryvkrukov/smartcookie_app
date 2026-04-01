@@ -77,7 +77,9 @@
                     <button type="button"
                         @click="$dispatch('open-modal', { 
                             type: 'tutor-schedule-session', 
-                            studentId: '{{ $student->id }}', 
+                            studentId: '{{ $student->id }}',
+                            firstName: '{{ $student->first_name }}',
+                            lastName: '{{ $student->last_name }}', 
                             title: 'Schedule Session for {{ $student->first_name }}' 
                         })"
                         class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">

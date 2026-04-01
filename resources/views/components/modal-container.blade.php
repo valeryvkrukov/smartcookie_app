@@ -237,52 +237,18 @@
                     @csrf
 
                     <input type="hidden" name="student_id" :value="studentId">
-
-                    <!-- Предмет и Дата в ряд -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-                        <div class="space-y-3">
-                            <x-input-label value="Subject" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1" />
-                            <input type="text" name="subject" placeholder="e.g. Math" class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 px-1 text-base font-bold text-slate-800" required />
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="label-premium">First Name</label>
+                            <input type="text" name="first_name" x-model="firstName" class="input-premium" required>
                         </div>
-                        <div class="space-y-3">
-                            <x-input-label value="Date" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1" />
-                            <input type="date" name="date" value="{{ request('date', date('Y-m-d')) }}" class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 px-1 text-base font-bold text-slate-800" required />
-                        </div>
-                    </div>
-
-                    <!-- Время: Компактный ряд -->
-                    <div class="space-y-3">
-                        <x-input-label value="Start Time" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1" />
-                        <div class="flex items-center space-x-4">
-                            <div class="flex-1 flex items-center bg-slate-50 rounded-2xl px-4 py-1">
-                                <select name="time_h" class="bg-transparent border-0 focus:ring-0 font-black text-xl text-slate-800">
-                                    @for($i=1; $i<=12; $i++) <option value="{{ sprintf('%02d', $i) }}">{{ $i }}</option> @endfor
-                                </select>
-                                <span class="font-black text-slate-300">:</span>
-                                <select name="time_m" class="bg-transparent border-0 focus:ring-0 font-black text-xl text-slate-800">
-                                    @foreach(['00','15','30','45'] as $m) <option value="{{ $m }}">{{ $m }}</option> @endforeach
-                                </select>
-                            </div>
-                            <select name="time_ampm" class="w-24 py-4 bg-[#212120] text-white rounded-2xl text-center font-black text-xs uppercase tracking-widest border-0 focus:ring-0">
-                                <option value="AM">AM</option>
-                                <option value="PM">PM</option>
-                            </select>
+                        <div class="space-y-1">
+                            <label class="label-premium">Last Name</label>
+                            <input type="text" name="last_name" x-model="lastName" class="input-premium" required>
                         </div>
                     </div>
 
-                    <!-- Опции: Чистые переключатели -->
-                    <div class="pt-6 space-y-4">
-                        <label class="flex items-center group cursor-pointer">
-                            <input type="checkbox" name="recurs_weekly" value="1" class="w-5 h-5 rounded border-2 border-slate-200 text-[#212120] focus:ring-0 transition-all mr-3">
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-800 transition-colors">Recurs Weekly (12 weeks)</span>
-                        </label>
-                        <label class="flex items-center group cursor-pointer">
-                            <input type="checkbox" name="is_initial" value="1" class="w-5 h-5 rounded border-2 border-slate-200 text-emerald-500 focus:ring-0 transition-all mr-3">
-                            <span class="text-xs font-bold text-slate-500 uppercase tracking-widest group-hover:text-slate-800 transition-colors">Initial Consultation</span>
-                        </label>
-                    </div>
-
-                    <!-- Кнопка: Строгая и мощная -->
                     <button type="submit" class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all">
                         Schedule Session
                     </button>
