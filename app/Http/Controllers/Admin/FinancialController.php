@@ -16,7 +16,7 @@ class FinancialController extends Controller
     {
         // Key financial stats
         $stats = [
-            'total_revenue' => CreditPurchase::where('type', 'deposit')->sum('amount'),
+            'total_revenue' => CreditPurchase::sum('total_paid'),
             'tutor_payouts' => TutoringSession::where('status', 'completed')->sum('tutor_rate'),
             'client_balances' => Credit::sum('credit_balance'),
         ];

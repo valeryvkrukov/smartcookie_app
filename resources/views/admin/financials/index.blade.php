@@ -67,7 +67,7 @@
                             </div>
                         </td>
                         <td class="p-8 text-right font-black text-slate-900 text-lg tracking-tighter">
-                            {{ $t->type === 'deposit' ? '+' : '-' }}${{ number_format($t->amount, 2) }}
+                            {{ $t->type === 'deposit' ? '+' : '-' }}${{ number_format($t->total_paid, 2) }}
                         </td>
                     </tr>
                     @endforeach
