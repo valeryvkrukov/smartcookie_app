@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        User::factory(10)->create(['role' => 'tutor']);
+        //User::factory(10)->create(['role' => 'tutor']);
 
         $parent = User::create([
             'first_name' => 'Sarah2',
