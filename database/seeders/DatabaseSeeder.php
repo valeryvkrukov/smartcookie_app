@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\User;
+use App\Models\Student;
 use App\Models\Credit;
 use App\Models\CreditPurchase;
 use App\Models\TutoringSession;
@@ -93,7 +94,7 @@ class DatabaseSeeder extends Seeder
 
             // Making students and assigning random tutors
             foreach ($f['children'] as $child) {
-                User::create(array_merge($child, [
+                Student::create(array_merge($child, [
                     'parent_id' => $parent->id,
                     'role' => 'student',
                     'email' => strtolower($child['first_name'].'.'.$child['last_name'].'@smartcookie.local'),
