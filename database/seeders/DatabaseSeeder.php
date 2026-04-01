@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\User;
+use App\Models\Credit;
+use App\Models\CreditTransaction;
 
 class DatabaseSeeder extends Seeder
 {
@@ -17,9 +19,39 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
+        /*User::factory()->create([
             'name' => 'Test User',
             'email' => 'test@example.com',
+        ]);*/
+
+        $parent = User::create([
+            'first_name' => 'Sarah',
+            'last_name' => 'Parent',
+            'email' => 'sarah@etutor.com',
+            'password' => \Hash::make('password'),
+            'role' => 'customer',
         ]);
+
+        $credit = Credit::create([
+            'user_id' => $parent->id,
+            'credit_balance' => 500.00,
+        ]);
+
+        $transactions = [
+            ['amount' => 250.00, 'type' => 'deposit', 'created_at' => now()->subDays(10)],
+            ['amount' => 500.00, 'type' => 'deposit', 'created_at' => now()->subDays(5)],
+            ['amount' => 100.00, 'type' => 'withdrawal', 'created_at' => now()->subDays(2)],
+            ['amount' => 150.00, 'type' => 'deposit', 'created_at' => now()->subMinutes(30)],
+        ];
+
+        foreach ($transactions as $data) {
+            CreditTransaction::create([
+                'user_id' => $parent->id,
+                'amount' => $data['amount'],
+                'type' => $data['type'],
+                'status' => 'completed',
+                'created_at' => $data['created_at'],
+            ]);
+        }
     }
 }
