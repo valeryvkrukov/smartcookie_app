@@ -20,6 +20,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        $faker = \Faker\Factory::create();
+        
         \Schema::disableForeignKeyConstraints();
         User::truncate();
         Credit::truncate();
@@ -51,7 +53,7 @@ class DatabaseSeeder extends Seeder
             $tutors[] = Tutor::create(array_merge($t, [
                 'password' => \Hash::make('password123'),
                 'role' => 'tutor',
-                'blurb' => fake()->paragraph(),
+                'blurb' => $faker->paragraph(),
                 'hourly_rate' => rand(30, 50), // Random hourly rate between $30 and $50
                 'is_subscribed' => true,
             ]));
@@ -62,8 +64,8 @@ class DatabaseSeeder extends Seeder
             [
                 'parent' => ['first_name' => 'Sarah', 'last_name' => 'Johnson', 'email' => 'sarah@parent.com'],
                 'children' => [
-                    ['first_name' => 'Leo', 'last_name' => 'Johnson', 'student_grade' => '5th Grade', 'blurb' => fake()->paragraph()],
-                    ['first_name' => 'Emma', 'last_name' => 'Johnson', 'student_grade' => '8th Grade', 'blurb' => fake()->paragraph()],
+                    ['first_name' => 'Leo', 'last_name' => 'Johnson', 'student_grade' => '5th Grade', 'blurb' => $faker->paragraph()],
+                    ['first_name' => 'Emma', 'last_name' => 'Johnson', 'student_grade' => '8th Grade', 'blurb' => $faker->paragraph()],
                 ],
                 'balance' => 450.00,
                 'payments' => [200.00, 250.00]
@@ -71,7 +73,7 @@ class DatabaseSeeder extends Seeder
             [
                 'parent' => ['first_name' => 'Michael', 'last_name' => 'Smith', 'email' => 'mike@parent.com'],
                 'children' => [
-                    ['first_name' => 'Chris', 'last_name' => 'Smith', 'student_grade' => '10th Grade', 'blurb' => fake()->paragraph(),],
+                    ['first_name' => 'Chris', 'last_name' => 'Smith', 'student_grade' => '10th Grade', 'blurb' => $faker->paragraph(),],
                 ],
                 'balance' => 120.00,
                 'payments' => [120.00]
