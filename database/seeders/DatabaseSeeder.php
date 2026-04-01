@@ -54,7 +54,7 @@ class DatabaseSeeder extends Seeder
                 'password' => \Hash::make('password123'),
                 'role' => 'tutor',
                 'blurb' => $faker->paragraph(),
-                'hourly_rate' => rand(30, 50), // Random hourly rate between $30 and $50
+                'tutoring_goals' => $faker->sentence(),
                 'is_subscribed' => true,
             ]));
         }
