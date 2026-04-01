@@ -9,7 +9,10 @@
 
     <form :action="isEdit ? '/admin/sessions/' + sessionId : '/admin/sessions'" method="POST" class="space-y-6">
         @csrf
-        <input type="hidden" name="date" :value="date">
+        <div class="space-y-1">
+            <label class="label-premium">Date</label>
+            <input type="date" name="date" x-model="date" class="input-premium text-sm" required>
+        </div>
         <input type="hidden" name="location" value="Online">
 
         <template x-if="isEdit">

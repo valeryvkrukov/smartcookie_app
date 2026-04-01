@@ -7,9 +7,12 @@
         <span class="text-[10px] font-black uppercase tracking-widest" x-text="errorMessage"></span>
     </div>
 
-    <form action="{{ route('tutor.sessions.store') }}" method="POST" class="space-y-6">
+    <form :action="isEdit ? '/tutor/sessions/' + sessionId : '{{ route('tutor.sessions.store') }}'" method="POST" class="space-y-6">
         @csrf
-        <input type="hidden" name="date" :value="date">
+        <div>
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Date</label>
+            <input type="date" name="date" x-model="date" class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800" required>
+        </div>
         <input type="hidden" name="location" value="Online">
 
         <template x-if="isEdit">
@@ -104,7 +107,7 @@
                 }))"
                 class="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 transition-colors">
                 Cancel Session
-            </div>
+            </button>
         </template>
     </form>
 
