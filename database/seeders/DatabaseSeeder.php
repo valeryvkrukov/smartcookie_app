@@ -111,24 +111,23 @@ class DatabaseSeeder extends Seeder
 
         // --- 4. HISTORY OF SESSIONS (For Net Profit) ---
         // Creating several completed sessions to see "expenses" in Financials
-        $completedSessions = [
-            ['subject' => 'Math', 'rate' => 45.00],
-            ['subject' => 'English', 'rate' => 35.00],
-        ];
+        $subjects = ['Math', 'English', 'Science', 'History'];
 
         $allStudents = User::where('role', 'student')->get();
+        $lastDateTime = null;
         
-        foreach ($completedSessions as $s) {
-            TutoringSession::create([
+        foreach (($subjects * 5) as $subject) {
+            $session = TutoringSession::create([
                 'student_id' => $allStudents->random()->id,
-                'tutor_id' => $tutors[0]->id,
-                'subject' => $s['subject'],
+                'tutor_id' => $tutors[array_rand($tutors)]->id,
+                'subject' => array_rand(array_flip($subjects)),
                 'date' => now()->subDays(2),
-                'start_time' => '15:00',
-                'duration' => '1:00',
+                'start_time' => random_int(8, 20) . ':00',
+                'duration' => '1:' . array_rand(['00', '30']),
                 'status' => 'completed',
-                'tutor_rate' => $s['rate']
+                'tutor_rate' => rand(30, 50)
             ]);
+
         }
 
         \Schema::enableForeignKeyConstraints();
