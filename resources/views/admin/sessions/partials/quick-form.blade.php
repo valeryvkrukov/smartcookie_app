@@ -69,7 +69,7 @@
         <template x-if="isEdit">
             <button type="button" 
                 :onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { 
-                    name: 'this tutoring session', 
+                    
                     formId: 'delete-session-form', 
                     isRecurring: isRecurring 
                 }))"
