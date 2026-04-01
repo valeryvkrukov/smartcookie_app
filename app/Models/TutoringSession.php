@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'tutor_id', 'student_id', 'subject', 'date', 'start_time', 
+    'tutor_id', 'student_id', 'subject', 'date', 'start_time', 'tutor_rate',
     'duration', 'location', 'is_initial', 'recurs_weekly', 'status', 'recurring_id',
 ])]
 class TutoringSession extends Model
