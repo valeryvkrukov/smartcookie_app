@@ -79,6 +79,11 @@
                     Delete
                 </button>
             </div>
+
+            <form id="delete-user-{{ $user->id }}" action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display:none;">
+                @csrf
+                @method('DELETE')
+            </form>
         </div>
         @endforeach
     </div>

@@ -1,7 +1,6 @@
 <div x-data="modalData()"
     @open-session-modal.window="openModal($event)"
     @open-modal.window="openModal($event)"
-    @confirm-delete.window="open = true; name = $event.detail.name || ''; formId = $event.detail.formId; isRecurring = $event.detail.isRecurring || false"
     @set-error.window="errorMessage = ($event.detail && $event.detail.message) ? $event.detail.message : 'Something went wrong'"
     @close-modal.window="open = false"
     x-show="open" 

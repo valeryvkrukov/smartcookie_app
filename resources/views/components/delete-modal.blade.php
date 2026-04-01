@@ -1,5 +1,6 @@
 <div x-data="{ open: false, name: '', formId: null, isRecurring: false }" 
-     @confirm-user-delete.window="open = true; name = $event.detail.name; formId = $event.detail.formId;"
+     @confirm-delete.window="open = true; name = ($event.detail && $event.detail.name) ? $event.detail.name : ''; formId = ($event.detail && $event.detail.formId) ? $event.detail.formId : null; isRecurring = ($event.detail && $event.detail.isRecurring) ? $event.detail.isRecurring : false"
+     @confirm-user-delete.window="open = true; name = ($event.detail && $event.detail.name) ? $event.detail.name : ''; formId = ($event.detail && $event.detail.formId) ? $event.detail.formId : null; isRecurring = ($event.detail && $event.detail.isRecurring) ? $event.detail.isRecurring : false"
      x-show="open" 
      x-cloak
      class="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto"
