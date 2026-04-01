@@ -31,9 +31,9 @@ class DatabaseSeeder extends Seeder
         //User::factory(10)->create(['role' => 'tutor']);
 
         $parent = User::create([
-            'first_name' => 'Sarah2',
-            'last_name' => 'Parent2',
-            'email' => 'sarah2@tutor.com',
+            'first_name' => 'Sarah',
+            'last_name' => 'Parent',
+            'email' => 'parent@tutor.com',
             'password' => \Hash::make('password'),
             'role' => 'customer',
         ]);
