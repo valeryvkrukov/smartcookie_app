@@ -9,7 +9,8 @@ use App\Models\User;
 #[Fillable([
     'user_id',
     'amount',
-    'total_paid'
+    'total_paid',
+    'stripe_session_id',
 ])]
 class CreditPurchase extends Model
 {
