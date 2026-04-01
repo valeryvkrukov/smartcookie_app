@@ -15,11 +15,12 @@
                 $links = [
                     ['route' => 'dashboard', 'icon' => 'ti-layout-grid2', 'label' => 'Dashboard'],
                     ['route' => auth()->user()->role === 'admin' ? 'admin.calendar.index' : 'tutor.calendar.index', 'icon' => 'ti-calendar', 'label' => 'Schedule', 'role' => ['admin', 'tutor']],
+                    ['route' => 'tutor.students.index', 'icon' => 'ti-id-badge', 'label' => 'My Students', 'role' => 'tutor'],
                     ['route' => 'customer.calendar.index', 'icon' => 'ti-calendar', 'label' => 'Family Schedule', 'role' => 'customer'],
                     ['route' => 'customer.students.index', 'icon' => 'ti-id-badge', 'label' => 'My Students', 'role' => 'customer'],
                     ['route' => 'admin.users.index', 'icon' => 'ti-user', 'label' => 'Directory', 'role' => 'admin'],
                     ['route' => 'admin.financials.index', 'icon' => 'ti-wallet', 'label' => 'Financials', 'role' => 'admin'],
-                    ['route' => auth()->user()->role . '.agreements.index', 'icon' => 'ti-write', 'label' => 'Agreements', 'role' => ['admin', 'customer']],
+                    ['route' => auth()->user()->role === 'admin' ? 'admin.agreements.index' : 'customer.agreements.index', 'icon' => 'ti-write', 'label' => 'Agreements', 'role' => ['admin', 'customer']],
                     ['route' => 'tutor.timesheets.index', 'icon' => 'ti-timer', 'label' => 'Timesheets', 'role' => 'tutor'],
                     ['route' => 'customer.credits.index', 'icon' => 'ti-money', 'label' => 'Billing & Credits', 'role' => 'customer'],
                 ];
