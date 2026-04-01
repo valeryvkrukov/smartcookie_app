@@ -34,6 +34,8 @@
                 ],
                 initialView: 'timeGridWeek',
                 selectable: true,
+                slotMinTime: '06:00:00',
+                slotMaxTime: '22:00:00',
                 // Quick Add by click on date
                 dateClick: function(info) {
                     // Call to `Create` modal (type 'admin')

@@ -25,11 +25,11 @@
                 // Plugins: time grid, daygrid and interaction (for clicks)
                 //plugins: [ 'dayGrid', 'timeGrid', 'interaction' ],
                 initialView: 'timeGridWeek',
-
+                
                 // Define working hours and hide all-day slot
                 firstDay: 0, 
                 allDaySlot: false,
-                slotMinTime: '07:00:00', // Beginning of workday
+                slotMinTime: '06:00:00', // Beginning of workday
                 slotMaxTime: '22:00:00', // End of workday
                 
                 headerToolbar: {
