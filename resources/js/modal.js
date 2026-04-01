@@ -4,8 +4,8 @@ window.submitModalForm = function(buttonElement) {
     
     // Визуальный фидбек
     buttonElement.disabled = true;
-    const originalText = buttonElement.innerHTML; // Используем innerHTML чтобы сохранить стили
-    buttonElement.innerHTML = '<span class="inline-flex items-center justify-center"><i class="ti-reload animate-spin mr-3 text-sm flex-shrink-0" style="line-height: 1; display: inline-block;"></i> PROCESSING...</span>';
+    const originalText = buttonElement.innerHTML;
+    buttonElement.innerHTML = '<span class="inline-flex items-center justify-center">PROCESSING...</span>';
 
     fetch(form.action, {
         method: 'POST',
@@ -20,25 +20,25 @@ window.submitModalForm = function(buttonElement) {
         const data = await response.json();
         
         if (response.ok && data && data.success) {
-            // УСПЕХ: закрываем и обновляем
+            // OK: close modal and refresh calendar or page
             window.dispatchEvent(new CustomEvent('close-modal'));
             
-            // Если есть календарь — рефрешим его, если нет — релоад страницы
+            // If calendar exists, refetch events, otherwise reload page
             if (window.calendar) {
                 window.calendar.refetchEvents();
             } else {
                 window.location.reload();
             }
         } else {
-            // ОШИБКА: выводим сообщение, модалку НЕ закрываем
+            // ERROR: show error message from server or generic one
             window.dispatchEvent(new CustomEvent('set-error', { 
                 detail: { message: data.message || 'Validation error' } 
             }));
             
-            // Возвращаем текст кнопки, так как .finally выполнится позже
+            // Return the button text, as .finally will execute later
             buttonElement.disabled = false;
-            buttonElement.innerHTML = originalText;
         }
+        buttonElement.innerHTML = originalText;
     })
     .catch(err => {
         console.error('Fetch Error:', err);

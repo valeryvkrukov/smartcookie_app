@@ -61,7 +61,7 @@
                     // Customers can only view session details, not edit
                     window.dispatchEvent(new CustomEvent('open-modal', { 
                         detail: { 
-                            type: 'session-info', // Новая модалка "Просмотр"
+                            type: 'session-info', // new modal view type for read-only session details
                             title: 'Session Details',
                             subject: info.event.extendedProps.subject,
                             tutorName: info.event.title,
