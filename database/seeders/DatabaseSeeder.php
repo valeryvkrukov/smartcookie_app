@@ -118,7 +118,7 @@ class DatabaseSeeder extends Seeder
         $allStudents = User::where('role', 'student')->get();
         $lastDateTime = null;
         
-        foreach ((count($subjects) * 5) as $subject) {
+        foreach (range(1, 10) as $i) {
             $session = TutoringSession::create([
                 'student_id' => $allStudents->random()->id,
                 'tutor_id' => $tutors[array_rand($tutors)]->id,
