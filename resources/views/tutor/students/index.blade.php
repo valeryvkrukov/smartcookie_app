@@ -75,14 +75,12 @@
                     </div>
 
                     <button type="button"
-                        onclick="window.dispatchEvent(new CustomEvent('open-modal', { 
-                            type: 'tutor-schedule-session', 
+                        onclick="window.dispatchEvent(new CustomEvent('open-modal', {
                             detail: {
+                                type: 'tutor-schedule-session', 
                                 studentId: '{{ $student->id }}',
                                 tutorId: '{{ auth()->id() }}',
-                                firstName: '{{ $student->first_name }}',
-                                lastName: '{{ $student->last_name }}', 
-                                title: 'Schedule Session for {{ $student->first_name }}'
+                                title: 'Schedule Session for {{ $student->full_name }}'
                             }
                         }))"
                         class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-600 hover:text-white transition-all">
