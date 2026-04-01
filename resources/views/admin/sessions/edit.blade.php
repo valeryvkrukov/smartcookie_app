@@ -91,12 +91,6 @@
 
             <div class="pt-4 border-t flex justify-between">
                 <button type="button" 
-                    @click="$dispatch('confirm-delete', { 
-                        name: 'this tutoring session', 
-                        formId: 'delete-session-{{ $session->id }}', 
-                        title: 'Cancel Session',
-                        isRecurring: {{ $session->recurring_id ? 'true' : 'false' }} 
-                    })"
                     onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { 
                         detail: { 
                             name: 'this session', 

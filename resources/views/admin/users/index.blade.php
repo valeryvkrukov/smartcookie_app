@@ -54,12 +54,12 @@
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate w-32">{{ $user->email }}</p>
                 </div>
                 <button type="button" 
-                        @click="$dispatch('open-modal', { 
-                            type: 'send-agreement', 
-                            studentId: '{{ $user->id }}', 
-                            title: 'Send Document to {{ $user->first_name }}' 
-                        })"
-                        class="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-black transition-colors">
+                    onclick="window.dispatchEvent(new CustomEvent('open-modal', { 
+                        type: 'send-agreement', 
+                        studentId: '{{ $user->id }}', 
+                        title: 'Send Document to {{ $user->first_name }}' 
+                    }))"
+                    class="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-black transition-colors">
                     Send Policy
                 </button>
             </div>

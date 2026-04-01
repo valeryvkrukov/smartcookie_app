@@ -112,8 +112,11 @@
                                     <span class="text-sm font-black text-emerald-600">${{ number_format($sr->rate, 2) }}</span>
                                     <!-- Button for deleting the subject rate (using our global delete modal) -->
                                     <button type="button" 
-                                            @click="$dispatch('confirm-delete', { name: '{{ $sr->subject }} rate', formId: 'delete-rate-{{ $sr->id }}' })"
-                                            class="text-slate-300 hover:text-rose-500 transition-colors">
+                                        onclick="window.dispatchEvent(new CustomEvent('confirm-delete', {
+                                            name: '{{ $sr->subject }} rate', 
+                                            formId: 'delete-rate-{{ $sr->id }}'
+                                        }))"
+                                        class="text-slate-300 hover:text-rose-500 transition-colors">
                                         <i class="ti-trash"></i>
                                     </button>
                                     <form id="delete-rate-{{ $sr->id }}" action="{{ route('admin.subject-rates.destroy', $sr->id) }}" method="POST" class="hidden">
@@ -200,10 +203,13 @@
                     </div>
                 </div>
 
-                <!-- Кнопка удаления (Modern Style) -->
+                <!-- Delete Button (Modern Style) -->
                 <button type="button" 
-                        @click="$dispatch('confirm-delete', { name: '{{ $user->full_name }}', formId: 'delete-user-{{ $user->id }}' })"
-                        class="w-full py-4 bg-rose-50 text-rose-500 rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all">
+                    onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { 
+                        name: '{{ $user->full_name }}',
+                        formId: 'delete-user-{{ $user->id }}'
+                    }))"
+                    class="w-full py-4 bg-rose-50 text-rose-500 rounded-[2rem] text-[10px] font-black uppercase tracking-widest hover:bg-rose-100 transition-all">
                     Delete User Account
                 </button>
             </div>
