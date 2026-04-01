@@ -106,9 +106,6 @@ class DatabaseSeeder extends Seeder
                     'tutoring_goals' => $faker->sentence(),
                     'password' => \Hash::make('password123'),
                 ]));
-                $student->assignedTutors()->attach($tutors[array_rand($tutors)]->id, [
-                    'hourly_payout' => rand(25, 40) // Random payout between $25 and $40
-                ]);
             }
         }
 
@@ -119,7 +116,7 @@ class DatabaseSeeder extends Seeder
         $allStudents = User::where('role', 'student')->get();
         $assigned = [];
         
-        foreach (range(1, 50) as $i) {
+        foreach (range(1, 30) as $i) {
             $tutorId = $tutors[array_rand($tutors)]->id;
             $date = now()->subDays(rand(1, 30));
             $time = random_int(8, 20) . ':00';
@@ -128,8 +125,10 @@ class DatabaseSeeder extends Seeder
                 !collect($assigned[$tutorId])->contains(function($s) use ($date, $time) {
                     return $s['date'] === $date->toDateString() && $s['start_time'] === $time;
             })) {
+                $student = $allStudents->random();
+
                 $session = TutoringSession::create([
-                    'student_id' => $allStudents->random()->id,
+                    'student_id' => $student->id,
                     'tutor_id' => $tutorId,
                     'subject' => array_rand(array_flip($subjects)),
                     'date' => $date,
@@ -137,6 +136,10 @@ class DatabaseSeeder extends Seeder
                     'duration' => '1:' . array_rand(['00', '30']),
                     'status' => 'completed',
                     'tutor_rate' => rand(30, 50)
+                ]);
+
+                $student->assignedTutors()->attach($tutorId, [
+                    'hourly_payout' => rand(25, 40) // Random payout between $25 and $40
                 ]);
 
                 $assigned[$tutorId][] = [
