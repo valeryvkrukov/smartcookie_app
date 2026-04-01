@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Credit;
 use App\Models\TutoringSession;
-use App\Models\CreditTransaction;
+use App\Models\CreditPurchase;
 
 class FinancialController extends Controller
 {
@@ -16,16 +16,18 @@ class FinancialController extends Controller
     {
         // Key financial stats
         $stats = [
-            'total_revenue' => CreditTransaction::where('type', 'deposit')->sum('amount'),
+            'total_revenue' => CreditPurchase::where('type', 'deposit')->sum('amount'),
             'tutor_payouts' => TutoringSession::where('status', 'completed')->sum('tutor_rate'),
             'client_balances' => Credit::sum('credit_balance'),
         ];
 
         // Transactions list with filter and pagination
-        $query = CreditTransaction::with('user')->orderBy('created_at', 'desc');
+        $transactions = CreditPurchase::with('user')
+            ->orderBy('created_at', 'desc')
+            ->paginate(15);
 
         if ($request->filled('search')) {
-            $query->whereHas('user', function($q) use ($request) {
+            $transactions->whereHas('user', function($q) use ($request) {
                 $q->where('first_name', 'like', "%{$request->search}%")
                     ->orWhere('last_name', 'like', "%{$request->search}%");
             });
