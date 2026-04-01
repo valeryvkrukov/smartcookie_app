@@ -138,7 +138,7 @@ class DatabaseSeeder extends Seeder
                     'tutor_rate' => rand(30, 50)
                 ]);
 
-                $student->assignedTutors()->attach($tutorId, [
+                $student->assignedTutors()->syncWithoutDetaching($tutorId, [
                     'hourly_payout' => rand(25, 40) // Random payout between $25 and $40
                 ]);
 
