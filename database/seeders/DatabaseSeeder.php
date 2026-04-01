@@ -19,7 +19,7 @@ class DatabaseSeeder extends Seeder
     {
         Schema::disableForeignKeyConstraints();
 
-        User::updateOrCreate(
+        /*User::updateOrCreate(
             ['email' => 'valery.v.krukov@gmail.com'],
             [
                 'first_name' => 'Valery',
@@ -28,7 +28,7 @@ class DatabaseSeeder extends Seeder
                 'role' => 'admin',
                 'email_verified_at' => now(),
             ]
-        );
+        );*/
 
         User::factory(10)->create(['role' => 'tutor']);
 
