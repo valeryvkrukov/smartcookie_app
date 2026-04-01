@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TutoringSession;
 use App\Models\User;
 use App\Models\AgreementRequest;
+use App\Notifications\SessionScheduled;
 use Carbon\Carbon;
 
 class SessionService
