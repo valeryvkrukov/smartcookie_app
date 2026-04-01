@@ -7,6 +7,7 @@ use Illuminate\Database\Seeder;
 use App\Models\User;
 use App\Models\Credit;
 use App\Models\CreditPurchase;
+use App\Models\TutoringSession;
 
 class DatabaseSeeder extends Seeder
 {
@@ -21,45 +22,106 @@ class DatabaseSeeder extends Seeder
         User::truncate();
         Credit::truncate();
         CreditPurchase::truncate();
+        TutoringSession::truncate();
 
-        // 1. Create Admin User
-        $admin = \App\Models\User::updateOrCreate(
-            ['email' => 'valery.v.krukov@gmail.com'],
-            [
-                'first_name' => 'Valery',
-                'last_name' => 'Krukov',
-                'password' => \Hash::make('password123'),
-                'role' => 'admin',
-            ]
-        );
-
-        // 2. Create Test Parent
-        $parent = \App\Models\User::create([
-            'first_name' => 'Sarah',
-            'last_name' => 'Parent',
-            'email' => 'parent@example.com',
-            'password' => \Hash::make('password123'),
-            'role' => 'customer',
-        ]);
-
-        // Balance (Credits)
-        \App\Models\Credit::create([
-            'user_id' => $parent->id,
-            'credit_balance' => 350.00,
-        ]);
-
-        // 3. Тестовые покупки (Revenue)
-        $purchases = [
-            ['amount' => 100.00, 'total_paid' => 100.00],
-            ['amount' => 250.00, 'total_paid' => 240.00], // For example, with a discount or fees
+        // --- 1. ADMINS ---
+        $admins = [
+            ['first_name' => 'Valery', 'last_name' => 'Krukov', 'email' => 'valery.v.krukov@gmail.com'],
+            ['first_name' => 'Sofi', 'last_name' => 'Admin', 'email' => 'sofi@smartcookie.com'],
         ];
 
-        foreach ($purchases as $p) {
-            \App\Models\CreditPurchase::create([
-                'user_id' => $parent->id,
-                'amount' => $p['amount'],
-                'total_paid' => $p['total_paid'],
-                'type' => 'withdrawal', // Assuming these are withdrawals for the sake of financial stats
+        foreach ($admins as $a) {
+            User::create(array_merge($a, [
+                'password' => \Hash::make('password123'),
+                'role' => 'admin',
+                'email_verified_at' => now(),
+            ]));
+        }
+
+        // --- 2. TUTORS (with different rates) ---
+        $tutors = [];
+        $tutorData = [
+            ['first_name' => 'Alex', 'last_name' => 'Math-Pro', 'email' => 'alex@tutor.com'],
+            ['first_name' => 'Maria', 'last_name' => 'English-Expert', 'email' => 'maria@tutor.com'],
+        ];
+
+        foreach ($tutorData as $t) {
+            $tutors[] = \App\Models\User::create(array_merge($t, [
+                'password' => \Hash::make('password123'),
+                'role' => 'tutor',
+                'is_subscribed' => true,
+            ]));
+        }
+
+        // --- 3. PARENTS AND CHILDREN (Families) ---
+        $families = [
+            [
+                'parent' => ['first_name' => 'Sarah', 'last_name' => 'Johnson', 'email' => 'sarah@parent.com'],
+                'children' => [
+                    ['first_name' => 'Leo', 'last_name' => 'Johnson', 'grade' => '5th Grade'],
+                    ['first_name' => 'Emma', 'last_name' => 'Johnson', 'grade' => '8th Grade'],
+                ],
+                'balance' => 450.00,
+                'payments' => [200.00, 250.00]
+            ],
+            [
+                'parent' => ['first_name' => 'Michael', 'last_name' => 'Smith', 'email' => 'mike@parent.com'],
+                'children' => [
+                    ['first_name' => 'Chris', 'last_name' => 'Smith', 'grade' => '10th Grade'],
+                ],
+                'balance' => 120.00,
+                'payments' => [120.00]
+            ]
+        ];
+
+        foreach ($families as $f) {
+            $parent = User::create(array_merge($f['parent'], [
+                'password' => \Hash::make('password123'),
+                'role' => 'customer',
+            ]));
+
+            // Balance and payment history for the parent
+            Credit::create(['user_id' => $parent->id, 'credit_balance' => $f['balance']]);
+            foreach ($f['payments'] as $amt) {
+                CreditPurchase::create([
+                    'user_id' => $parent->id,
+                    'amount' => $amt,
+                    'total_paid' => $amt,
+                    'type' => 'deposit'
+                ]);
+            }
+
+            // Making students and assigning random tutors
+            foreach ($f['children'] as $child) {
+                User::create(array_merge($child, [
+                    'parent_id' => $parent->id,
+                    'role' => 'student',
+                    'email' => strtolower($child['first_name'].'.'.$child['last_name'].'@smartcookie.local'),
+                    'password' => \Hash::make('password123'),
+                    'tutor_id' => $tutors[array_rand($tutors)]->id, // Random tutor
+                ]));
+            }
+        }
+
+        // --- 4. HISTORY OF SESSIONS (For Net Profit) ---
+        // Creating several completed sessions to see "expenses" in Financials
+        $completedSessions = [
+            ['subject' => 'Math', 'rate' => 45.00],
+            ['subject' => 'English', 'rate' => 35.00],
+        ];
+
+        $allStudents = User::where('role', 'student')->get();
+        
+        foreach ($completedSessions as $s) {
+            TutoringSession::create([
+                'student_id' => $allStudents->random()->id,
+                'tutor_id' => $tutors[0]->id,
+                'subject' => $s['subject'],
+                'date' => now()->subDays(2),
+                'start_time' => '15:00',
+                'duration' => '1:00',
+                'status' => 'completed',
+                'tutor_rate' => $s['rate']
             ]);
         }
 
