@@ -113,7 +113,7 @@ class DatabaseSeeder extends Seeder
         // Creating several completed sessions to see "expenses" in Financials
         $subjects = ['Math', 'English', 'Science', 'History'];
 
-        $allStudents = User::where('role', 'student')->get();
+        $allStudents = Student::all();
         $assigned = [];
         
         foreach (range(1, 30) as $i) {
