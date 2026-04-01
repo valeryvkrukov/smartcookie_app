@@ -28,6 +28,7 @@
         isEdit = $event.detail.isEdit || false;
         isRecurring = $event.detail.isRecurring || false;
         studentId = $event.detail.studentId || '';
+        name = $event.detail.name || '';
         firstName = $event.detail.firstName || '';
         lastName = $event.detail.lastName || '';
         grade = $event.detail.grade || '';
