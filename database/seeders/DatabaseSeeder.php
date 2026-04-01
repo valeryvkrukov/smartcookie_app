@@ -103,6 +103,7 @@ class DatabaseSeeder extends Seeder
                     'parent_id' => $parent->id,
                     'role' => 'student',
                     'email' => strtolower($child['first_name'].'.'.$child['last_name'].'@smartcookie.local'),
+                    'tutoring_goals' => $faker->sentence(),
                     'password' => \Hash::make('password123'),
                 ]));
                 $student->assignedTutors()->attach($tutors[array_rand($tutors)]->id, [
@@ -116,20 +117,33 @@ class DatabaseSeeder extends Seeder
         $subjects = ['Math', 'English', 'Science', 'History'];
 
         $allStudents = User::where('role', 'student')->get();
-        $lastDateTime = null;
+        $assigned = [];
         
-        foreach (range(1, 10) as $i) {
-            $session = TutoringSession::create([
-                'student_id' => $allStudents->random()->id,
-                'tutor_id' => $tutors[array_rand($tutors)]->id,
-                'subject' => array_rand(array_flip($subjects)),
-                'date' => now()->subDays(2),
-                'start_time' => random_int(8, 20) . ':00',
-                'duration' => '1:' . array_rand(['00', '30']),
-                'status' => 'completed',
-                'tutor_rate' => rand(30, 50)
-            ]);
+        foreach (range(1, 50) as $i) {
+            $tutorId = $tutors[array_rand($tutors)]->id;
+            $date = now()->subDays(rand(1, 30));
+            $time = random_int(8, 20) . ':00';
 
+            if (!isset($assigned[$tutorId]) || 
+                !collect($assigned[$tutorId])->contains(function($s) use ($date, $time) {
+                    return $s['date'] === $date->toDateString() && $s['start_time'] === $time;
+            })) {
+                $session = TutoringSession::create([
+                    'student_id' => $allStudents->random()->id,
+                    'tutor_id' => $tutorId,
+                    'subject' => array_rand(array_flip($subjects)),
+                    'date' => $date,
+                    'start_time' => $time,
+                    'duration' => '1:' . array_rand(['00', '30']),
+                    'status' => 'completed',
+                    'tutor_rate' => rand(30, 50)
+                ]);
+
+                $assigned[$tutorId][] = [
+                    'date' => $session->date->toDateString(),
+                    'start_time' => $session->start_time,
+                ];
+            }
         }
 
         \Schema::enableForeignKeyConstraints();
