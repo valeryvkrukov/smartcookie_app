@@ -29,8 +29,7 @@ class AgreementController extends Controller
                         ->orWhere('email', 'like', "%{$search}%");
                 })
                 ->orWhereHas('agreement', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%")
-                        ->orWhere('description', 'like', "%{$search}%");
+                    $query->where('name', 'like', "%{$search}%");
                 });
             });
         }
