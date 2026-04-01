@@ -58,8 +58,8 @@ class DatabaseSeeder extends Seeder
             [
                 'parent' => ['first_name' => 'Sarah', 'last_name' => 'Johnson', 'email' => 'sarah@parent.com'],
                 'children' => [
-                    ['first_name' => 'Leo', 'last_name' => 'Johnson', 'grade' => '5th Grade'],
-                    ['first_name' => 'Emma', 'last_name' => 'Johnson', 'grade' => '8th Grade'],
+                    ['first_name' => 'Leo', 'last_name' => 'Johnson', 'student_grade' => '5th Grade'],
+                    ['first_name' => 'Emma', 'last_name' => 'Johnson', 'student_grade' => '8th Grade'],
                 ],
                 'balance' => 450.00,
                 'payments' => [200.00, 250.00]
@@ -67,7 +67,7 @@ class DatabaseSeeder extends Seeder
             [
                 'parent' => ['first_name' => 'Michael', 'last_name' => 'Smith', 'email' => 'mike@parent.com'],
                 'children' => [
-                    ['first_name' => 'Chris', 'last_name' => 'Smith', 'grade' => '10th Grade'],
+                    ['first_name' => 'Chris', 'last_name' => 'Smith', 'student_grade' => '10th Grade'],
                 ],
                 'balance' => 120.00,
                 'payments' => [120.00]
