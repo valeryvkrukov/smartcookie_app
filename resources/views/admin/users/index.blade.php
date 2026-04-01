@@ -54,11 +54,7 @@
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate w-32">{{ $user->email }}</p>
                 </div>
                 <button type="button" 
-                    onclick="window.dispatchEvent(new CustomEvent('open-modal', { 
-                        type: 'send-agreement', 
-                        studentId: '{{ $user->id }}', 
-                        title: 'Send Document to {{ $user->first_name }}' 
-                    }))"
+                    onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { type: 'send-agreement', studentId: '{{ $user->id }}', title: {{ json_encode('Send Document to '.$user->full_name) }} } }))"
                     class="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-black transition-colors">
                     Send Policy
                 </button>
