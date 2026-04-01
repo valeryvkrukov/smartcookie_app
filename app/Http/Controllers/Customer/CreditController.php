@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use App\Models\Credit;
+use App\Models\CreditPurchase;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Stripe\Stripe;
@@ -51,7 +53,7 @@ class CreditController extends Controller
                     'quantity' => 1,
                 ]],
                 'mode' => 'payment',
-                'success_url' => route('customer.credits.success'),
+                'success_url' => route('customer.credits.success', ['session_id' => '{CHECKOUT_SESSION_ID}']),
                 'cancel_url' => route('customer.credits.index'),
                 'customer_email' => auth()->user()->email,
             ]);
@@ -73,8 +75,44 @@ class CreditController extends Controller
             ]);
     }
 
-    public function success()
+    public function success(Request $request)
     {
-        return redirect()->route('customer.credits.index')->with('success', 'Credits added successfully!');
+        $sessionId = $request->query('session_id');
+
+        if (!$sessionId) {
+            return redirect()->route('customer.credits.index')
+                ->with('error', 'Stripe session ID is missing.');
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        try {
+            $checkoutSession = Session::retrieve($sessionId);
+        } catch (\Exception $e) {
+            return redirect()->route('customer.credits.index')
+                ->with('error', 'Unable to verify Stripe payment.');
+        }
+
+        if ($checkoutSession->payment_status !== 'paid') {
+            return redirect()->route('customer.credits.index')
+                ->with('error', 'Payment was not completed.');
+        }
+
+        $amountPaid = $checkoutSession->amount_total / 100;
+        $credit = auth()->user()->credit()->firstOrCreate(
+            ['user_id' => auth()->id()],
+            ['credit_balance' => 0, 'dollar_cost_per_credit' => 1]
+        );
+
+        $credit->increment('credit_balance', $amountPaid);
+
+        CreditPurchase::create([
+            'user_id' => auth()->id(),
+            'amount' => $amountPaid,
+            'total_paid' => $amountPaid,
+        ]);
+
+        return redirect()->route('customer.credits.index')
+            ->with('success', 'Credits added successfully!');
     }
 }

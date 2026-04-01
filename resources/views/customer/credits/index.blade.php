@@ -55,7 +55,6 @@
                             Cards, Apple Pay,<br>Google Pay
                         </p>
                         <div class="mt-8 flex flex-col gap-2 text-[9px] font-black text-indigo-600 uppercase tracking-widest">
-                            <span>Instant Refill</span>
                             <span class="flex items-center">Stripe payment <i class="ti-arrow-right ml-2 group-hover:translate-x-2 transition-transform"></i></span>
                         </div>
                     </div>
