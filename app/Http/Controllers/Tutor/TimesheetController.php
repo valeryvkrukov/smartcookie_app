@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\{TutoringSession, Timesheet, Credit, User};
+use App\Notifications\CreditBalanceChanged;
 
 class TimesheetController extends Controller
 {
@@ -58,6 +59,7 @@ class TimesheetController extends Controller
 
         return DB::transaction(function () use ($session, $parent, $creditsNeeded, $payout) {
             $parent->credit->decrement('credit_balance', $creditsNeeded);
+            $parent->credit->refresh();
 
             // Create record in Timesheet
             Timesheet::create([
@@ -72,6 +74,13 @@ class TimesheetController extends Controller
             // Mark session as completed
             $session->update(['status' => 'Billed']);
 
+            $parent->notify(new CreditBalanceChanged(
+                amount: (float) $creditsNeeded,
+                direction: 'debit',
+                balanceAfter: (float) $parent->credit->credit_balance,
+                reason: 'Timesheet logged for '.$session->subject.' on '.$session->date->format('Y-m-d')
+            ));
+
             return redirect()->back()->with('success', 'Session logged and credits deducted!');
         });
     }
@@ -79,9 +88,20 @@ class TimesheetController extends Controller
     public function destroy(TutoringSession $session)
     {
         if ($session->status === 'Billed') {
+            $session->loadMissing('student.parent.credit');
             $parentCredit = $session->student->parent->credit;
             $cost = ($session->duration === '0:30') ? 0.5 : (float)$session->duration;
             $parentCredit->increment('credit_balance', $cost);
+            $parentCredit->refresh();
+
+            if ($session->student?->parent) {
+                $session->student->parent->notify(new CreditBalanceChanged(
+                    amount: (float) $cost,
+                    direction: 'credit',
+                    balanceAfter: (float) $parentCredit->credit_balance,
+                    reason: 'Credit restored after billed session removal'
+                ));
+            }
         }
 
         $session->delete();

@@ -59,6 +59,38 @@ class User extends Authenticatable
         ];
     }
 
+    public static function splitName(?string $name): array
+    {
+        $name = trim((string) $name);
+
+        if ($name === '') {
+            return ['', null];
+        }
+
+        $parts = preg_split('/\s+/', $name, 2) ?: [];
+
+        return [
+            $parts[0] ?? '',
+            $parts[1] ?? null,
+        ];
+    }
+
+    public function getNameAttribute(): string
+    {
+        return trim(implode(' ', array_filter([
+            $this->first_name,
+            $this->last_name,
+        ])));
+    }
+
+    public function setNameAttribute(?string $value): void
+    {
+        [$firstName, $lastName] = self::splitName($value);
+
+        $this->attributes['first_name'] = $firstName;
+        $this->attributes['last_name'] = $lastName;
+    }
+
     /**
      * Accessor for the FullName
      */

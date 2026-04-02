@@ -5,6 +5,7 @@ namespace App\Listeners;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use App\Models\User;
+use App\Notifications\CreditBalanceChanged;
 
 
 class StripeEventListener
@@ -31,13 +32,21 @@ class StripeEventListener
         $user = User::where('stripe_id', $session->customer)->first();
 
         if ($user) {
-            // Сумма из Stripe (в центах) превращается в кредиты
+            // Convert the amount from Stripe (in cents) to credits
             $amountPaid = $session->amount_total / 100;
             
-            // Начисляем на баланс
+            // Increment the user's credit balance
             $user->credit->increment('credit_balance', $amountPaid);
+            $user->credit->refresh();
+
+            $user->notify(new CreditBalanceChanged(
+                amount: (float) $amountPaid,
+                direction: 'credit',
+                balanceAfter: (float) $user->credit->credit_balance,
+                reason: 'Stripe webhook payment confirmation'
+            ));
             
-            // Логируем для Софи (Раздел 11 ТЗ - Audit Trail)
+            // Logging for debugging purposes
             \Log::info("Auto-refill: {$user->full_name} added ${amountPaid} via Stripe.");
         }
     }

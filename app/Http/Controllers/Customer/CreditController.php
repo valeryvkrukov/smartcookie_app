@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\CreditPurchase;
+use App\Notifications\CreditBalanceChanged;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Stripe\Stripe;
@@ -109,6 +110,15 @@ class CreditController extends Controller
         ]);
 
         $user->credit->increment('credit_balance', $amountPaid);
+
+        $user->credit->refresh();
+
+        $user->notify(new CreditBalanceChanged(
+            amount: (float) $amountPaid,
+            direction: 'credit',
+            balanceAfter: (float) $user->credit->credit_balance,
+            reason: 'Stripe payment confirmed'
+        ));
 
         CreditPurchase::create([
             'user_id' => $user->id,

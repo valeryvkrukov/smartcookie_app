@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\TutoringSession;
 use App\Models\User;
+use App\Notifications\SessionUpdated;
 use App\Services\SessionService;
 use Carbon\Carbon;
 
@@ -41,6 +42,8 @@ class SessionController extends Controller
 
     public function update(Request $request, TutoringSession $session)
     {
+        $session->loadMissing('student.parent');
+
         $timeString = "{$request->time_h}:{$request->time_m} {$request->time_ampm}";
         $startTime = Carbon::parse($timeString)->format('H:i:s');
         $request->merge(['start_time' => $startTime]);
@@ -68,6 +71,16 @@ class SessionController extends Controller
             'start_time' => $startTime,
             'duration'   => $request->duration,
         ]);
+
+        $session->refresh()->loadMissing('student.parent', 'tutor');
+
+        if ($session->tutor) {
+            $session->tutor->notify(new SessionUpdated($session));
+        }
+
+        if ($session->student?->parent) {
+            $session->student->parent->notify(new SessionUpdated($session));
+        }
 
         return response()->json([
             'success' => true,

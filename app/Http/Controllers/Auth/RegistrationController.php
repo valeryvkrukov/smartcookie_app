@@ -2,8 +2,11 @@
 
 namespace App\Http\Controllers\Auth;
 
+use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Notification;
@@ -13,6 +16,7 @@ use App\Models\User;
 use App\Models\Student;
 use App\Models\Credit;
 use App\Notifications\NewClientRegistered;
+use App\Notifications\WelcomeCustomerRegistered;
 
 class RegistrationController extends Controller
 {
@@ -23,6 +27,10 @@ class RegistrationController extends Controller
 
     public function store(Request $request)
     {
+        if ($request->filled('name') && ! $request->filled('parent_name')) {
+            return $this->storeDefaultRegistration($request);
+        }
+
         $request->validate([
             // Parent fields
             'parent_name'   => 'required|string|max:255',
@@ -51,9 +59,13 @@ class RegistrationController extends Controller
         }*/
 
         return DB::transaction(function () use ($request) {
+            [$parentFirstName, $parentLastName] = User::splitName($request->parent_name);
+            [$studentFirstName, $studentLastName] = User::splitName($request->student_name);
+
             // Create Parent (Client)
             $parent = User::create([
-                'first_name' => $request->parent_name,
+                'first_name' => $parentFirstName,
+                'last_name'  => $parentLastName,
                 'email'      => $request->parent_email,
                 'password'   => Hash::make($request->password),
                 'address'    => $request->address,
@@ -67,7 +79,8 @@ class RegistrationController extends Controller
 
             // Create first Student
             User::create([
-                'first_name'     => $request->student_name,
+                'first_name'     => $studentFirstName,
+                'last_name'      => $studentLastName,
                 'email'          => $request->student_email ?? 'student_'.uniqid().'@tutor.com',
                 'password'       => Hash::make(Str::random(16)), // Студенту пароль не нужен для входа по ТЗ
                 'parent_id'      => $parent->id,
@@ -85,7 +98,34 @@ class RegistrationController extends Controller
                 ])));
             }
 
+            $parent->notify(new WelcomeCustomerRegistered($parent, $request->student_name));
+
             return redirect()->route('login')->with('success', 'Account created! Please log in.');
         });
+    }
+
+    private function storeDefaultRegistration(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', 'min:8'],
+        ]);
+
+        [$firstName, $lastName] = User::splitName($validated['name']);
+
+        $user = User::create([
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'role' => 'customer',
+        ]);
+
+        event(new Registered($user));
+
+        Auth::login($user);
+
+        return redirect(route('dashboard', absolute: false));
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\TutoringSession;
 use App\Models\User;
 use App\Models\AgreementRequest;
+use App\Notifications\CreditBalanceChanged;
 use App\Notifications\SessionScheduled;
 use Carbon\Carbon;
 
@@ -140,6 +141,15 @@ class SessionService
         }
 
         $parentCredit->decrement('credit_balance', $rate);
+
+        $parentCredit->refresh();
+
+        $student->parent->notify(new CreditBalanceChanged(
+            amount: (float) $rate,
+            direction: 'debit',
+            balanceAfter: (float) $parentCredit->credit_balance,
+            reason: 'Session billed: '.$session->subject.' on '.$session->date->format('Y-m-d')
+        ));
 
         // Mark the session as completed
         $session->update(['status' => 'Completed']);

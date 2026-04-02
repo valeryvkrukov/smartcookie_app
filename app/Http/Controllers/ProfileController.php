@@ -26,18 +26,8 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        // !! Email must't be validation or change
-        $request->validate([
-            'first_name'    => ['required', 'string', 'max:255'],
-            'last_name'     => ['nullable', 'string', 'max:255'],
-            'phone'         => ['required', 'string', 'max:20'],
-            'address'       => ['required', 'string', 'max:500'],
-            'time_zone'     => ['required', 'string', 'max:255'],
-            'is_subscribed' => ['nullable', 'boolean'],
-            'photo'         => ['nullable', 'image', 'max:2048'],
-        ]);
-
         $user = $request->user();
+        $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
             if ($user->photo) {
@@ -48,14 +38,24 @@ class ProfileController extends Controller
             $user->photo = $path;
         }
 
+        $user->fill([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'] ?? null,
+            'email' => $validated['email'],
+            'phone' => $validated['phone'] ?? null,
+            'address' => $validated['address'] ?? null,
+            'time_zone' => $validated['time_zone'],
+            'blurb' => $validated['blurb'] ?? null,
+        ]);
+
         if ($user->isDirty('email')) {
             $user->email_verified_at = null;
         }
 
-        // Fill data excl. `email`
-        $user->fill($request->only(['first_name', 'last_name', 'phone', 'address', 'time_zone']));
+        if ($request->attributes->get('sync_subscription_preference')) {
+            $user->is_subscribed = $request->boolean('is_subscribed');
+        }
 
-        $user->is_subscribed = $request->has('is_subscribed');
         $user->save();
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
