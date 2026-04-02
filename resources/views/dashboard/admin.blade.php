@@ -59,7 +59,7 @@
         </a>
 
         <!-- 5. System Logs (Cyan) -->
-        <a href="#" 
+        <a href="{{ route('admin.logs.index') }}" 
         class="relative group overflow-hidden p-10 bg-cyan-600 rounded-[3rem] shadow-2xl shadow-cyan-200/50 hover:-translate-y-2 transition-all duration-500">
             <div class="absolute -right-8 -top-8 w-32 h-32 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700"></div>
             <div class="relative z-10">
