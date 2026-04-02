@@ -45,9 +45,12 @@ class CalendarController extends Controller
             ];
         });
 
+        $students = User::where('role', 'student')->orderBy('last_name')->get(['id', 'time_zone']);
+
         return view('admin.calendar.index', [
             'eventsJson' => $events->toJson(),
-            'tutors' => $tutors
+            'tutors'     => $tutors,
+            'students'   => $students,
         ]);
     }
 

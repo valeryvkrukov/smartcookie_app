@@ -14,6 +14,9 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const calendarEl = document.getElementById('calendar');
+
+            // student_id -> timezone map, used by the modal to show the offset badge
+            window.studentTimezoneMap = @json($students->pluck('time_zone', 'id'));
             
             // Define it globall to allow window.calendar.refetchEvents() from modals
             window.calendar = new FullCalendar.Calendar(calendarEl, {
@@ -73,7 +76,8 @@
                             date: s.startStr.split('T')[0],
                             time_h: h12,
                             time_m: mins,
-                            time_ampm: ampm
+                            time_ampm: ampm,
+                            studentTimezone: (window.studentTimezoneMap || {})[props.studentId] || ''
                         }
                     }));
                 }

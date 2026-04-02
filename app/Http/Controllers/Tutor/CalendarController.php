@@ -12,7 +12,8 @@ class CalendarController extends Controller
 {
     public function index()
     {
-        return view('tutor.calendar.index');
+        $students = auth()->user()->assignedStudents()->get(['id', 'time_zone']);
+        return view('tutor.calendar.index', compact('students'));
     }
 
     public function events(Request $request)

@@ -26,6 +26,9 @@
             const calendarEl = document.getElementById('calendar');
             const filterEl = document.getElementById('tutor-filter');
 
+            // student_id -> timezone map, used by the modal to show the offset badge
+            window.studentTimezoneMap = @json($students->pluck('time_zone', 'id'));
+
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 plugins: [
                     FullCalendar.timeGridPlugin,
@@ -72,7 +75,8 @@
                             date: s.startStr.split('T')[0],
                             time_h: h12,
                             time_m: mins,
-                            time_ampm: ampm
+                            time_ampm: ampm,
+                            studentTimezone: (window.studentTimezoneMap || {})[props.studentId] || ''
                         }
                     }));
                 },

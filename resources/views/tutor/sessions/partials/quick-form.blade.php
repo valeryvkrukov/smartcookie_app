@@ -20,7 +20,9 @@
         <div>
             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Student</label>
             
-            <select name="student_id" x-model="studentId" required class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800">
+            <select name="student_id" x-model="studentId" required
+                @change="studentTimezone = (window.studentTimezoneMap || {})[$event.target.value] || ''"
+                class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800">
                 <option value="">Choose student...</option>
                 @foreach($students as $s)
                     <option value="{{ $s->id }}">{{ $s->full_name }}</option>
@@ -38,6 +40,17 @@
             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Date</label>
             <input type="date" name="date" x-model="date" class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800" required>
         </div>
+
+        <!-- Timezone offset indicator -->
+        <template x-if="studentTimezone">
+            <div class="flex items-center justify-between bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100">
+                <div class="flex items-center space-x-2 text-slate-400">
+                    <i class="ti-time text-sm"></i>
+                    <span class="text-[9px] font-black uppercase tracking-widest" x-text="studentTimezone"></span>
+                </div>
+                <div class="text-[9px] uppercase tracking-widest" x-html="tzOffsetLabel(studentTimezone)"></div>
+            </div>
+        </template>
 
         <!-- Time (linked with Alpine variables) -->
         <div>
