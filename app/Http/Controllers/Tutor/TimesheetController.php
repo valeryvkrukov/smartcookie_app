@@ -94,22 +94,64 @@ class TimesheetController extends Controller
             'tutor_notes' => 'required|string|min:10|max:3000',
         ]);
 
-        $session = TutoringSession::with(['tutor', 'student'])->findOrFail($validated['session_id']);
+        $session = TutoringSession::with(['tutor', 'student.parent.credit'])
+            ->findOrFail($validated['session_id']);
 
         if ($session->tutor_id !== auth()->id()) {
             return response()->json(['success' => false, 'message' => 'Permission denied.'], 403);
         }
 
-        $session->update([
-            'tutor_notes' => $validated['tutor_notes'],
-            'status'      => 'Completed',
-        ]);
+        if ($session->status === 'Billed') {
+            return response()->json(['success' => false, 'message' => 'This session has already been billed.'], 422);
+        }
 
-        // Notify all admins so it appears in System Logs
-        $admins = User::where('is_admin', true)->get();
-        Notification::send($admins, new SessionCompleted($session));
+        $parent        = $session->student->parent;
+        $creditsNeeded = Timesheet::calculateCredits($session->duration);
 
-        return response()->json(['success' => true]);
+        if ($parent->credit->credit_balance < $creditsNeeded) {
+            return response()->json([
+                'success' => false,
+                'message' => "Insufficient credits. Customer has {$parent->credit->credit_balance} credit(s), {$creditsNeeded} required.",
+            ], 422);
+        }
+
+        $assignment = DB::table('tutor_student_assignments')
+            ->where('tutor_id', $session->tutor_id)
+            ->where('student_id', $session->student_id)
+            ->first();
+
+        $payout = $creditsNeeded * ($assignment->hourly_payout ?? 25.00);
+
+        return DB::transaction(function () use ($session, $parent, $creditsNeeded, $payout, $validated) {
+            $parent->credit->decrement('credit_balance', $creditsNeeded);
+            $parent->credit->refresh();
+
+            Timesheet::create([
+                'tutoring_session_id' => $session->id,
+                'tutor_id'   => $session->tutor_id,
+                'parent_id'  => $parent->id,
+                'credits_spent' => $creditsNeeded,
+                'tutor_payout'  => $payout,
+                'period' => now()->day <= 15 ? '1-15' : '16-end',
+            ]);
+
+            $session->update([
+                'tutor_notes' => $validated['tutor_notes'],
+                'status'      => 'Completed',
+            ]);
+
+            $parent->notify(new CreditBalanceChanged(
+                amount: (float) $creditsNeeded,
+                direction: 'debit',
+                balanceAfter: (float) $parent->credit->credit_balance,
+                reason: 'Session completed: ' . $session->subject . ' on ' . $session->date->format('Y-m-d'),
+            ));
+
+            $admins = User::where('is_admin', true)->get();
+            Notification::send($admins, new SessionCompleted($session));
+
+            return response()->json(['success' => true]);
+        });
     }
 
     public function destroy(TutoringSession $session)    {
