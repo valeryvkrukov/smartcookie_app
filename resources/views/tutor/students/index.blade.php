@@ -80,6 +80,7 @@
                                 type: 'tutor-schedule-session', 
                                 studentId: '{{ $student->id }}',
                                 tutorId: '{{ auth()->id() }}',
+                                studentTimezone: '{{ $student->time_zone ?? 'UTC' }}',
                                 title: 'Schedule Session for {{ $student->full_name }}'
                             }
                         }))"

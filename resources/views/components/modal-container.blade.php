@@ -175,26 +175,101 @@
                 </form>
             </template>
             <template x-if="type === 'tutor-schedule-session'">
-                <form :action="{{ route('tutor.sessions.store') }}" method="POST" class="space-y-10">
-                    @csrf
-
-                    <input type="hidden" name="student_id" :value="studentId">
-                    
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="label-premium">First Name</label>
-                            <input type="text" name="first_name" x-model="firstName" class="input-premium" required>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="label-premium">Last Name</label>
-                            <input type="text" name="last_name" x-model="lastName" class="input-premium" required>
-                        </div>
+                <div>
+                    <div x-show="errorMessage"
+                         x-transition
+                         class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"
+                         style="display: none;">
+                        <i class="ti-alert text-lg"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest" x-text="errorMessage"></span>
                     </div>
 
-                    <button type="submit" class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all">
-                        Schedule Session
-                    </button>
-                </form>
+                    <form action="{{ route('tutor.sessions.store') }}" method="POST" class="space-y-6">
+                        @csrf
+                        <input type="hidden" name="student_id" :value="studentId">
+                        <input type="hidden" name="location" value="Online">
+
+                        <!-- Subject -->
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
+                            <input type="text" name="subject" x-model="subject" placeholder="Math, English..." class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800" required>
+                        </div>
+
+                        <!-- Date -->
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Date</label>
+                            <input type="date" name="date" x-model="date" class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800" required>
+                        </div>
+
+                        <!-- Timezone offset indicator -->
+                        <template x-if="studentTimezone">
+                            <div class="flex items-center justify-between bg-slate-50 rounded-2xl px-4 py-3 border border-slate-100">
+                                <div class="flex items-center space-x-2 text-slate-400">
+                                    <i class="ti-time text-sm"></i>
+                                    <span class="text-[9px] font-black uppercase tracking-widest" x-text="studentTimezone"></span>
+                                </div>
+                                <div class="text-[9px] uppercase tracking-widest" x-html="tzOffsetLabel(studentTimezone)"></div>
+                            </div>
+                        </template>
+
+                        <!-- Time -->
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Start Time</label>
+                            <div class="flex items-center space-x-3 bg-slate-50 rounded-2xl p-2">
+                                <select name="time_h" x-model="time_h" class="bg-transparent border-0 focus:ring-0 font-black text-xl">
+                                    @for($i=1; $i<=12; $i++) <option value="{{ sprintf('%02d', $i) }}">{{ $i }}</option> @endfor
+                                </select>
+                                <span class="text-slate-300 font-black">:</span>
+                                <select name="time_m" x-model="time_m" class="bg-transparent border-0 focus:ring-0 font-black text-xl">
+                                    @foreach(['00','15','30','45'] as $m) <option value="{{ $m }}">{{ $m }}</option> @endforeach
+                                </select>
+                                <select name="time_ampm" x-model="time_ampm" class="bg-[#212120] text-white rounded-xl text-[12px] font-black px-8 py-2">
+                                    <option value="AM">AM</option><option value="PM">PM</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="grid grid-cols-4 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                            @foreach(['0:30' => '30m', '1:00' => '1h', '1:30' => '1.5h', '2:00' => '2h'] as $val => $lbl)
+                                <label class="flex-1">
+                                    <input type="radio" name="duration" value="{{ $val }}" {{ $val == '1:00' ? 'checked' : '' }} class="peer hidden">
+                                    <div class="cursor-pointer text-center py-2 text-[10px] font-black uppercase text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all">
+                                        {{ $lbl }}
+                                    </div>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <button type="button"
+                            @click="
+                                const form = $el.closest('form');
+                                const formData = new FormData(form);
+                                fetch(form.action, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(r => r.json().then(d => ({ status: r.status, body: d })))
+                                .then(res => {
+                                    if (res.status === 200 && res.body.success) {
+                                        open = false;
+                                        if (window.calendar) window.calendar.refetchEvents();
+                                        errorMessage = '';
+                                    } else {
+                                        $dispatch('set-error', { message: res.body.message || 'Error occurred' });
+                                    }
+                                })
+                                .catch(() => $dispatch('set-error', { message: 'Connection error' }))
+                            "
+                            class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all mt-2">
+                            Schedule Session
+                        </button>
+                    </form>
+                </div>
             </template>
         </div>
     </div>
@@ -224,6 +299,7 @@
             type: 'tutor',
             title: 'New Session',
             errorMessage: '',
+            studentTimezone: '',
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -248,6 +324,31 @@
                 this.time_h = detail.time_h || '09';
                 this.time_m = detail.time_m || '00';
                 this.time_ampm = detail.time_ampm || 'AM';
+                this.studentTimezone = detail.studentTimezone || '';
+            },
+
+            tzOffsetLabel(studentTz) {
+                const tutorTz = @json(auth()->user()->time_zone ?? 'UTC');
+                if (!studentTz) return '';
+                function offsetMin(tz) {
+                    const now = new Date();
+                    const a = new Date(now.toLocaleString('en-US', { timeZone: tz }));
+                    const b = new Date(now.toLocaleString('en-US', { timeZone: 'UTC' }));
+                    return Math.round((a - b) / 60000);
+                }
+                try {
+                    const diff = offsetMin(studentTz) - offsetMin(tutorTz);
+                    if (diff === 0) return '<span class="font-black text-emerald-500">Same time as you</span>';
+                    const abs = Math.abs(diff);
+                    const h = Math.floor(abs / 60);
+                    const m = abs % 60;
+                    const label = (h > 0 ? h + 'h' : '') + (h > 0 && m > 0 ? ' ' : '') + (m > 0 ? m + 'm' : '');
+                    const color = diff > 0 ? 'text-amber-500' : 'text-blue-500';
+                    const word = diff > 0 ? 'ahead of you' : 'behind you';
+                    return `<span class="font-black ${color}">${label} ${word}</span>`;
+                } catch(e) {
+                    return '<span class="text-slate-400">' + studentTz + '</span>';
+                }
             },
         };
     };
