@@ -23,7 +23,7 @@
                     ['route' => auth()->user()->role === 'admin' ? 'admin.agreements.index' : 'customer.agreements.index', 'icon' => 'ti-write', 'label' => 'Agreements', 'role' => ['admin', 'customer']],
                     ['route' => 'tutor.timesheets.index', 'icon' => 'ti-timer', 'label' => 'Timesheets', 'role' => 'tutor'],
                     ['route' => 'customer.credits.index', 'icon' => 'ti-money', 'label' => 'Billing & Credits', 'role' => 'customer'],
-                    ['route' => 'admin.logs.index', 'icon' => 'ti-settings', 'label' => 'System Logs', 'role' => 'admin'],
+                    ['route' => 'admin.system-logs.index', 'icon' => 'ti-settings', 'label' => 'System Logs', 'role' => 'admin'],
                 ];
             @endphp
 
