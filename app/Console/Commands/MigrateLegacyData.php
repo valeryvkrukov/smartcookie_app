@@ -11,6 +11,7 @@ use Illuminate\Support\Str;
 use App\Models\User;
 use App\Models\Credit;
 use App\Models\Agreement;
+use App\Models\TutoringSession;
 
 
 #[Signature('app:migrate-legacy-data')]
@@ -45,9 +46,6 @@ class MigrateLegacyData extends Command
                     'updated_at'    => now(),
                 ]
             );
-            /*$user = User::updateOrCreate(
-                ['email' => $old->email],
-            );*/
 
             // Migrate credits
             $oldCredit = DB::connection('legacy_mysql')->table('credits')
@@ -97,7 +95,7 @@ class MigrateLegacyData extends Command
                             'student_school'   => $oldStudent->college, 
                             'tutoring_subject' => $oldStudent->subject,
                             'tutoring_goals'   => $oldStudent->goal,
-                            'password'         => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(16)),
+                            'password'         => Hash::make(Str::random(16)),
                             'created_at'       => now(),
                             'updated_at'       => now(),
                         ]
@@ -158,6 +156,61 @@ class MigrateLegacyData extends Command
         }
 
         $this->info('Signatures migrated successfully!');
+
+        $this->info('Migrating Sessions...');
+
+        $legacySessions = DB::connection('legacy_mysql')->table('sessions')->get();
+        $statusMap = [
+            'End' => 'Completed',
+            'Cancel' => 'Cancelled',
+            'Canceled' => 'Cancelled',
+            'Cancelled' => 'Cancelled',
+        ];
+
+        foreach ($legacySessions as $oldSession) {
+            $oldTutor = DB::connection('legacy_mysql')->table('users')->where('id', $oldSession->tutor_id)->first();
+            $oldStudent = DB::connection('legacy_mysql')->table('users')->where('id', $oldSession->student_id)->first();
+
+            if (! $oldTutor || ! $oldStudent) {
+                $this->warn("Skipping legacy session {$oldSession->session_id}: missing tutor or student record.");
+                continue;
+            }
+
+            $newTutor = User::where('email', $oldTutor->email)->first();
+            $studentEmail = $oldStudent->email ?: 'student_' . $oldStudent->id . '@tutor.com';
+            $newStudent = User::where('email', $studentEmail)->first();
+
+            if (! $newTutor || ! $newStudent) {
+                $this->warn("Skipping legacy session {$oldSession->session_id}: mapped tutor or student not found in new DB.");
+                continue;
+            }
+
+            $startTime = $oldSession->time;
+            if ($startTime && strlen($startTime) === 5) {
+                $startTime = $startTime . ':00';
+            }
+
+            TutoringSession::updateOrInsert(
+                [
+                    'tutor_id' => $newTutor->id,
+                    'student_id' => $newStudent->id,
+                    'date' => $oldSession->date,
+                    'start_time' => $startTime,
+                    'subject' => $oldSession->subject,
+                ],
+                [
+                    'duration' => $oldSession->duration,
+                    'location' => $oldSession->location ?: null,
+                    'status' => $statusMap[$oldSession->status] ?? $oldSession->status,
+                    'recurs_weekly' => in_array(strtolower($oldSession->recurs_weekly), ['yes', '1', 'true', 'on'], true),
+                    'is_initial' => false,
+                    'created_at' => $oldSession->created_at ?? now(),
+                    'updated_at' => $oldSession->updated_at ?? now(),
+                ]
+            );
+        }
+
+        $this->info('Sessions migrated successfully!');
 
         \Illuminate\Database\Eloquent\Model::reguard();
 
