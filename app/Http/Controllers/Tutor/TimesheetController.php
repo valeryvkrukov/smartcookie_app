@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Tutor;
 
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
@@ -103,6 +104,23 @@ class TimesheetController extends Controller
 
         if ($session->status === 'Billed') {
             return response()->json(['success' => false, 'message' => 'This session has already been billed.'], 422);
+        }
+
+        // Prevent completing a session before it has ended
+        $tutorTz = $session->tutor->time_zone ?? 'UTC';
+        [$dh, $dm] = explode(':', $session->duration);
+        $sessionEnd = Carbon::createFromFormat(
+            'Y-m-d H:i:s',
+            $session->date->format('Y-m-d') . ' ' . $session->start_time,
+            $tutorTz
+        )->addHours((int) $dh)->addMinutes((int) $dm);
+
+        if ($sessionEnd->isFuture()) {
+            $endsIn = $sessionEnd->diffForHumans(Carbon::now($tutorTz), ['parts' => 1]);
+            return response()->json([
+                'success' => false,
+                'message' => "Session hasn't ended yet. It finishes {$endsIn}.",
+            ], 422);
         }
 
         $parent        = $session->student->parent;

@@ -120,12 +120,26 @@ class SessionController extends Controller
             'student_id'    => 'required|integer|exists:users,id',
             'subject'       => 'required|string|max:255',
             'date'          => 'required|date',
-            'start_time'    => 'required', // Take H:M AM/PM on the frontend
+            'start_time'    => 'required',
             'duration'      => 'required|in:0:30,1:00,1:30,2:00',
             'location'      => 'required|string|max:255',
             'is_initial'    => 'boolean',
             'recurs_weekly' => 'nullable|boolean',
         ]);
+
+        // Prevent scheduling in the past (tutor's own timezone)
+        $tutorTz = auth()->user()->time_zone ?? 'UTC';
+        $sessionStart = Carbon::createFromFormat(
+            'Y-m-d H:i:s',
+            $data['date'] . ' ' . $data['start_time'],
+            $tutorTz
+        );
+        if ($sessionStart->isPast()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot schedule a session in the past. Please choose a future date and time.',
+            ], 422);
+        }
 
         $data['tutor_id'] = auth()->id();
         $data['recurs_weekly'] = $request->has('recurs_weekly');
