@@ -42,27 +42,17 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $user->id,
-            'role'       => 'required|in:admin,tutor,customer,student',
-            'hourly_rate'=> 'nullable|numeric',
-            'parent_id'  => 'nullable|exists:users,id',
-            'tutor_id'   => 'nullable|exists:users,id',
-            'can_tutor'  => 'sometimes|boolean',
+            'first_name'      => 'required|string|max:255',
+            'last_name'       => 'required|string|max:255',
+            'email'           => 'required|email|unique:users,email,' . $user->id,
+            'role'            => 'required|in:admin,tutor,customer,student',
+            'parent_id'       => 'nullable|exists:users,id',
+            'tutor_id'        => 'nullable|exists:users,id',
+            'can_tutor'       => 'sometimes|boolean',
+            'hourly_payout'   => 'sometimes|array',
+            'hourly_payout.*' => 'nullable|numeric|min:0',
         ]);
         
-        //dd($data); 
-        
-        /*$request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|unique:users,email,' . $user->id,
-            'role'       => 'required|in:admin,tutor,customer,student',
-            'hourly_rate'=> 'nullable|numeric',
-            'parent_id'  => 'nullable|exists:users,id',
-            'tutor_id'   => 'nullable|exists:users,id',
-        ]);*/
         $user->update($data);
 
         // Update `Admin` flag ("Tutor with Admin checkbox" in the docs)
@@ -70,6 +60,17 @@ class UserController extends Controller
             'is_admin' => $request->has('is_admin'),
             'is_subscribed' => $request->has('is_subscribed'),
         ]);
+
+        if ($request->filled('hourly_payout') && 
+            ($user->role === 'tutor' || $user->role === 'admin' && $request->input('can_tutor'))
+        ) {
+            foreach ($request->input('hourly_payout') as $studentId => $payout) {
+                DB::table('tutor_student_assignments')
+                    ->where('tutor_id', $user->id)
+                    ->where('student_id', $studentId)
+                    ->update(['hourly_payout' => $payout]);
+            }
+        }
 
         // Update price of the Credit (for Parent) 
         if ($user->role === 'customer') {

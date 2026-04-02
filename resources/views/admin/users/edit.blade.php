@@ -159,10 +159,24 @@
                     <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Financial Settings</h3>
                     
                     @if($user->role === 'tutor')
-                        <div class="space-y-2">
-                            <label class="label-premium">Hourly Payout ($)</label>
-                            <input type="number" name="hourly_rate" value="{{ old('hourly_rate', $user->hourly_rate) }}" step="0.01" class="input-premium text-lg font-black text-emerald-600">
-                        </div>
+                        @php $assignments = $user->assignedStudents()->get(); @endphp
+                        @if($assignments->isNotEmpty())
+                            <div class="space-y-3">
+                                <label class="label-premium">Hourly Payout per Student ($)</label>
+                                @foreach($assignments as $student)
+                                    <div class="flex items-center justify-between gap-4 bg-slate-50 px-4 py-3 rounded-2xl">
+                                        <span class="text-xs font-bold text-slate-700 truncate">{{ $student->full_name }}</span>
+                                        <input type="number"
+                                               name="hourly_payout[{{ $student->id }}]"
+                                               value="{{ old('hourly_payout.'.$student->id, $student->pivot->hourly_payout) }}"
+                                               step="0.01" min="0"
+                                               class="w-28 border-0 border-b-2 border-slate-200 focus:border-[#212120] focus:ring-0 bg-transparent py-1 font-black text-emerald-600 text-right">
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-[9px] text-slate-400 uppercase tracking-widest italic">No students assigned yet.</p>
+                        @endif
                     @endif
 
                     @if($user->role === 'student')
