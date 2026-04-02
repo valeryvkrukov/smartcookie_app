@@ -30,9 +30,9 @@ class SystemLogController extends Controller
 
         $logs = $query->paginate(50)->withQueryString();
 
-        // Decode JSON data and attach a human-readable label + colour class
+        // data is already cast to array by DatabaseNotification
         $logs->each(function ($n) {
-            $n->payload  = json_decode($n->data, true) ?? [];
+            $n->payload  = is_array($n->data) ? $n->data : (json_decode($n->data, true) ?? []);
             $n->label    = $this->label($n->type);
             $n->colour   = $this->colour($n->type);
             $n->icon     = $this->icon($n->type);
