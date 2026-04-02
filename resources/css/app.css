@@ -1,8 +1,9 @@
+@import "ti-icons/css/themify-icons.css";
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@import "ti-icons/css/themify-icons.css";
 
 @layer components {
     .btn-primary {
