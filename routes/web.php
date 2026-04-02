@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\CalendarController as AdminCalendarController;
 use App\Http\Controllers\Admin\SessionController as AdminSessionController;
 use App\Http\Controllers\Admin\FinancialController as AdminFinancialController;
 use App\Http\Controllers\Admin\SubjectRateController as AdminSubjectRateController;
+use App\Http\Controllers\Admin\SystemLogController as AdminSystemLogController;
 
 // --- PUBLIC ---
 Route::get('/', function () { return view('welcome'); });
@@ -96,6 +97,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Compliance
     Route::get('/agreements', [AdminAgreementController::class, 'index'])->name('agreements.index');
     Route::post('/agreements/assign', [AdminAgreementController::class, 'assign'])->name('agreements.assign');
+
+    // System Logs
+    Route::get('/system-logs', [AdminSystemLogController::class, 'index'])->name('system-logs.index');
 });
 
 require __DIR__.'/auth.php';
