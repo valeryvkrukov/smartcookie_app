@@ -271,6 +271,58 @@
                     </form>
                 </div>
             </template>
+            <template x-if="type === 'session-log'">
+                <div>
+                    <div x-show="errorMessage"
+                         x-transition
+                         class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"
+                         style="display: none;">
+                        <i class="ti-alert text-lg"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest" x-text="errorMessage"></span>
+                    </div>
+
+                    <form action="{{ route('tutor.timesheets.log') }}" method="POST" class="space-y-6">
+                        @csrf
+                        <input type="hidden" name="session_id" :value="sessionId">
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Session Report</label>
+                            <textarea name="tutor_notes" x-model="tutorNotes" rows="6"
+                                placeholder="Describe what was covered, student progress, homework assigned..."
+                                class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800 resize-none"
+                                required minlength="10"></textarea>
+                            <p class="text-[9px] text-slate-300 mt-1 ml-1 italic">Minimum 10 characters. This report will be visible to the admin.</p>
+                        </div>
+
+                        <button type="button"
+                            @click="
+                                const form = $el.closest('form');
+                                const formData = new FormData(form);
+                                fetch(form.action, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(r => r.json().then(d => ({ status: r.status, body: d })))
+                                .then(res => {
+                                    if (res.status === 200 && res.body.success) {
+                                        open = false;
+                                        window.location.reload();
+                                    } else {
+                                        $dispatch('set-error', { message: res.body.message || 'Error occurred' });
+                                    }
+                                })
+                                .catch(() => $dispatch('set-error', { message: 'Connection error' }))
+                            "
+                            class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all">
+                            Mark as Completed
+                        </button>
+                    </form>
+                </div>
+            </template>
         </div>
     </div>
 
@@ -300,6 +352,7 @@
             title: 'New Session',
             errorMessage: '',
             studentTimezone: '',
+            tutorNotes: '',
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -325,6 +378,7 @@
                 this.time_m = detail.time_m || '00';
                 this.time_ampm = detail.time_ampm || 'AM';
                 this.studentTimezone = detail.studentTimezone || '';
+                this.tutorNotes = detail.tutorNotes || '';
             },
 
             tzOffsetLabel(studentTz) {

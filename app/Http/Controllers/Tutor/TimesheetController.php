@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\{TutoringSession, Timesheet, Credit, User};
 use App\Notifications\CreditBalanceChanged;
+use App\Notifications\SessionCompleted;
+use Illuminate\Support\Facades\Notification;
 
 class TimesheetController extends Controller
 {
@@ -85,8 +87,32 @@ class TimesheetController extends Controller
         });
     }
 
-    public function destroy(TutoringSession $session)
+    public function log(Request $request)
     {
+        $validated = $request->validate([
+            'session_id'  => 'required|integer|exists:tutoring_sessions,id',
+            'tutor_notes' => 'required|string|min:10|max:3000',
+        ]);
+
+        $session = TutoringSession::with(['tutor', 'student'])->findOrFail($validated['session_id']);
+
+        if ($session->tutor_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Permission denied.'], 403);
+        }
+
+        $session->update([
+            'tutor_notes' => $validated['tutor_notes'],
+            'status'      => 'Completed',
+        ]);
+
+        // Notify all admins so it appears in System Logs
+        $admins = User::where('is_admin', true)->get();
+        Notification::send($admins, new SessionCompleted($session));
+
+        return response()->json(['success' => true]);
+    }
+
+    public function destroy(TutoringSession $session)    {
         if ($session->status === 'Billed') {
             $session->loadMissing('student.parent.credit');
             $parentCredit = $session->student->parent->credit;

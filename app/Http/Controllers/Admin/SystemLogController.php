@@ -10,11 +10,12 @@ class SystemLogController extends Controller
 {
     /** Map short filter key → partial class name */
     private const TYPE_MAP = [
-        'registration'  => 'NewClientRegistered',
-        'welcome'       => 'WelcomeCustomerRegistered',
-        'session_new'   => 'SessionScheduled',
-        'session_update'=> 'SessionUpdated',
-        'payment'       => 'CreditBalanceChanged',
+        'registration'      => 'NewClientRegistered',
+        'welcome'           => 'WelcomeCustomerRegistered',
+        'session_new'       => 'SessionScheduled',
+        'session_update'    => 'SessionUpdated',
+        'session_completed' => 'SessionCompleted',
+        'payment'           => 'CreditBalanceChanged',
     ];
 
     public function index(Request $request)
@@ -39,12 +40,13 @@ class SystemLogController extends Controller
         });
 
         $counts = [
-            'all'            => DatabaseNotification::count(),
-            'registration'   => DatabaseNotification::where('type', 'like', '%NewClientRegistered%')->count(),
-            'welcome'        => DatabaseNotification::where('type', 'like', '%WelcomeCustomerRegistered%')->count(),
-            'session_new'    => DatabaseNotification::where('type', 'like', '%SessionScheduled%')->count(),
-            'session_update' => DatabaseNotification::where('type', 'like', '%SessionUpdated%')->count(),
-            'payment'        => DatabaseNotification::where('type', 'like', '%CreditBalanceChanged%')->count(),
+            'all'               => DatabaseNotification::count(),
+            'registration'      => DatabaseNotification::where('type', 'like', '%NewClientRegistered%')->count(),
+            'welcome'           => DatabaseNotification::where('type', 'like', '%WelcomeCustomerRegistered%')->count(),
+            'session_new'       => DatabaseNotification::where('type', 'like', '%SessionScheduled%')->count(),
+            'session_update'    => DatabaseNotification::where('type', 'like', '%SessionUpdated%')->count(),
+            'session_completed' => DatabaseNotification::where('type', 'like', '%SessionCompleted%')->count(),
+            'payment'           => DatabaseNotification::where('type', 'like', '%CreditBalanceChanged%')->count(),
         ];
 
         return view('admin.system-logs.index', compact('logs', 'typeFilter', 'counts'));
@@ -57,6 +59,7 @@ class SystemLogController extends Controller
             str_contains($class, 'WelcomeCustomerRegistered') => 'Welcome Sent',
             str_contains($class, 'SessionScheduled')         => 'Session Scheduled',
             str_contains($class, 'SessionUpdated')           => 'Session Updated',
+            str_contains($class, 'SessionCompleted')         => 'Session Completed',
             str_contains($class, 'CreditBalanceChanged')     => 'Balance Changed',
             default                                          => class_basename($class),
         };
@@ -69,6 +72,7 @@ class SystemLogController extends Controller
             str_contains($class, 'WelcomeCustomerRegistered') => 'violet',
             str_contains($class, 'SessionScheduled')         => 'emerald',
             str_contains($class, 'SessionUpdated')           => 'amber',
+            str_contains($class, 'SessionCompleted')         => 'teal',
             str_contains($class, 'CreditBalanceChanged')     => 'sky',
             default                                          => 'slate',
         };
@@ -81,6 +85,7 @@ class SystemLogController extends Controller
             str_contains($class, 'WelcomeCustomerRegistered') => 'ti-email',
             str_contains($class, 'SessionScheduled')         => 'ti-calendar',
             str_contains($class, 'SessionUpdated')           => 'ti-pencil',
+            str_contains($class, 'SessionCompleted')         => 'ti-check',
             str_contains($class, 'CreditBalanceChanged')     => 'ti-wallet',
             default                                          => 'ti-bell',
         };

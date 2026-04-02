@@ -60,7 +60,7 @@
                             @endif
                         </td>
                         <td class="p-6 text-right">
-                            <button @click="$dispatch('open-modal', { type: 'session-log', sessionId: '{{ $s->id }}' })" 
+                            <button @click="$dispatch('open-modal', { type: 'session-log', sessionId: '{{ $s->id }}', tutorNotes: '{{ addslashes($s->tutor_notes ?? '') }}' })" 
                                     class="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
                                 {{ $s->status === 'Completed' ? 'Edit Log' : 'Write Report' }}
                             </button>

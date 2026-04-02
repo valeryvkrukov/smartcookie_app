@@ -7,12 +7,13 @@
         <div class="flex flex-wrap gap-2">
             @php
                 $tabs = [
-                    'all'            => ['label' => 'All Events',         'colour' => 'slate'],
-                    'registration'   => ['label' => 'Registrations',      'colour' => 'indigo'],
-                    'welcome'        => ['label' => 'Welcome Emails',     'colour' => 'violet'],
-                    'session_new'    => ['label' => 'Sessions Scheduled', 'colour' => 'emerald'],
-                    'session_update' => ['label' => 'Sessions Updated',   'colour' => 'amber'],
-                    'payment'        => ['label' => 'Payments',           'colour' => 'sky'],
+                    'all'               => ['label' => 'All Events',          'colour' => 'slate'],
+                    'registration'      => ['label' => 'Registrations',       'colour' => 'indigo'],
+                    'welcome'           => ['label' => 'Welcome Emails',      'colour' => 'violet'],
+                    'session_new'       => ['label' => 'Sessions Scheduled',  'colour' => 'emerald'],
+                    'session_update'    => ['label' => 'Sessions Updated',    'colour' => 'amber'],
+                    'session_completed' => ['label' => 'Session Reports',     'colour' => 'teal'],
+                    'payment'           => ['label' => 'Payments',            'colour' => 'sky'],
                 ];
             @endphp
 
@@ -61,6 +62,7 @@
                         'violet'  => ['bg' => 'bg-violet-50',  'text' => 'text-violet-600',  'dot' => 'bg-violet-400'],
                         'emerald' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-600', 'dot' => 'bg-emerald-400'],
                         'amber'   => ['bg' => 'bg-amber-50',   'text' => 'text-amber-600',   'dot' => 'bg-amber-400'],
+                        'teal'    => ['bg' => 'bg-teal-50',    'text' => 'text-teal-600',    'dot' => 'bg-teal-400'],
                         'sky'     => ['bg' => 'bg-sky-50',     'text' => 'text-sky-600',     'dot' => 'bg-sky-400'],
                         'slate'   => ['bg' => 'bg-slate-50',   'text' => 'text-slate-600',   'dot' => 'bg-slate-400'],
                     ];
@@ -108,6 +110,12 @@
                         @endif
                         @if (!empty($p['date']))
                             <p class="text-[10px] text-slate-500">Date: <span class="font-bold text-slate-700">{{ \Carbon\Carbon::parse($p['date'])->format('M d, Y') }}</span></p>
+                        @endif
+                        @if (!empty($p['tutor_name']))
+                            <p class="text-[10px] text-slate-500">Tutor: <span class="font-bold text-slate-700">{{ $p['tutor_name'] }}</span></p>
+                        @endif
+                        @if (!empty($p['tutor_notes']))
+                            <p class="text-[10px] text-slate-500 mt-1">Report: <span class="font-medium text-slate-600 italic">{{ Str::limit($p['tutor_notes'], 120) }}</span></p>
                         @endif
                         @if (isset($p['amount']))
                             @php

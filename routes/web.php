@@ -74,6 +74,7 @@ Route::middleware(['auth', 'role:tutor'])->prefix('tutor')->name('tutor.')->grou
     
     Route::get('/timesheets', [TutorTimesheetController::class, 'index'])->name('timesheets.index');
     Route::post('/timesheets/log', [TutorTimesheetController::class, 'store'])->name('timesheets.store');
+    Route::post('/timesheets/session-log', [TutorTimesheetController::class, 'log'])->name('timesheets.log');
 });
 
 // --- ADMIN ---
