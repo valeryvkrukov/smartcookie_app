@@ -10,39 +10,11 @@
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
-        <link href="https://cdn.jsdelivr.net/npm/ti-icons@0.1.2/css/themify-icons.min.css" rel="stylesheet">
 
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
-        <style>
-            [class^="ti-"], [class*=" ti-"] {
-                font-family: 'themify' !important;
-                speak: none;
-                font-style: normal;
-                font-weight: normal;
-                font-variant: normal;
-                text-transform: none;
-                line-height: 1;
-                -webkit-font-smoothing: antialiased;
-            }
-        </style>
-        <style>
-            /* Themify */
-            .ti-calendar, .ti-user, .ti-timer, .ti-money, .ti-write, [class^="ti-"], [class*=" ti-"] {
-                font-family: 'themify' !important;
-                display: inline-block;
-                speak: none;
-                font-style: normal;
-                font-weight: normal;
-                font-variant: normal;
-                text-transform: none;
-                line-height: 1;
-                -webkit-font-smoothing: antialiased;
-                font-size: 1.5rem; 
-            }
-        </style>
     </head>
     <body class="font-sans antialiased bg-[#F9FAFB]">
         <div class="min-h-screen flex">

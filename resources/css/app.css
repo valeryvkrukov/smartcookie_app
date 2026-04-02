@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import "ti-icons/css/themify-icons.css";
+
 @layer components {
     .btn-primary {
         @apply w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-95 transition-all;
