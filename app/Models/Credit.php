@@ -13,4 +13,12 @@ class Credit extends Model
     {
         return $this->belongsTo(Client::class, 'user_id');
     }
+
+    protected function casts(): array
+    {
+        return [
+            'credit_balance' => 'float',
+            'dollar_cost_per_credit' => 'float',
+        ];
+    }
 }

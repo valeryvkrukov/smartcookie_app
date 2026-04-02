@@ -14,4 +14,11 @@ class SubjectRate extends Model
     {
         return $this->belongsTo(User::class, 'student_id');
     }
+
+    protected function casts(): array
+    {
+        return [
+            'rate' => 'float',
+        ];
+    }
 }

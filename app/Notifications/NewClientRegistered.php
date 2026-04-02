@@ -24,7 +24,7 @@ class NewClientRegistered extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['mail'];
+        return ['mail', 'database'];
     }
 
     /**
@@ -57,7 +57,13 @@ class NewClientRegistered extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'type' => 'new_client_registered',
+            'parent_id' => $this->parent->id,
+            'parent_name' => $this->parent->full_name,
+            'student_name' => $this->studentData['student_name'] ?? null,
+            'student_grade' => $this->studentData['student_grade'] ?? null,
+            'student_school' => $this->studentData['student_school'] ?? null,
+            'message' => 'A new client registered on the portal.',
         ];
     }
 }

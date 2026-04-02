@@ -25,7 +25,7 @@ use App\Http\Controllers\Admin\AgreementController as AdminAgreementController;
 use App\Http\Controllers\Admin\CalendarController as AdminCalendarController;
 use App\Http\Controllers\Admin\SessionController as AdminSessionController;
 use App\Http\Controllers\Admin\FinancialController as AdminFinancialController;
-use App\Http\Controllers\Admin\SubjectRateController;
+use App\Http\Controllers\Admin\SubjectRateController as AdminSubjectRateController;
 
 // --- PUBLIC ---
 Route::get('/', function () { return view('welcome'); });
@@ -90,9 +90,9 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Business & Financials
     Route::get('/financials', [AdminFinancialController::class, 'index'])->name('financials.index');
-    Route::post('/subject-rates', [SubjectRateController::class, 'store'])->name('subject-rates.store');
-    Route::delete('/subject-rates/{rate}', [SubjectRateController::class, 'destroy'])->name('subject-rates.destroy');
-    
+    Route::post('/subject-rates', [AdminSubjectRateController::class, 'store'])->name('subject-rates.store');
+    Route::delete('/subject-rates/{rate}', [AdminSubjectRateController::class, 'destroy'])->name('subject-rates.destroy');
+
     // Compliance
     Route::get('/agreements', [AdminAgreementController::class, 'index'])->name('agreements.index');
     Route::post('/agreements/assign', [AdminAgreementController::class, 'assign'])->name('agreements.assign');

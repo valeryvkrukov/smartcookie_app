@@ -30,7 +30,13 @@ class SessionScheduled extends Notification
      */
     public function via(object $notifiable): array
     {
-        return $notifiable->is_subscribed ? ['mail'] : [];
+        $channels = ['database'];
+
+        if ($notifiable->is_subscribed) {
+            $channels[] = 'mail';
+        }
+
+        return $channels;
     }
 
     /**
@@ -64,7 +70,14 @@ class SessionScheduled extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'type' => 'session_scheduled',
+            'session_id' => $this->session->id,
+            'student_name' => $this->session->student->full_name,
+            'subject' => $this->session->subject,
+            'date' => $this->session->date,
+            'start_time' => $this->session->start_time,
+            'is_recurring' => $this->isRecurring,
+            'message' => 'A new session has been scheduled.',
         ];
     }
 }
