@@ -44,6 +44,7 @@
                     FullCalendar.interactionPlugin 
                 ],
                 initialView: 'timeGridWeek',
+                timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',

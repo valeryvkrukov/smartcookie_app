@@ -61,10 +61,12 @@ class CalendarController extends Controller
         }
 
         $events = $query->get()->map(function ($session) {
-            $startIso = $session->date->format('Y-m-d') . 'T' . $session->start_time;
-            
+            $tutorTz = $session->tutor->time_zone ?? 'UTC';
+            $start = Carbon::createFromFormat('Y-m-d H:i:s', $session->date->format('Y-m-d') . ' ' . $session->start_time, $tutorTz);
             list($h, $m) = explode(':', $session->duration);
-            $endIso = Carbon::parse($startIso)->addHours((int)$h)->addMinutes((int)$m)->format('Y-m-d\TH:i:s');
+            $end = $start->copy()->addHours((int)$h)->addMinutes((int)$m);
+            $startIso = $start->toIso8601String();
+            $endIso = $end->toIso8601String();
 
             $hasCredits = ($session->student->parent->credit->credit_balance ?? 0) > 0;
 

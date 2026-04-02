@@ -46,6 +46,7 @@
                     FullCalendar.interactionPlugin 
                 ],
                 initialView: 'timeGridWeek',
+                timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
                 firstDay: 0, // Sunday
                 allDaySlot: false,
                 headerToolbar: {

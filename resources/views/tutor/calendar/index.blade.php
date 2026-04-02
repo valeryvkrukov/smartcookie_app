@@ -25,6 +25,7 @@
                 // Plugins: time grid, daygrid and interaction (for clicks)
                 //plugins: [ 'dayGrid', 'timeGrid', 'interaction' ],
                 initialView: 'timeGridWeek',
+                timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
                 
                 // Define working hours and hide all-day slot
                 firstDay: 0, 

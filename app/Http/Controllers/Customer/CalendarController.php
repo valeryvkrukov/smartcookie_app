@@ -32,15 +32,17 @@ class CalendarController extends Controller
             $query->where('student_id', $request->student_id);
         }
 
-        $events = $query->with('tutor')->get()->map(function($s) {
+        $events = $query->with('tutor', 'student')->get()->map(function($s) {
+            $tutorTz = $s->tutor->time_zone ?? 'UTC';
+            $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $s->date->format('Y-m-d') . ' ' . $s->start_time, $tutorTz);
+            $end = $start->copy()
+                ->addHours((int)explode(':', $s->duration)[0])
+                ->addMinutes((int)explode(':', $s->duration)[1]);
             return [
                 'id' => $s->id,
                 'title' => "{$s->student->first_name} | {$s->subject}",
-                'start' => $s->date->format('Y-m-d') . 'T' . $s->start_time,
-                'end' => \Carbon\Carbon::parse($s->date->format('Y-m-d') . ' ' . $s->start_time)
-                        ->addHours((int)explode(':', $s->duration)[0])
-                        ->addMinutes((int)explode(':', $s->duration)[1])
-                        ->toIso8601String(),
+                'start' => $start->toIso8601String(),
+                'end' => $end->toIso8601String(),
                 'backgroundColor' => $s->status === 'Billed' ? '#10b981' : '#4f46e5',
                 'borderColor' => $s->status === 'Billed' ? '#059669' : '#4338ca',
             ];

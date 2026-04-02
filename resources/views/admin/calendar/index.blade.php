@@ -33,6 +33,7 @@
                     FullCalendar.interactionPlugin
                 ],
                 initialView: 'timeGridWeek',
+                timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
                 selectable: true,
                 slotMinTime: '06:00:00',
                 slotMaxTime: '22:00:00',
