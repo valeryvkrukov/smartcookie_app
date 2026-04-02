@@ -77,8 +77,8 @@ class SystemLogController extends Controller
     private function icon(string $class): string
     {
         return match (true) {
-            str_contains($class, 'NewClientRegistered')      => 'ti-user-add',
-            str_contains($class, 'WelcomeCustomerRegistered') => 'ti-mail',
+            str_contains($class, 'NewClientRegistered')      => 'ti-user',
+            str_contains($class, 'WelcomeCustomerRegistered') => 'ti-email',
             str_contains($class, 'SessionScheduled')         => 'ti-calendar',
             str_contains($class, 'SessionUpdated')           => 'ti-pencil',
             str_contains($class, 'CreditBalanceChanged')     => 'ti-wallet',
