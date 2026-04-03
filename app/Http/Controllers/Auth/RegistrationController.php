@@ -64,7 +64,11 @@ class RegistrationController extends Controller
             ]);
 
             // Wallet initialization
-            Credit::create(['user_id' => $parent->id, 'credit_balance' => 0]);
+            Credit::create([
+                'user_id'                => $parent->id,
+                'credit_balance'         => 0,
+                'dollar_cost_per_credit' => config('payments.default_rate_per_credit'),
+            ]);
 
             $studentName = null;
 

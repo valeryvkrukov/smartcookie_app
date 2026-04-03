@@ -1,6 +1,8 @@
 <?php
 
 return [
+    'default_rate_per_credit' => env('PAYMENTS_DEFAULT_RATE_PER_CREDIT') ? (float) env('PAYMENTS_DEFAULT_RATE_PER_CREDIT') : null,
+
     'stripe' => [
         'currency' => env('PAYMENTS_CURRENCY', 'usd'),
         'amount' => env('PAYMENTS_STRIPE_AMOUNT', 10000),
