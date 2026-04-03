@@ -80,15 +80,14 @@
                 <x-text-input name="student_name" :value="old('student_name')" class="input-premium" />
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <x-input-label value="Grade" class="label-premium" />
-                    <x-text-input name="student_grade" :value="old('student_grade')" class="input-premium" placeholder="e.g. 10th" />
-                </div>
-                <div class="space-y-1">
-                    <x-input-label value="School / College" class="label-premium" />
-                    <x-text-input name="student_school" :value="old('student_school')" class="input-premium" />
-                </div>
+            <div class="space-y-1">
+                <x-input-label value="Grade" class="label-premium" />
+                <x-text-input name="student_grade" :value="old('student_grade')" class="input-premium" placeholder="e.g. 10th" />
+            </div>
+
+            <div class="space-y-1">
+                <x-input-label value="School / College" class="label-premium" />
+                <x-text-input name="student_school" :value="old('student_school')" class="input-premium" />
             </div>
         </div>
 
@@ -97,15 +96,13 @@
             <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em] border-b border-slate-100 pb-2">
                 <span x-text="selfStudent ? '2.' : '3.'"></span> Security
             </h3>
-            <div class="grid grid-cols-2 gap-4">
-                <div class="space-y-1">
-                    <x-input-label value="Password" class="label-premium" />
-                    <x-text-input type="password" name="password" class="input-premium" required />
-                </div>
-                <div class="space-y-1">
-                    <x-input-label value="Confirm" class="label-premium" />
-                    <x-text-input type="password" name="password_confirmation" class="input-premium" required />
-                </div>
+            <div class="space-y-1">
+                <x-input-label value="Password" class="label-premium" />
+                <x-text-input type="password" name="password" class="input-premium" required />
+            </div>
+            <div class="space-y-1">
+                <x-input-label value="Confirm" class="label-premium" />
+                <x-text-input type="password" name="password_confirmation" class="input-premium" required />
             </div>
         </div>
 
