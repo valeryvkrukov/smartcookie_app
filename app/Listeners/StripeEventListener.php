@@ -28,27 +28,36 @@ class StripeEventListener
 
     public function handleCheckoutSessionCompleted($event)
     {
-        $session = $event->data->object;
-        $user = User::where('stripe_id', $session->customer)->first();
+        $session  = $event->data->object;
+        $metadata = $session->metadata ?? null;
 
-        if ($user) {
-            // Convert the amount from Stripe (in cents) to credits
-            $amountPaid = $session->amount_total / 100;
-            
-            // Increment the user's credit balance
-            $user->credit->increment('credit_balance', $amountPaid);
-            $user->credit->refresh();
-
-            $user->notify(new CreditBalanceChanged(
-                amount: (float) $amountPaid,
-                direction: 'credit',
-                balanceAfter: (float) $user->credit->credit_balance,
-                reason: 'Stripe webhook payment confirmation'
-            ));
-            
-            // Logging for debugging purposes
-            \Log::info("Auto-refill: {$user->full_name} added ${amountPaid} via Stripe.");
+        // Skip if this event was already handled by the success() redirect callback
+        // (metadata presence signals our intentional purchase flow)
+        if (!$metadata || !isset($metadata->credits_purchased)) {
+            return;
         }
+
+        $userId = $metadata->user_id ?? null;
+        $user   = $userId ? User::find($userId) : User::where('stripe_id', $session->customer)->first();
+
+        if (!$user) {
+            return;
+        }
+
+        $creditsPurchased = (float) $metadata->credits_purchased;
+        $totalPaid        = $session->amount_total / 100;
+
+        $user->credit->increment('credit_balance', $creditsPurchased);
+        $user->credit->refresh();
+
+        $user->notify(new CreditBalanceChanged(
+            amount: $creditsPurchased,
+            direction: 'credit',
+            balanceAfter: (float) $user->credit->credit_balance,
+            reason: 'Stripe webhook payment confirmation'
+        ));
+
+        \Log::info("Stripe webhook: {$user->full_name} +{$creditsPurchased} credits (${$totalPaid} paid).");
     }
 
 }

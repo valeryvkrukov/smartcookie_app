@@ -31,12 +31,12 @@ class CreditBalanceChanged extends Notification
         $sign = $this->direction === 'credit' ? '+' : '-';
 
         return (new MailMessage)
-            ->subject('SmartCookie: Balance Update')
+            ->subject('SmartCookie: Credit Balance Update')
             ->greeting('Hello, '.$notifiable->first_name.'!')
-            ->line('Your credit balance has changed.')
+            ->line('Your tutoring credit balance has changed.')
             ->line('Reason: '.$this->reason)
-            ->line('Amount: '.$sign.number_format($this->amount, 2))
-            ->line('Current balance: '.number_format($this->balanceAfter, 2))
+            ->line('Credits: '.$sign.number_format($this->amount, 2))
+            ->line('Current balance: '.number_format($this->balanceAfter, 2).' credit(s)')
             ->action('View Credits', url('/customer/credits'));
     }
 

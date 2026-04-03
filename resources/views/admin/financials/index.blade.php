@@ -39,7 +39,7 @@
             <!-- Liabilities -->
             <div class="bg-white rounded-[3.5rem] p-8 border border-slate-100 shadow-xl">
                 <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Client Credits</p>
-                <h2 class="text-4xl font-black tracking-tighter text-slate-900">${{ number_format($stats['client_balances'], 2) }}</h2>
+                <h2 class="text-4xl font-black tracking-tighter text-slate-900">{{ number_format($stats['client_balances'], 2) }} <span class="text-lg text-slate-400">cr</span></h2>
             </div>
         </div>
 
@@ -63,7 +63,7 @@
                         <th class="p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Date & Client</th>
                         <th class="p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Type</th>
                         <th class="p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Status</th>
-                        <th class="p-8 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">Amount</th>
+                        <th class="p-8 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">Credits / USD</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
@@ -84,8 +84,11 @@
                                 <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Verified</span>
                             </div>
                         </td>
-                        <td class="p-8 text-right font-black text-slate-900 text-lg tracking-tighter">
-                            {{ $t->type === 'deposit' ? '+' : '-' }}${{ number_format($t->total_paid, 2) }}
+                        <td class="p-8 text-right">
+                            @if($t->credits_purchased)
+                                <p class="font-black text-indigo-600 text-lg tracking-tighter">{{ $t->type === 'deposit' ? '+' : '-' }}{{ number_format($t->credits_purchased, 2) }} <span class="text-sm">cr</span></p>
+                            @endif
+                            <p class="text-sm font-bold text-slate-400">${{ number_format($t->total_paid, 2) }}</p>
                         </td>
                     </tr>
                     @endforeach

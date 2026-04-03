@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\{TutoringSession, Timesheet, Credit, User};
 use App\Notifications\CreditBalanceChanged;
+use App\Notifications\LowCreditBalance;
 use App\Notifications\SessionCompleted;
 use Illuminate\Support\Facades\Notification;
 
@@ -164,6 +165,11 @@ class TimesheetController extends Controller
                 balanceAfter: (float) $parent->credit->credit_balance,
                 reason: 'Session completed: ' . $session->subject . ' on ' . $session->date->format('Y-m-d'),
             ));
+
+            // If the balance has hit zero, send a low-balance reminder
+            if ($parent->credit->credit_balance <= 0) {
+                $parent->notify(new LowCreditBalance());
+            }
 
             $admins = User::where('is_admin', true)->get();
             Notification::send($admins, new SessionCompleted($session));

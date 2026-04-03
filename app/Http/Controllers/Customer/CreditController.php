@@ -4,8 +4,13 @@ namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
 use App\Models\CreditPurchase;
+use App\Models\User;
 use App\Notifications\CreditBalanceChanged;
+use App\Notifications\CreditsPurchased;
+use App\Notifications\FirstCreditPurchase;
+use App\Notifications\LowCreditBalance;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\Rule;
 use Stripe\Stripe;
 use Stripe\Checkout\Session;
@@ -13,28 +18,59 @@ use Stripe\Checkout\Session;
 
 class CreditController extends Controller
 {
+    /** Credit packs available for repeat buyers */
+    private const REPEAT_PACKS = [4, 6, 8, 10];
+
     public function index()
     {
-        $balance = auth()->user()->credit->credit_balance ?? 0;
+        $user        = auth()->user();
+        $credit      = $user->credit;
+        $balance     = $credit->credit_balance ?? 0;
+        $ratePerCredit = $credit->dollar_cost_per_credit ?? null;
+        $isFirstPurchase = !CreditPurchase::where('user_id', $user->id)->exists();
 
         $paymentMethods = [
             'venmo' => [
                 'username' => config('payments.venmo.username'),
-                'note' => config('payments.venmo.note'),
-                'web_url' => 'https://venmo.com/'.ltrim(config('payments.venmo.username'), '@'),
-                'deep_link' => 'venmo://paycharge?txn=pay&recipients='.urlencode(config('payments.venmo.username')).'&note='.urlencode(config('payments.venmo.note')),
+                'note'     => config('payments.venmo.note'),
+                'web_url'  => 'https://venmo.com/'.ltrim(config('payments.venmo.username'), '@'),
+                'deep_link'=> 'venmo://paycharge?txn=pay&recipients='.urlencode(config('payments.venmo.username')).'&note='.urlencode(config('payments.venmo.note')),
             ],
             'zelle' => [
                 'email' => config('payments.zelle.email'),
-                'note' => config('payments.zelle.note'),
+                'note'  => config('payments.zelle.note'),
             ],
         ];
 
-        return view('customer.credits.index', compact('balance', 'paymentMethods'));
+        return view('customer.credits.index', compact(
+            'balance', 'ratePerCredit', 'isFirstPurchase', 'paymentMethods'
+        ));
     }
 
     public function purchase(Request $request)
     {
+        $user          = auth()->user();
+        $credit        = $user->credit;
+        $ratePerCredit = $credit?->dollar_cost_per_credit;
+
+        // Block if admin has not yet set a rate
+        if (!$ratePerCredit) {
+            return back()->with('error', 'Credit purchasing is not yet available for your account. Please contact the administrator.');
+        }
+
+        $isFirstPurchase = !CreditPurchase::where('user_id', $user->id)->exists();
+
+        // For first-time buyers: only 1 credit
+        // For repeat buyers: validate against allowed packs (4, 6, 8, 10)
+        if ($isFirstPurchase) {
+            $creditsRequested = 1;
+        } else {
+            $data = $request->validate([
+                'credits' => ['required', Rule::in(self::REPEAT_PACKS)],
+            ]);
+            $creditsRequested = (int) $data['credits'];
+        }
+
         $data = $request->validate([
             'payment_method' => ['required', Rule::in(['stripe', 'venmo', 'zelle'])],
         ]);
@@ -42,20 +78,31 @@ class CreditController extends Controller
         if ($data['payment_method'] === 'stripe') {
             Stripe::setApiKey(config('services.stripe.secret'));
 
+            $totalCents = (int) round($creditsRequested * $ratePerCredit * 100);
+
+            $description = $creditsRequested === 1
+                ? '1 Tutoring Credit'
+                : "{$creditsRequested} Tutoring Credits";
+
             $checkout_session = Session::create([
                 'payment_method_types' => ['card'],
                 'line_items' => [[
                     'price_data' => [
-                        'currency' => config('payments.stripe.currency', 'usd'),
-                        'product_data' => ['name' => config('payments.stripe.description', 'Tutoring Credits (Top-up)')],
-                        'unit_amount' => config('payments.stripe.amount', 10000),
+                        'currency'     => config('payments.stripe.currency', 'usd'),
+                        'product_data' => ['name' => $description],
+                        'unit_amount'  => $totalCents,
                     ],
                     'quantity' => 1,
                 ]],
-                'mode' => 'payment',
+                'mode'        => 'payment',
                 'success_url' => route('customer.credits.success').'?session_id={CHECKOUT_SESSION_ID}',
-                'cancel_url' => route('customer.credits.index'),
-                'customer_email' => auth()->user()->email,
+                'cancel_url'  => route('customer.credits.index'),
+                'customer_email' => $user->email,
+                'metadata' => [
+                    'user_id'           => $user->id,
+                    'credits_purchased' => $creditsRequested,
+                    'is_first_purchase' => $isFirstPurchase ? '1' : '0',
+                ],
             ]);
 
             return redirect($checkout_session->url);
@@ -67,11 +114,14 @@ class CreditController extends Controller
             return redirect()->away($url);
         }
 
+        // Zelle
         return redirect()->route('customer.credits.index')
             ->with('payment_instructions', [
                 'method' => 'Zelle',
-                'email' => config('payments.zelle.email'),
-                'note' => config('payments.zelle.note'),
+                'email'  => config('payments.zelle.email'),
+                'note'   => config('payments.zelle.note'),
+                'amount' => number_format($creditsRequested * $ratePerCredit, 2),
+                'credits'=> $creditsRequested,
             ]);
     }
 
@@ -99,34 +149,77 @@ class CreditController extends Controller
             return redirect()->route('customer.credits.index')->with('success', 'Credits have already been applied.');
         }
 
-        $amountPaid = $checkoutSession->amount_total / 100;
         $user = auth()->user();
 
-        $user->credit()->firstOrCreate([
-            'user_id' => $user->id,
-        ], [
-            'credit_balance' => 0,
-            'dollar_cost_per_credit' => null,
+        // Read credits from Stripe metadata (set during purchase())
+        $creditsPurchased = (float) ($checkoutSession->metadata->credits_purchased ?? 1);
+        $isFirstPurchase  = ($checkoutSession->metadata->is_first_purchase ?? '0') === '1';
+        $totalPaid        = $checkoutSession->amount_total / 100;
+
+        $user->credit()->firstOrCreate(['user_id' => $user->id], [
+            'credit_balance'          => 0,
+            'dollar_cost_per_credit'  => null,
         ]);
 
-        $user->credit->increment('credit_balance', $amountPaid);
+        $wasZeroBefore = $user->credit->credit_balance <= 0;
 
+        $user->credit->increment('credit_balance', $creditsPurchased);
         $user->credit->refresh();
 
+        // 1. Notify client of the balance change
         $user->notify(new CreditBalanceChanged(
-            amount: (float) $amountPaid,
+            amount: $creditsPurchased,
             direction: 'credit',
-            balanceAfter: (float) $user->credit->credit_balance,
-            reason: 'Stripe payment confirmed'
+            balanceAfter: $user->credit->credit_balance,
+            reason: 'Payment confirmed – ' . $creditsPurchased . ' credit(s) added'
         ));
 
+        // 2. Record purchase
         CreditPurchase::create([
-            'user_id' => $user->id,
-            'amount' => $amountPaid,
-            'total_paid' => $amountPaid,
+            'user_id'           => $user->id,
+            'amount'            => $creditsPurchased,
+            'credits_purchased' => $creditsPurchased,
+            'total_paid'        => $totalPaid,
             'stripe_session_id' => $sessionId,
+            'type'              => 'deposit',
         ]);
 
+        // 3. First-time purchase: notify admins
+        if ($isFirstPurchase) {
+            $admins = User::where('is_admin', true)->get();
+            Notification::send($admins, new FirstCreditPurchase($user, $creditsPurchased, $totalPaid));
+        }
+
+        // 4. Notify assigned tutors to schedule sessions
+        $this->notifyAssignedTutors($user, $creditsPurchased);
+
         return redirect()->route('customer.credits.index')->with('success', 'Credits added successfully!');
+    }
+
+    /**
+     * Find all tutors assigned to any of this client's students and notify them.
+     */
+    private function notifyAssignedTutors(User $client, float $creditsPurchased): void
+    {
+        $studentIds = $client->students()->pluck('id');
+
+        if ($studentIds->isEmpty()) {
+            return;
+        }
+
+        $tutorIds = \Illuminate\Support\Facades\DB::table('tutor_student_assignments')
+            ->whereIn('student_id', $studentIds)
+            ->pluck('tutor_id')
+            ->unique();
+
+        if ($tutorIds->isEmpty()) {
+            return;
+        }
+
+        $tutors = User::whereIn('id', $tutorIds)->get();
+
+        foreach ($tutors as $tutor) {
+            $tutor->notify(new CreditsPurchased($client, $creditsPurchased));
+        }
     }
 }
