@@ -68,6 +68,8 @@
                             title: 'Edit Session',
                             type: '{{ auth()->user()->role }}',
                             isRecurring: props.isRecurring,
+                            isInitial: props.isInitial,
+                            recurringWeekly: props.isRecurringWeekly,
                             studentId: props.studentId, 
                             tutorId: props.tutorId,
                             subject: props.subject,

@@ -363,6 +363,8 @@
             errorMessage: '',
             studentTimezone: '',
             tutorNotes: '',
+            isInitial: false,
+            recurringWeekly: false,
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -389,6 +391,8 @@
                 this.time_ampm = detail.time_ampm || 'AM';
                 this.studentTimezone = detail.studentTimezone || '';
                 this.tutorNotes = detail.tutorNotes || '';
+                this.isInitial = detail.isInitial || false;
+                this.recurringWeekly = detail.recurringWeekly || false;
             },
 
             tzOffsetLabel(studentTz) {

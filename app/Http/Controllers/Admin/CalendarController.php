@@ -85,7 +85,9 @@ class CalendarController extends Controller
                     'tutorId'       => (string)$session->tutor_id,
                     'subject'       => (string)$session->subject,
                     'duration'      => (string)$session->duration,
-                    'isRecurring'   => !empty($session->recurring_id),
+                    'isRecurring'        => !empty($session->recurring_id),
+                    'isInitial'          => (bool) $session->is_initial,
+                    'isRecurringWeekly'  => (bool) $session->recurs_weekly,
                     //'credits'   => $session->student->parent->credit->credit_balance ?? 0
                 ]
             ];
