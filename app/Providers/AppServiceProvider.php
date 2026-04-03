@@ -22,17 +22,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        View::composer('admin.sessions.partials.quick-form', function ($view) {
-            $view->with([
-                'tutors' => User::where('role', 'tutor')->orderBy('last_name')->get(),
-                'students' => User::where('role', 'student')->orderBy('last_name')->get()
-            ]);
-        });
-
         View::composer(['admin.sessions.partials.quick-form', 'admin.users.edit'], function ($view) {
             $view->with([
-                'tutors' => User::isTutor()->orderBy('last_name')->get(),
-                'students' => User::where('role', 'student')->orderBy('last_name')->get()
+                'tutors'   => User::isTutor()->orderBy('last_name')->get(),
+                'students' => User::where('role', 'student')
+                    ->orWhere(fn($q) => $q->where('role', 'customer')->where('is_self_student', true))
+                    ->orderBy('last_name')->get(),
             ]);
         });
 

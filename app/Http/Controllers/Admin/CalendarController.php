@@ -45,7 +45,10 @@ class CalendarController extends Controller
             ];
         });
 
-        $students = User::where('role', 'student')->orderBy('last_name')->get(['id', 'time_zone']);
+        $students = User::where('role', 'student')
+            ->orWhere(fn($q) => $q->where('role', 'customer')->where('is_self_student', true))
+            ->orderBy('last_name')
+            ->get(['id', 'time_zone']);
 
         return view('admin.calendar.index', [
             'eventsJson' => $events->toJson(),

@@ -11,10 +11,16 @@ class CalendarController extends Controller
 {
     public function index(Request $request)
     {
-        $students = User::where('parent_id', auth()->id())
-            ->where('role', 'student')
-            ->orderBy('first_name')
-            ->get();
+        $user = auth()->user();
+
+        if ($user->is_self_student) {
+            $students = collect([$user]);
+        } else {
+            $students = User::where('parent_id', $user->id)
+                ->where('role', 'student')
+                ->orderBy('first_name')
+                ->get();
+        }
 
         $selectedStudentId = $request->query('student_id');
 
@@ -23,8 +29,11 @@ class CalendarController extends Controller
 
     public function events(Request $request)
     {
-        $query = TutoringSession::whereHas('student', function($q) {
-            $q->where('parent_id', auth()->id());
+        $query = TutoringSession::where(function ($q) {
+            // normal parent: sessions of their children
+            $q->whereHas('student', fn($sq) => $sq->where('parent_id', auth()->id()))
+              // self-student: sessions where the customer IS the student
+              ->orWhere('student_id', auth()->id());
         });
 
         // Optional filtering by student

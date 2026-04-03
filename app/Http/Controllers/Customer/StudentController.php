@@ -10,11 +10,17 @@ class StudentController extends Controller
 {
     public function index()
     {
-        $students = \App\Models\User::where('role', 'student')
-            ->where('parent_id', auth()->id())
-            ->with(['subjectRates', 'tutor'])
-            ->get();
-        
+        $user = auth()->user();
+
+        if ($user->is_self_student) {
+            $students = collect([$user->loadMissing(['subjectRates', 'tutor'])]);
+        } else {
+            $students = \App\Models\User::where('role', 'student')
+                ->where('parent_id', $user->id)
+                ->with(['subjectRates', 'tutor'])
+                ->get();
+        }
+
         return view('customer.students.index', compact('students'));
     }
 

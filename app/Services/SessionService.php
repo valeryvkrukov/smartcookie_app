@@ -16,18 +16,14 @@ class SessionService
      */
     public function schedule(array $data)
     {
-        $student = User::with('parent.credit')->findOrFail($data['student_id']);
+        $student = User::with(['parent.credit', 'credit'])->findOrFail($data['student_id']);
         
-        $parent = $student->parent;
-
-        // Check for Parent/Client
-        if (!$parent) {
-            throw new \Exception("This student has no parent/client assigned. Check User Directory.");
-        }
+        // Self-student: the customer IS the billed party (no separate parent account)
+        $parent = $student->parent ?? $student;
 
         // Check for Credit Record
         if (!$parent->credit) {
-            throw new \Exception("Financial record missing for parent: {$parent->full_name}. Please update their profile.");
+            throw new \Exception("Financial record missing for: {$parent->full_name}. Please update their profile.");
         }
 
         // Check for Credits
@@ -90,9 +86,10 @@ class SessionService
                 $tutor->notify(new SessionScheduled($firstSession, $isRecurring));
             }
 
-            // 2. Notify Parent (only if they have is_subscribed enabled)
-            if ($parent && $parent->is_subscribed) {
-                $parent->notify(new SessionScheduled($firstSession, $isRecurring));
+            // 2. Notify Client (parent or self-student)
+            $billedParty = $student->parent ?? $student;
+            if ($billedParty && $billedParty->is_subscribed) {
+                $billedParty->notify(new SessionScheduled($firstSession, $isRecurring));
             }
         }
 

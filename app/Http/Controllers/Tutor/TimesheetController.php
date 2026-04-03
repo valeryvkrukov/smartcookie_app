@@ -36,21 +36,22 @@ class TimesheetController extends Controller
 
     public function store(Request $request)
     {
-        $session = TutoringSession::with('student.parent.credit')->findOrFail($request->session_id);
+        $session = TutoringSession::with(['student.parent.credit', 'student.credit'])->findOrFail($request->session_id);
 
         // Atomic check: if the session is already paid, do nothing
         if ($session->status === 'Billed') {
             return back()->with('error', 'This session has already been logged.');
         }
 
-        $parent = $session->student->parent;
+        // Self-student: the customer IS the billed party
+        $parent = $session->student->parent ?? $session->student;
 
         // Calculate credits (0:30 = 0.5)
         $creditsNeeded = Timesheet::calculateCredits($session->duration);
 
-        // Parent balance checking
+        // Balance checking
         if ($parent->credit->credit_balance < $creditsNeeded) {
-            return back()->withErrors(['error' => "Insufficient credits! Parent has only {$parent->credit->credit_balance}"]);
+            return back()->withErrors(['error' => "Insufficient credits! Balance: {$parent->credit->credit_balance}"]);
         }
 
         // Calculate hourly payout for the Tutor

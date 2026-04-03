@@ -58,8 +58,9 @@ class UserController extends Controller
 
         // Update `Admin` flag ("Tutor with Admin checkbox" in the docs)
         $user->update([
-            'is_admin' => $request->has('is_admin'),
-            'is_subscribed' => $request->has('is_subscribed'),
+            'is_admin'        => $request->has('is_admin'),
+            'is_subscribed'   => $request->has('is_subscribed'),
+            'is_self_student' => $request->boolean('is_self_student'),
         ]);
 
         if ($request->filled('hourly_payout') && 

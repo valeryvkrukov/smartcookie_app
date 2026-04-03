@@ -148,6 +148,23 @@
                     <p class="text-[9px] text-slate-400 mt-3 leading-relaxed">If enabled, this user will appear in the "Tutor" dropdowns across the system.</p>
                 </div>
                 @endif
+
+                @if($user->role === 'customer')
+                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6">
+                    <h3 class="label-premium mb-6">Account Type</h3>
+                    <label class="flex items-center justify-between cursor-pointer group">
+                        <div>
+                            <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Self-Enrolled Student</span>
+                            <p class="text-[9px] text-slate-400 mt-1 leading-relaxed max-w-xs">This customer IS also the student in sessions. No separate student account is needed.</p>
+                        </div>
+                        <div class="relative ml-6 flex-shrink-0">
+                            <input type="checkbox" name="is_self_student" value="1" {{ $user->is_self_student ? 'checked' : '' }} class="peer hidden">
+                            <div class="w-12 h-6 bg-slate-200 rounded-full peer-checked:bg-indigo-500 transition-colors duration-300"></div>
+                            <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-6 shadow-sm"></div>
+                        </div>
+                    </label>
+                </div>
+                @endif
             </div>
 
             <!-- RIGHT COLUMN: Role settings (Contextual Settings) -->

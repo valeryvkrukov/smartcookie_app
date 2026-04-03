@@ -34,7 +34,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'photo',
     'blurb',
     'can_tutor',
-    'time_zone'
+    'time_zone',
+    'is_self_student'
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -56,6 +57,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_admin' => 'boolean',
             'is_subscribed' => 'boolean',
+            'is_self_student' => 'boolean',
         ];
     }
 
