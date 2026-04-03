@@ -112,6 +112,26 @@
             </div>
         </template>
 
+        <!-- FLAGS -->
+        <div class="flex items-center gap-6">
+            <label class="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" name="is_initial" value="1"
+                       :checked="isInitial"
+                       @change="isInitial = $event.target.checked"
+                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Initial Session</span>
+            </label>
+            <template x-if="!isEdit">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="recurs_weekly" value="1"
+                           :checked="recurringWeekly"
+                           @change="recurringWeekly = $event.target.checked"
+                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Recurring (weekly ×12)</span>
+                </label>
+            </template>
+        </div>
+
         <!-- SEND BUTTON (Fetch API) — disabled on submit to prevent double-click -->
         <button type="button" 
             @click="

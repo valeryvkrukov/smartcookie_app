@@ -47,7 +47,9 @@ class CalendarController extends Controller
                     'tutorId'       => (string)$session->tutor_id,
                     'subject'       => $session->subject,
                     'duration'      => $session->duration,
-                    'isRecurring'   => !empty($session->recurring_id),
+                    'isRecurring'       => !empty($session->recurring_id),
+                    'isInitial'         => (bool) $session->is_initial,
+                    'isRecurringWeekly' => (bool) $session->recurs_weekly,
                 ]
             ];
         });
