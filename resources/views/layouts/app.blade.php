@@ -37,6 +37,37 @@
         <x-modal-container />
         <x-delete-modal />
 
+        <script>
+        // ── Session guard ──────────────────────────────────────────────────────────
+        // 1. Global fetch interceptor: any 419 (expired CSRF) → redirect to login
+        (function () {
+            var _orig = window.fetch;
+            window.fetch = function () {
+                return _orig.apply(this, arguments).then(function (response) {
+                    if (response.status === 419) {
+                        window.location.href = '/login';
+                    }
+                    return response;
+                });
+            };
+        })();
+
+        // 2. Heartbeat every 30 min — keeps the session alive while the tab is open
+        //    Also refreshes the CSRF meta tag so modal fetch calls always use a valid token
+        setInterval(function () {
+            fetch('/ping', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (data) {
+                    if (data && data.csrf) {
+                        var el = document.querySelector('meta[name="csrf-token"]');
+                        if (el) el.setAttribute('content', data.csrf);
+                    }
+                })
+                .catch(function () {});
+        }, 30 * 60 * 1000); // every 30 minutes
+        // ──────────────────────────────────────────────────────────────────────────
+        </script>
+
         @stack('scripts')
     </body>
 </html>

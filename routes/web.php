@@ -38,6 +38,9 @@ Route::post('register', [RegistrationController::class, 'store']);
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
+    // Session keepalive — called by JS heartbeat every 30 min to prevent CSRF expiry
+    Route::get('/ping', fn() => response()->json(['ok' => true, 'csrf' => csrf_token()]))->name('ping');
+
     Route::prefix('profile')->name('profile.')->group(function () {
         Route::get('/', [ProfileController::class, 'edit'])->name('edit');
         Route::patch('/', [ProfileController::class, 'update'])->name('update');
