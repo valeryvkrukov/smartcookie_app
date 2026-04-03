@@ -108,13 +108,19 @@
 
         <input type="hidden" name="g-recaptcha-response" id="g-recaptcha-response">
 
-        <button type="submit"
-                class="g-recaptcha btn-primary w-full"
-                data-sitekey="{{ env('RECAPTCHA_SITE_KEY') }}"
-                data-callback='onSubmit'
-                data-action='submit'>
-            Complete Registration
-        </button>
+        @if(config('services.recaptcha.key'))
+            <button type="submit"
+                    class="g-recaptcha btn-primary w-full"
+                    data-sitekey="{{ config('services.recaptcha.key') }}"
+                    data-callback='onSubmit'
+                    data-action='submit'>
+                Complete Registration
+            </button>
+        @else
+            <button type="submit" class="btn-primary w-full">
+                Complete Registration
+            </button>
+        @endif
 
         @if (Route::has('login'))
             <p class="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest pt-4">
@@ -123,11 +129,13 @@
         @endif
     </form>
 
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <script>
-        function onSubmit(token) {
-            document.getElementById("g-recaptcha-response").value = token;
-            document.getElementById("register-form").submit();
-        }
-    </script>
+    @if(config('services.recaptcha.key'))
+        <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+        <script>
+            function onSubmit(token) {
+                document.getElementById("g-recaptcha-response").value = token;
+                document.getElementById("register-form").submit();
+            }
+        </script>
+    @endif
 </x-guest-layout>
