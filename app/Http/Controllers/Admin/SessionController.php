@@ -57,19 +57,21 @@ class SessionController extends Controller
             'time_m'     => 'required',
             'time_ampm'  => 'required',
             'duration'   => 'required|in:0:30,1:00,1:30,2:00',
-            'location'   => 'required|string',
+            'location'   => 'nullable|string',
         ]);
 
         $timeString = $request->time_h . ':' . $request->time_m . ' ' . $request->time_ampm;
         $startTime = Carbon::parse($timeString)->format('H:i:s');
 
         $session->update([
-            'tutor_id'   => $request->tutor_id,
-            'student_id' => $request->student_id,
-            'subject'    => $request->subject,
-            'date'       => $request->date,
-            'start_time' => $startTime,
-            'duration'   => $request->duration,
+            'tutor_id'     => $request->tutor_id,
+            'student_id'   => $request->student_id,
+            'subject'      => $request->subject,
+            'date'         => $request->date,
+            'start_time'   => $startTime,
+            'duration'     => $request->duration,
+            'is_initial'   => $request->boolean('is_initial'),
+            'recurs_weekly'=> $request->boolean('recurs_weekly'),
         ]);
 
         $session->refresh()->loadMissing('student.parent', 'tutor');
@@ -97,14 +99,19 @@ class SessionController extends Controller
         $request->merge(['start_time' => $startTime]);
         
         $data = $request->validate([
-            'tutor_id'   => 'required|exists:users,id',
-            'student_id' => 'required|exists:users,id',
-            'subject'    => 'required|string|max:255',
-            'date'       => 'required|date',
-            'start_time' => 'required',
-            'duration'   => 'required|in:0:30,1:00,1:30,2:00',
-            'location'   => 'required|string',
+            'tutor_id'      => 'required|exists:users,id',
+            'student_id'    => 'required|exists:users,id',
+            'subject'       => 'required|string|max:255',
+            'date'          => 'required|date',
+            'start_time'    => 'required',
+            'duration'      => 'required|in:0:30,1:00,1:30,2:00',
+            'location'      => 'nullable|string',
+            'is_initial'    => 'nullable|boolean',
+            'recurs_weekly' => 'nullable|boolean',
         ]);
+
+        $data['is_initial']    = $request->boolean('is_initial');
+        $data['recurs_weekly'] = $request->boolean('recurs_weekly');
 
         try {
             $this->sessionService->schedule($data);

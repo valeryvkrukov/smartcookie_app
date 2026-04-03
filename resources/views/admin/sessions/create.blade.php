@@ -79,6 +79,20 @@
                 </div>
             </div>
 
+            <!-- FLAGS -->
+            <div class="flex items-center gap-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="is_initial" value="1"
+                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Initial Session</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="recurs_weekly" value="1"
+                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Recurring (weekly × 12)</span>
+                </label>
+            </div>
+
             <div class="pt-4 border-t flex justify-end">
                 <x-primary-button class="bg-[#212120]">Create Session</x-primary-button>
             </div>

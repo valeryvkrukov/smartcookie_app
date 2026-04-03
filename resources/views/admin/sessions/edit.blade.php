@@ -89,6 +89,22 @@
                 </div>
             </div>
 
+            <!-- FLAGS -->
+            <div class="flex items-center gap-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="is_initial" value="1"
+                           {{ old('is_initial', $session->is_initial) ? 'checked' : '' }}
+                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Initial Session</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" name="recurs_weekly" value="1"
+                           {{ old('recurs_weekly', $session->recurs_weekly) ? 'checked' : '' }}
+                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                    <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Recurring (weekly)</span>
+                </label>
+            </div>
+
             <div class="pt-4 border-t flex justify-between">
                 <button type="button" 
                     onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { 
