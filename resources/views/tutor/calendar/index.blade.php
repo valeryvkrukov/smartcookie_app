@@ -31,6 +31,7 @@
                 timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
                 
                 // Define working hours and hide all-day slot
+                lazyFetching: false,
                 firstDay: 0, 
                 allDaySlot: false,
                 slotMinTime: '06:00:00', // Beginning of workday

@@ -185,8 +185,6 @@ class SessionController extends Controller
             $message = "The session has been cancelled.";
         }
 
-        $session->delete();
-
         return redirect()->route('tutor.calendar.index')->with('success', $message);
     }
 

@@ -85,7 +85,7 @@
 
         <template x-if="isEdit">
             <button type="button" 
-                @click="$dispatch('confirm-delete', { name: 'this tutoring session', formId: 'delete-session-form', isRecurring: isRecurring })"
+                @click="$dispatch('confirm-delete', { name: subject + ' with ' + ($el.closest('form').querySelector('[name=student_id]').selectedOptions[0]?.text || 'student'), formId: 'delete-session-form', isRecurring: isRecurring })"
                 class="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 transition-colors">
                 Cancel Session
             </button>

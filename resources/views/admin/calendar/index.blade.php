@@ -89,6 +89,7 @@
                         };
                     }
                 },
+                lazyFetching: false,
                 allDaySlot: false,
                 slotMinTime: '00:00:00',
                 slotMaxTime: '23:59:59',

@@ -71,7 +71,7 @@ class CalendarController extends Controller
             $startIso = $start->toIso8601String();
             $endIso = $end->toIso8601String();
 
-            $hasCredits = ($session->student->parent->credit->credit_balance ?? 0) > 0;
+            $hasCredits = ($session->student?->parent?->credit?->credit_balance ?? 0) > 0;
 
             return [
                 'id'                => $session->id,
