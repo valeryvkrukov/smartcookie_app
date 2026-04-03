@@ -1,6 +1,48 @@
-<div x-data="{ open: false, name: '', formId: null, isRecurring: false }" 
-     @confirm-delete.window="open = true; name = ($event.detail && $event.detail.name) ? $event.detail.name : ''; formId = ($event.detail && $event.detail.formId) ? $event.detail.formId : null; isRecurring = ($event.detail && $event.detail.isRecurring) ? $event.detail.isRecurring : false"
-     @confirm-user-delete.window="open = true; name = ($event.detail && $event.detail.name) ? $event.detail.name : ''; formId = ($event.detail && $event.detail.formId) ? $event.detail.formId : null; isRecurring = ($event.detail && $event.detail.isRecurring) ? $event.detail.isRecurring : false"
+<div x-data="{
+    open: false,
+    name: '',
+    formId: null,
+    isRecurring: false,
+    useAjax: false,
+
+    performDelete(deleteSeries = false) {
+        const form = document.getElementById(this.formId);
+        if (!form) return;
+
+        if (!this.useAjax) {
+            if (deleteSeries) {
+                const inp = document.createElement('input');
+                inp.type = 'hidden'; inp.name = 'delete_series'; inp.value = '1';
+                form.appendChild(inp);
+            }
+            form.submit();
+            return;
+        }
+
+        const formData = new FormData(form);
+        if (deleteSeries) formData.append('delete_series', '1');
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name=\'csrf-token\']').content,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                this.open = false;
+                if (window.calendar) window.calendar.refetchEvents();
+            }
+        })
+        .catch(() => {});
+    }
+}"
+     @confirm-delete.window="open = true; name = ($event.detail && $event.detail.name) ? $event.detail.name : ''; formId = ($event.detail && $event.detail.formId) ? $event.detail.formId : null; isRecurring = ($event.detail && $event.detail.isRecurring) ? $event.detail.isRecurring : false; useAjax = ($event.detail && $event.detail.useAjax) ? true : false"
+     @confirm-user-delete.window="open = true; name = ($event.detail && $event.detail.name) ? $event.detail.name : ''; formId = ($event.detail && $event.detail.formId) ? $event.detail.formId : null; isRecurring = false; useAjax = false"
      x-show="open" 
      x-cloak
      class="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto"
@@ -27,7 +69,7 @@
 
         <div class="mt-10 space-y-3">
             <!-- Main Button (Delete / Single Instance) -->
-            <button type="button" @click="document.getElementById(formId).submit()"
+            <button type="button" @click="performDelete(false)"
                     class="w-full flex items-center justify-center py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-700 transition shadow-lg shadow-rose-100 leading-none">
                 <span x-text="isRecurring ? 'Only This Instance' : 'Confirm & Delete'"></span>
             </button>
@@ -35,7 +77,7 @@
             <!-- Button for series (Recurring) -->
             <template x-if="isRecurring">
                 <button type="button" 
-                        @click="const f = document.getElementById(formId); const inp = document.createElement('input'); inp.type='hidden'; inp.name='delete_series'; inp.value='1'; f.appendChild(inp); f.submit();"
+                        @click="performDelete(true)"
                         class="w-full flex items-center justify-center py-4 bg-white border-2 border-rose-600 text-rose-600 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-50 transition leading-none">
                     Delete All Future Sessions
                 </button>

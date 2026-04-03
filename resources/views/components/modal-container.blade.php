@@ -296,6 +296,10 @@
 
                         <button type="button"
                             @click="
+                                $el.disabled = true;
+                                const origHtml = $el.innerHTML;
+                                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\'></i> SAVING...</span>';
+
                                 const form = $el.closest('form');
                                 const formData = new FormData(form);
                                 fetch(form.action, {
@@ -313,9 +317,15 @@
                                         window.location.reload();
                                     } else {
                                         $dispatch('set-error', { message: res.body.message || 'Error occurred' });
+                                        $el.disabled = false;
+                                        $el.innerHTML = origHtml;
                                     }
                                 })
-                                .catch(() => $dispatch('set-error', { message: 'Connection error' }))
+                                .catch(() => {
+                                    $dispatch('set-error', { message: 'Connection error' });
+                                    $el.disabled = false;
+                                    $el.innerHTML = origHtml;
+                                })
                             "
                             class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all">
                             Mark as Completed

@@ -99,7 +99,11 @@ class SessionService
         return $createdSessions;
     }
 
-    protected function hasConflict($tutorId, $date, $startTime, $duration)
+    /**
+     * $excludeSessionId   – exclude a specific session (e.g. the one being updated)
+     * $excludeRecurringId – exclude all sessions in a recurring series (e.g. during series update)
+     */
+    public function hasConflict($tutorId, $date, $startTime, $duration, $excludeSessionId = null, $excludeRecurringId = null): bool
     {
         $start = Carbon::parse("$date $startTime");
 
@@ -108,7 +112,11 @@ class SessionService
 
         return TutoringSession::where('tutor_id', $tutorId)
             ->where('date', $date)
-            ->where('status', '!=', 'Canceled')
+            ->where('status', 'Scheduled')   // only future scheduled sessions block a slot
+            ->when($excludeSessionId,   fn($q) => $q->where('id', '!=', $excludeSessionId))
+            ->when($excludeRecurringId, fn($q) => $q->where(function ($q) use ($excludeRecurringId) {
+                $q->whereNull('recurring_id')->orWhere('recurring_id', '!=', $excludeRecurringId);
+            }))
             ->get()
             ->filter(function ($session) use ($start, $end) {
                 $sStart = Carbon::parse($session->date->format('Y-m-d') . ' ' . $session->start_time);
@@ -116,7 +124,6 @@ class SessionService
                 list($h, $m) = explode(':', $session->duration);
                 $sEnd = (clone $sStart)->addHours((int)$h)->addMinutes((int)$m);
 
-                // Check for intersection of time intervals
                 return $start->lt($sEnd) && $end->gt($sStart);
             })->isNotEmpty();
     }

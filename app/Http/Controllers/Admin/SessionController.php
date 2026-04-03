@@ -126,16 +126,12 @@ class SessionController extends Controller
         if ($request->has('delete_series') && $session->recurring_id) {
             TutoringSession::where('recurring_id', $session->recurring_id)
                 ->where('date', '>=', $session->date)
-                ->where('status', 'Scheduled') // Don't touch `Billed` 
+                ->whereNotIn('status', ['Billed', 'Completed'])
                 ->delete();
-            
-            $message = "The entire session series has been cancelled.";
         } else {
-            $message = "The specific session has been cancelled.";
-
             $session->delete();
         }
-        
-        return redirect()->route('admin.calendar.index')->with('success', $message);
+
+        return response()->json(['success' => true]);
     }
 }

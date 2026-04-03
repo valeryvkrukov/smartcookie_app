@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\TutoringSession;
 use App\Models\User;
 use App\Services\SessionService;
+use App\Notifications\SessionUpdated;
 use Carbon\Carbon;
 
 class SessionController extends Controller
@@ -165,27 +166,116 @@ class SessionController extends Controller
         }
     }
 
+    public function update(Request $request, TutoringSession $session)
+    {
+        if ($session->tutor_id !== auth()->id()) {
+            return response()->json(['success' => false, 'message' => 'Permission denied.'], 403);
+        }
+
+        $timeString = "{$request->time_h}:{$request->time_m} {$request->time_ampm}";
+        try {
+            $startTime = Carbon::createFromFormat('h:i A', $timeString)->format('H:i:s');
+            $request->merge(['start_time' => $startTime]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Invalid time format.'], 422);
+        }
+
+        $data = $request->validate([
+            'student_id' => 'required|integer|exists:users,id',
+            'subject'    => 'required|string|max:255',
+            'date'       => 'required|date',
+            'start_time' => 'required',
+            'duration'   => 'required|in:0:30,1:00,1:30,2:00',
+        ]);
+
+        $updateSeries = $request->input('update_series') === '1';
+
+        if ($updateSeries && $session->recurring_id) {
+            // Update all future Scheduled instances in this series
+            $futureSessions = TutoringSession::where('recurring_id', $session->recurring_id)
+                ->where('date', '>=', $session->date)
+                ->where('status', 'Scheduled')
+                ->get();
+
+            // Compute day offset: positive if moving forward (e.g. Mon→Wed = +2)
+            $daysDiff = (int) Carbon::parse($session->date->format('Y-m-d'))
+                          ->diffInDays(Carbon::parse($data['date']), false);
+
+            // Pre-check conflicts for each new date, excluding the entire series
+            foreach ($futureSessions as $s) {
+                $newDate = $s->date->copy()->addDays($daysDiff);
+                if ($this->sessionService->hasConflict(
+                    auth()->id(), $newDate->format('Y-m-d'), $data['start_time'], $data['duration'],
+                    null, $session->recurring_id
+                )) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Time conflict on {$newDate->format('M d')}: another session already scheduled at that time.",
+                    ], 422);
+                }
+            }
+
+            foreach ($futureSessions as $s) {
+                $s->update([
+                    'student_id' => $data['student_id'],
+                    'subject'    => $data['subject'],
+                    'date'       => $s->date->copy()->addDays($daysDiff)->format('Y-m-d'),
+                    'start_time' => $data['start_time'],
+                    'duration'   => $data['duration'],
+                ]);
+            }
+        } else {
+            // Update only this instance — delink it from the series
+            if ($this->sessionService->hasConflict(
+                auth()->id(), $data['date'], $data['start_time'], $data['duration'], $session->id
+            )) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Time Conflict: another session overlaps with that time slot.',
+                ], 422);
+            }
+
+            $session->update([
+                'student_id'   => $data['student_id'],
+                'subject'      => $data['subject'],
+                'date'         => $data['date'],
+                'start_time'   => $data['start_time'],
+                'duration'     => $data['duration'],
+                'recurring_id' => null, // Delink from series — this is now a standalone session
+            ]);
+        }
+
+        $session->refresh()->loadMissing('student.parent', 'tutor');
+
+        if ($session->tutor) {
+            $session->tutor->notify(new SessionUpdated($session));
+        }
+
+        if ($session->student?->parent) {
+            $session->student->parent->notify(new SessionUpdated($session));
+        }
+
+        return response()->json(['success' => true]);
+    }
+
     public function destroy(Request $request, TutoringSession $session)
     {
         // Check if the session belongs to the tutor
         if ($session->tutor_id !== auth()->id()) {
-            return back()->withErrors(['error' => 'Permission Denied: You can only cancel your own sessions.']);
+            return response()->json(['success' => false, 'message' => 'Permission Denied.'], 403);
         }
 
         if ($request->has('delete_series') && $session->recurring_id) {
+            // Delete all future non-billed sessions in this series
             TutoringSession::where('recurring_id', $session->recurring_id)
                 ->where('date', '>=', $session->date)
-                ->where('status', 'Scheduled') // Don't touch `Billed` 
+                ->whereNotIn('status', ['Billed', 'Completed'])
                 ->delete();
-                
-            $message = "The session series has been cancelled successfully.";
         } else {
             $session->delete();
-            
-            $message = "The session has been cancelled.";
         }
 
-        return redirect()->route('tutor.calendar.index')->with('success', $message);
+        return response()->json(['success' => true]);
     }
 
 }

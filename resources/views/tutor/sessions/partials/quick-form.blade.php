@@ -33,7 +33,7 @@
         <!-- Subject -->
         <div>
             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
-            <input type="text" name="subject" placeholder="Math, English..." class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800" required>
+            <input type="text" name="subject" x-model="subject" placeholder="Math, English..." class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800" required>
         </div>
 
         <div>
@@ -69,11 +69,11 @@
             </div>
         </div>
 
-        <!-- Duration (Segmented Control) -->
+        <!-- Duration (Segmented Control) — x-model keeps selection in sync when editing -->
         <div class="grid grid-cols-4 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
             @foreach(['0:30' => '30m', '1:00' => '1h', '1:30' => '1.5h', '2:00' => '2h'] as $val => $lbl)
                 <label class="flex-1">
-                    <input type="radio" name="duration" value="{{ $val }}" {{ $val == '1:00' ? 'checked' : '' }} class="peer hidden">
+                    <input type="radio" name="duration" value="{{ $val }}" x-model="duration" class="peer hidden">
                     <div class="cursor-pointer text-center py-2 text-[10px] font-black uppercase text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all">
                         {{ $lbl }}
                     </div>
@@ -81,9 +81,44 @@
             @endforeach
         </div>
 
-        <!-- SEND BUTTON (Fetch API) -->
+        <!-- Recurring series edit option — only shown when editing a recurring session -->
+        <template x-if="isEdit && isRecurring">
+            <div x-data="{ updateSeries: false }">
+                <input type="hidden" name="update_series" :value="updateSeries ? '1' : ''">
+                <div class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 space-y-3">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-amber-700">
+                        <i class="ti-reload mr-1"></i> Recurring session
+                    </p>
+                    <div class="flex gap-2">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" :checked="!updateSeries" @change="updateSeries = false" class="sr-only">
+                            <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                                 :class="!updateSeries ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'">
+                                Only this session
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" :checked="updateSeries" @change="updateSeries = true" class="sr-only">
+                            <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                                 :class="updateSeries ? 'bg-amber-500 text-white shadow' : 'text-slate-400 hover:text-slate-600'">
+                                All future sessions
+                            </div>
+                        </label>
+                    </div>
+                    <p x-show="updateSeries" class="text-[9px] text-amber-600 leading-relaxed">
+                        Changing the date will shift all future sessions by the same number of days.
+                    </p>
+                </div>
+            </div>
+        </template>
+
+        <!-- SEND BUTTON (Fetch API) — disabled on submit to prevent double-click -->
         <button type="button" 
             @click="
+                $el.disabled = true;
+                const origHtml = $el.innerHTML;
+                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\'></i> SAVING...</span>';
+
                 const form = $el.closest('form');
                 const formData = new FormData(form);
                 
@@ -97,15 +132,21 @@
                 })
                 .then(response => response.json().then(data => ({ status: response.status, body: data })))
                 .then(res => {
-                    if(res.status === 200 && res.body.success) {
+                    if (res.status === 200 && res.body.success) {
                         open = false;
-                        if(window.calendar) window.calendar.refetchEvents();
+                        if (window.calendar) window.calendar.refetchEvents();
                         errorMessage = '';
                     } else {
                         $dispatch('set-error', { message: res.body.message || 'Error occurred' });
+                        $el.disabled = false;
+                        $el.innerHTML = origHtml;
                     }
                 })
-                .catch(err => $dispatch('set-error', { message: 'Connection error' }))
+                .catch(() => {
+                    $dispatch('set-error', { message: 'Connection error' });
+                    $el.disabled = false;
+                    $el.innerHTML = origHtml;
+                })
             "
             class="btn-primary mt-6">
              <span x-text="isEdit ? 'Update Session' : 'Create Session'"></span>
@@ -113,13 +154,12 @@
 
         <template x-if="isEdit">
             <button type="button" 
-                onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { 
-                    detail: {
-                        name: 'this tutoring session', 
-                        formId: 'delete-session-form', 
-                        isRecurring: isRecurring 
-                    }
-                }))"
+                @click="$dispatch('confirm-delete', { 
+                    name: 'this tutoring session', 
+                    formId: 'delete-session-form', 
+                    isRecurring: isRecurring,
+                    useAjax: true
+                })"
                 class="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 transition-colors">
                 Cancel Session
             </button>

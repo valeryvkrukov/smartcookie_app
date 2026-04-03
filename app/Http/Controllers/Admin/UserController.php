@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Credit;
+use App\Notifications\StudentAssigned;
 
 class UserController extends Controller
 {
@@ -81,9 +82,17 @@ class UserController extends Controller
 
         // Add new value to the Tutor
         if ($request->filled('new_student_id') && $request->filled('new_hourly_payout')) {
+            $payout = (float) $request->new_hourly_payout;
+
             $user->assignedStudents()->syncWithoutDetaching([
-                $request->new_student_id => ['hourly_payout' => $request->new_hourly_payout]
+                $request->new_student_id => ['hourly_payout' => $payout]
             ]);
+
+            // Notify the tutor about the new student assignment
+            $student = User::find($request->new_student_id);
+            if ($student) {
+                $user->notify(new StudentAssigned($student, $payout));
+            }
 
             return redirect()->back()->with('success', 'Student assigned successfully!');
         }

@@ -9,18 +9,17 @@ use App\Models\SubjectRate;
 class SubjectRateController extends Controller
 {
     public function store(Request $request)
-    {
-        /*$data = $request->validate([
+    {        
+        $request->validate([
             'student_id' => 'required|exists:users,id',
             'subject'    => 'required|string|max:255',
             'rate'       => 'required|numeric|min:0',
-        ]);*/
-
+        ]);
+        
         try {
             SubjectRate::create($request->only('student_id', 'subject', 'rate'));
         } catch (\Exception $e) {
-            //return response()->json(['success' => false, 'message' => 'Error adding subject rate'], 500);
-            dd($e->getMessage());
+            return response()->json(['success' => false, 'message' => 'Error adding subject rate'], 500);
         }
 
         return response()->json(['success' => true]);

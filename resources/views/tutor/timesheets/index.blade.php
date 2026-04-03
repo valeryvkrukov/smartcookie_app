@@ -49,7 +49,7 @@
                                 <span class="text-emerald-500 font-black uppercase text-[9px] font-black uppercase tracking-widest">
                                     <i class="ti-check mr-2"></i> Completed
                                 </span>
-                            @elseif($s->date->isPast())
+                            @elseif($s->date->lt(today()))
                                 <span class="text-rose-500 font-black uppercase text-[9px] animate-pulse font-black uppercase tracking-widest">
                                     <i class="ti-check mr-2"></i> Pending Log
                                 </span>
