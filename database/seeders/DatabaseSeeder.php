@@ -98,12 +98,14 @@ class DatabaseSeeder extends Seeder
             ]);
 
             foreach (range(1, rand(2, 5)) as $_) {
-                $amount = $faker->randomFloat(2, 50, 400);
+                $credits     = $faker->randomElement([1, 2, 4, 6, 8, 10]);
+                $ratePerCredit = $faker->randomElement([35, 40, 45, 50, 55]);
                 CreditPurchase::create([
-                    'user_id'   => $customer->id,
-                    'amount'    => $amount,
-                    'total_paid'=> $amount,
-                    'type'      => 'stripe',
+                    'user_id'           => $customer->id,
+                    'amount'            => $credits,
+                    'credits_purchased' => $credits,
+                    'total_paid'        => $credits * $ratePerCredit,
+                    'type'              => 'deposit',
                     'stripe_session_id' => 'sess_fake_' . \Illuminate\Support\Str::random(16),
                 ]);
             }
