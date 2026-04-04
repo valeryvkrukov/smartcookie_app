@@ -37,8 +37,9 @@ class AgreementController extends Controller
             'signed_full_name'   => $request->signed_full_name,
             'signed_date_manual' => $request->signed_date_manual,
             'signed_at'          => now(),
-            // ── Snapshot: record PDF filename at signing so the audit trail is self-contained
+            // ── Snapshot: record PDF filename and client IP at signing for the audit trail
             'pdf_filename'       => basename($agreementRequest->agreement->pdf_path),
+            'ip_address'         => $request->ip(),
         ]);
 
         return response()->json(['success' => true]);

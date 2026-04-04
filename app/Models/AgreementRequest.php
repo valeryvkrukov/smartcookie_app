@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'signed_date_manual',
     'signed_at',
     'pdf_filename',
+    'ip_address',
 ])]
 class AgreementRequest extends Model
 {

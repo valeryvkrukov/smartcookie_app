@@ -8,6 +8,7 @@ use App\Models\AgreementRequest;
 use App\Models\User;
 use App\Notifications\NewAgreementAssigned;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AgreementController extends Controller
 {
@@ -59,6 +60,36 @@ class AgreementController extends Controller
         ]);
 
         return back()->with('success', 'Agreement "' . $data['name'] . '" uploaded successfully.');
+    }
+
+    // ── Replace: swap the PDF file for an existing agreement record
+    public function replace(Request $request, Agreement $agreement)
+    {
+        $request->validate([
+            'pdf' => 'required|file|mimes:pdf|max:20480',
+        ]);
+
+        // ── Delete old file before storing the new one
+        Storage::disk('public')->delete($agreement->pdf_path);
+
+        $agreement->update([
+            'pdf_path' => $request->file('pdf')->store('agreements', 'public'),
+        ]);
+
+        return back()->with('success', 'PDF for "' . $agreement->name . '" replaced successfully.');
+    }
+
+    // ── Destroy: delete agreement and its PDF; block if signed requests exist
+    public function destroy(Agreement $agreement)
+    {
+        if ($agreement->agreementRequests()->where('status', 'Signed')->exists()) {
+            return back()->with('error', 'Cannot delete "' . $agreement->name . '" — it has signed records.');
+        }
+
+        Storage::disk('public')->delete($agreement->pdf_path);
+        $agreement->delete();
+
+        return back()->with('success', 'Agreement "' . $agreement->name . '" deleted.');
     }
     
     public function assign(Request $request)

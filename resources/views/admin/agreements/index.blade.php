@@ -27,10 +27,15 @@
              x-transition:enter-end="opacity-100 translate-y-0"
              class="px-8 pb-8 border-t border-slate-50">
 
-            {{-- Success flash --}}
+            {{-- Success / error flash --}}
             @if(session('success'))
                 <div class="mt-6 px-5 py-3 bg-emerald-50 border border-emerald-100 rounded-2xl text-[11px] font-bold text-emerald-700">
                     <i class="ti-check mr-2"></i>{{ session('success') }}
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="mt-6 px-5 py-3 bg-rose-50 border border-rose-100 rounded-2xl text-[11px] font-bold text-rose-700">
+                    <i class="ti-na mr-2"></i>{{ session('error') }}
                 </div>
             @endif
 
@@ -68,16 +73,67 @@
             @if($documents->isNotEmpty())
                 <div class="mt-6 divide-y divide-slate-50 border border-slate-100 rounded-2xl overflow-hidden">
                     @foreach($documents as $doc)
-                        <div class="flex items-center justify-between px-5 py-3 bg-white hover:bg-slate-50/50 transition-colors">
-                            <div class="flex items-center gap-3">
-                                <i class="ti-file text-slate-300 text-sm"></i>
-                                <span class="text-[11px] font-bold text-slate-700">{{ $doc->name }}</span>
-                                <span class="text-[9px] font-bold text-slate-300 font-mono">{{ basename($doc->pdf_path) }}</span>
+                        <div class="bg-white hover:bg-slate-50/50 transition-colors"
+                             x-data="{ replacing: false }">
+
+                            {{-- Row: name + actions --}}
+                            <div class="flex items-center justify-between px-5 py-3">
+                                <div class="flex items-center gap-3 min-w-0">
+                                    <i class="ti-file text-slate-300 text-sm flex-shrink-0"></i>
+                                    <span class="text-[11px] font-bold text-slate-700 truncate">{{ $doc->name }}</span>
+                                    <span class="text-[9px] font-bold text-slate-300 font-mono hidden sm:inline">{{ basename($doc->pdf_path) }}</span>
+                                </div>
+                                <div class="flex items-center gap-3 flex-shrink-0 ml-4">
+                                    <a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank"
+                                       class="text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-700 transition-colors">
+                                        Preview
+                                    </a>
+                                    <button type="button" @click="replacing = !replacing"
+                                            class="text-[9px] font-black uppercase tracking-widest text-amber-400 hover:text-amber-700 transition-colors">
+                                        Replace
+                                    </button>
+                                    {{-- Delete — blocked if signed copies exist --}}
+                                    <form action="{{ route('admin.agreements.destroy', $doc) }}" method="POST"
+                                          onsubmit="return confirm('Delete \'{{ addslashes($doc->name) }}\'? This cannot be undone.')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit"
+                                                class="text-[9px] font-black uppercase tracking-widest text-rose-300 hover:text-rose-600 transition-colors">
+                                            Delete
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
-                            <a href="{{ asset('storage/' . $doc->pdf_path) }}" target="_blank"
-                               class="text-[9px] font-black uppercase tracking-widest text-indigo-400 hover:text-indigo-700 transition-colors">
-                                Preview
-                            </a>
+
+                            {{-- Replace sub-form (toggled) --}}
+                            <div x-show="replacing"
+                                 x-transition:enter="transition ease-out duration-150"
+                                 x-transition:enter-start="opacity-0"
+                                 x-transition:enter-end="opacity-100"
+                                 class="px-5 pb-4">
+                                <form action="{{ route('admin.agreements.replace', $doc) }}" method="POST"
+                                      enctype="multipart/form-data"
+                                      class="flex flex-col sm:flex-row gap-3 items-end">
+                                    @csrf
+                                    <div class="flex-1 space-y-1">
+                                        <label class="label-premium">New PDF File <span class="text-slate-300 normal-case font-bold">(replaces current)</span></label>
+                                        <input type="file" name="pdf" accept=".pdf" required
+                                               class="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-2xl text-[11px] font-bold text-slate-500
+                                                      file:mr-4 file:py-1 file:px-3 file:rounded-xl file:border-0 file:text-[10px] file:font-black file:uppercase file:tracking-widest
+                                                      file:bg-amber-500 file:text-white hover:file:bg-amber-600 transition-all">
+                                    </div>
+                                    <div class="flex gap-2">
+                                        <button type="submit"
+                                                class="px-5 py-2.5 bg-amber-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all">
+                                            Upload
+                                        </button>
+                                        <button type="button" @click="replacing = false"
+                                                class="px-5 py-2.5 bg-slate-100 text-slate-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all">
+                                            Cancel
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
                     @endforeach
                 </div>
