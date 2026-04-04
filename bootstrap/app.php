@@ -12,6 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
+    ->withSchedule(function (\Illuminate\Console\Scheduling\Schedule $schedule) {
+        // Runs every 10 minutes: sends 30h reminders and 24h zero-credit auto-cancellations
+        $schedule->command('sessions:send-reminders')->everyTenMinutes();
+    })
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'role' => RoleMiddleware::class,

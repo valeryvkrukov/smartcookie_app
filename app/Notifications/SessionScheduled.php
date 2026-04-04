@@ -13,14 +13,16 @@ class SessionScheduled extends Notification
 
     protected $session;
     protected $isRecurring;
+    protected $isLastMinute;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($session, $isRecurring = false)
+    public function __construct($session, $isRecurring = false, $isLastMinute = false)
     {
-        $this->session = $session;
+        $this->session     = $session;
         $this->isRecurring = $isRecurring;
+        $this->isLastMinute = $isLastMinute;
     }
 
     /**
@@ -45,14 +47,19 @@ class SessionScheduled extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject('SmartCookie: New Session Scheduled')
+            ->subject($this->isLastMinute
+                ? 'SmartCookie: New Session Scheduled (Tomorrow!)'
+                : 'SmartCookie: New Session Scheduled')
             ->greeting('Hello, ' . $notifiable->first_name . '!')
-            ->line('A new tutoring session has been added to your schedule.')
+            ->line($this->isLastMinute
+                ? '⚡ A tutoring session has been scheduled for you in less than 30 hours!'
+                : 'A new tutoring session has been added to your schedule.')
             ->line('**Student:** ' . $this->session->student->full_name)
+            ->line('**Tutor:** '   . ($this->session->tutor?->full_name ?? 'TBD'))
             ->line('**Subject:** ' . $this->session->subject)
             ->line('**Date:** ' . \Carbon\Carbon::parse($this->session->date)->format('l, F j, Y'))
-            // TIME FIX: Ensure start_time is properly formatted
-            ->line('**Time:** ' . \Carbon\Carbon::parse($this->session->start_time)->format('g:i A'));
+            ->line('**Time:** ' . \Carbon\Carbon::parse($this->session->start_time)->format('g:i A'))
+            ->line('**Location:** ' . ($this->session->location ?: 'Online'));
 
         if ($this->isRecurring) {
             $message->line('**Note:** This is a recurring weekly session (12 weeks series).');

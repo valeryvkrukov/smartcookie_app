@@ -19,6 +19,38 @@
         </div>
     </div>
 
+    <!-- Next 2 Sessions -->
+    <div class="mb-8">
+        <h3 class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-4">Upcoming Sessions</h3>
+        @if($nextSessions->isEmpty())
+            <div class="px-6 py-5 bg-white border border-slate-100 rounded-3xl text-[11px] font-bold text-slate-400 italic shadow-sm">
+                No sessions scheduled
+            </div>
+        @else
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                @foreach($nextSessions as $ns)
+                    <div class="next-session-card px-6 py-5 bg-white border border-slate-100 rounded-3xl shadow-sm hover:shadow-md transition-shadow cursor-pointer space-y-1"
+                         data-session-id="{{ $ns->id }}"
+                         data-subject="{{ $ns->subject }}"
+                         data-tutor="{{ $ns->tutor?->full_name ?? 'TBD' }}"
+                         data-student="{{ $ns->student?->full_name ?? '' }}"
+                         data-location="{{ $ns->location ?? '' }}"
+                         data-start="{{ \Carbon\Carbon::parse($ns->start_time)->format('g:i A') }} · {{ $ns->date->format('D, M j, Y') }}"
+                         data-duration="{{ $ns->duration }}"
+                         data-status="{{ $ns->status }}"
+                         data-recurring="{{ $ns->recurring_id ? '1' : '0' }}">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-indigo-600">{{ $ns->date->format('D, M j') }}</span>
+                            <span class="text-[9px] font-black uppercase tracking-widest text-slate-400">{{ \Carbon\Carbon::parse($ns->start_time)->format('g:i A') }}</span>
+                        </div>
+                        <p class="font-black text-slate-900 text-sm">{{ $ns->subject }}</p>
+                        <p class="text-xs text-slate-500">{{ $ns->student?->full_name }} · {{ $ns->tutor?->full_name ?? 'TBD' }}</p>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </div>
+
     <!-- Calendar container -->
     <div class="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-8 overflow-hidden">
         <x-calendar-legend />
@@ -28,6 +60,28 @@
     @push('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Next-session card clicks
+            document.querySelectorAll('.next-session-card').forEach(function(card) {
+                card.addEventListener('click', function() {
+                    const d = card.dataset;
+                    window.dispatchEvent(new CustomEvent('open-modal', { detail: {
+                        type: 'session-info',
+                        title: 'Session Details',
+                        sessionId: d.sessionId,
+                        subject: d.subject,
+                        tutorName: d.tutor,
+                        studentName: d.student,
+                        location: d.location,
+                        startTime: d.start,
+                        duration: d.duration,
+                        sessionStatus: d.status,
+                        canCancel: false,
+                        isRecurring: d.recurring === '1',
+                        insufficientCredits: false,
+                    }}));
+                });
+            });
+
             const calendarEl = document.getElementById('calendar');
             
             // Read initial student_id from URL if present (for deep linking)
@@ -80,12 +134,15 @@
                             sessionId: info.event.id,
                             subject: info.event.extendedProps.subject,
                             tutorName: info.event.extendedProps.tutorName,
+                            studentName: info.event.extendedProps.studentName,
+                            location: info.event.extendedProps.location,
                             date: info.event.startStr,
                             startTime: formattedStart,
                             duration: info.event.extendedProps.duration,
                             sessionStatus: status,
                             canCancel: canCancel,
                             isRecurring: !!info.event.extendedProps.recurringId,
+                            insufficientCredits: !!info.event.extendedProps.insufficientCredits,
                         } 
                     }));
                 }

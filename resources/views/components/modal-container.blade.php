@@ -406,6 +406,10 @@
 
                     <div class="space-y-3">
                         <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Student</p>
+                            <p class="text-sm font-black text-slate-900" x-text="studentNameDisplay"></p>
+                        </div>
+                        <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                             <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Subject</p>
                             <p class="text-sm font-black text-slate-900" x-text="subject"></p>
                         </div>
@@ -416,6 +420,10 @@
                         <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                             <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Date &amp; Time</p>
                             <p class="text-sm font-black text-slate-900" x-text="startTimeDisplay"></p>
+                        </div>
+                        <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Location</p>
+                            <p class="text-sm font-black text-slate-900" x-text="sessionLocation || 'Online'"></p>
                         </div>
                         <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                             <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Duration</p>
@@ -432,16 +440,34 @@
                         </div>
                     </div>
 
+                    <!-- Insufficient credits notice -->
+                    <template x-if="insufficientCredits">
+                        <div class="px-5 py-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-700 text-[10px] font-black uppercase tracking-widest text-center">
+                            Insufficient credits remain for this session
+                        </div>
+                    </template>
+
                     <template x-if="canCancel">
                         <div class="space-y-3">
-                            <button type="button" @click="doCancelSession(false, $el)"
-                                class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-rose-100 transition-all border border-rose-100 active:scale-[0.98]">
+                            <div>
+                                <label class="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Cancellation Reason <span class="text-rose-500">*</span></label>
+                                <textarea x-model="cancellationReason" rows="3" placeholder="Please describe why you're cancelling this session..."
+                                    class="w-full mt-1 border-0 border-b-2 border-slate-100 focus:border-rose-400 focus:ring-0 bg-transparent py-2 text-sm text-slate-800 resize-none"></textarea>
+                            </div>
+                            <button type="button"
+                                :disabled="!cancellationReason.trim()"
+                                @click="doCancelSession(false, $el)"
+                                :class="cancellationReason.trim() ? 'bg-rose-50 text-rose-600 hover:bg-rose-100 border-rose-100' : 'bg-slate-50 text-slate-300 cursor-not-allowed border-slate-100'"
+                                class="w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all border active:scale-[0.98]">
                                 <template x-if="isRecurring"><span>Cancel This Session Only</span></template>
                                 <template x-if="!isRecurring"><span>Cancel Session</span></template>
                             </button>
                             <template x-if="isRecurring">
-                                <button type="button" @click="doCancelSession(true, $el)"
-                                    class="w-full py-4 bg-rose-100 text-rose-700 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-rose-200 transition-all border border-rose-200 active:scale-[0.98]">
+                                <button type="button"
+                                    :disabled="!cancellationReason.trim()"
+                                    @click="doCancelSession(true, $el)"
+                                    :class="cancellationReason.trim() ? 'bg-rose-100 text-rose-700 hover:bg-rose-200 border-rose-200' : 'bg-slate-50 text-slate-300 cursor-not-allowed border-slate-100'"
+                                    class="w-full py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all border active:scale-[0.98]">
                                     Cancel All Upcoming in Series
                                 </button>
                             </template>
@@ -490,6 +516,9 @@
             studentEmail: '',
             isSelfProfile: false,
             sessionLocation: '',
+            studentNameDisplay: '',
+            insufficientCredits: false,
+            cancellationReason: '',
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -527,6 +556,9 @@
                 this.studentEmail   = detail.studentEmail   || '';
                 this.isSelfProfile    = detail.isSelfProfile  || false;
                 this.sessionLocation  = detail.location || '';
+                this.studentNameDisplay = detail.studentName || '';
+                this.insufficientCredits = detail.insufficientCredits || false;
+                this.cancellationReason = '';
             },
 
             doCancelSession(series, el) {
@@ -540,8 +572,10 @@
                     headers: {
                         'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
                         'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ reason: this.cancellationReason }),
                 })
                 .then(r => r.json())
                 .then(data => {

@@ -81,15 +81,27 @@ class SessionService
             $tutor = $firstSession->tutor;
             $parent = $student->parent;
 
+            // Determine if this is a "last-minute" schedule (< 30h until start)
+            $tutorTz    = $tutor?->time_zone ?? 'UTC';
+            $sessionStart = Carbon::createFromFormat(
+                'Y-m-d H:i:s',
+                $firstSession->date->format('Y-m-d') . ' ' . $firstSession->start_time,
+                $tutorTz
+            );
+            $isLastMinute = $sessionStart->diffInHours(Carbon::now($tutorTz), false) > -30;
+
             // 1. Notify Tutor (only if they have is_subscribed enabled)
             if ($tutor && $tutor->is_subscribed) {
                 $tutor->notify(new SessionScheduled($firstSession, $isRecurring));
             }
 
             // 2. Notify Client (parent or self-student)
+            // Always notify immediately — for last-minute sessions this serves as the
+            // immediate notification required by spec; for normal sessions it's the
+            // standard "session scheduled" email (separate 30h reminder will follow).
             $billedParty = $student->parent ?? $student;
             if ($billedParty && $billedParty->is_subscribed) {
-                $billedParty->notify(new SessionScheduled($firstSession, $isRecurring));
+                $billedParty->notify(new SessionScheduled($firstSession, $isRecurring, $isLastMinute));
             }
         }
 

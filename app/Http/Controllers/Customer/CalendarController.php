@@ -26,7 +26,21 @@ class CalendarController extends Controller
 
         $selectedStudentId = $request->query('student_id');
 
-        return view('customer.calendar.index', compact('students', 'selectedStudentId'));
+        // "Next 2 sessions" panel
+        $studentIds = $user->is_self_student
+            ? [$user->id]
+            : User::where('parent_id', $user->id)->where('role', 'student')->pluck('id')->toArray();
+
+        $nextSessions = TutoringSession::whereIn('student_id', $studentIds)
+            ->where('status', 'Scheduled')
+            ->where('date', '>=', now()->toDateString())
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->limit(2)
+            ->with('student', 'tutor')
+            ->get();
+
+        return view('customer.calendar.index', compact('students', 'selectedStudentId', 'nextSessions'));
     }
 
     public function events(Request $request)
@@ -43,36 +57,50 @@ class CalendarController extends Controller
             $query->where('student_id', $request->student_id);
         }
 
-        $events = $query->with('tutor', 'student')->get()->map(function($s) {
+        $events = $query->with('tutor', 'student.parent.credit', 'student.credit')->get()->map(function($s) {
             $tutorTz = $s->tutor->time_zone ?? 'UTC';
             $start = Carbon::createFromFormat('Y-m-d H:i:s', $s->date->format('Y-m-d') . ' ' . $s->start_time, $tutorTz);
             $end = $start->copy()
                 ->addHours((int)explode(':', $s->duration)[0])
                 ->addMinutes((int)explode(':', $s->duration)[1]);
 
+            // Credit state \xe2\x80\x94 only meaningful for future Scheduled sessions
+            $isFutureScheduled = $s->status === 'Scheduled' && $s->date->gte(now()->startOfDay());
+            $creditBalance = $s->student?->parent
+                ? ($s->student->parent->credit?->credit_balance ?? 0)
+                : ($s->student?->credit?->credit_balance ?? 0);
+            $noCredits  = $isFutureScheduled && $creditBalance <= 0;
+            $halfCredit = $isFutureScheduled && !$noCredits && $creditBalance <= 0.5;
+
             $colors = match(true) {
-                $s->status === 'Cancelled'                  => ['bg' => '#94a3b8', 'border' => '#64748b'],
-                in_array($s->status, ['Billed','Completed']) => ['bg' => '#10b981', 'border' => '#059669'],
-                (bool)$s->is_initial                        => ['bg' => '#f59e0b', 'border' => '#d97706'],
-                !empty($s->recurring_id)                    => ['bg' => '#6366f1', 'border' => '#4f46e5'],
-                default                                     => ['bg' => '#4f46e5', 'border' => '#4338ca'],
+                $s->status === 'Cancelled'                   => ['bg' => '#94a3b8', 'border' => '#64748b'],
+                in_array($s->status, ['Billed','Completed'])  => ['bg' => '#10b981', 'border' => '#059669'],
+                $noCredits                                   => ['bg' => '#ef4444', 'border' => '#dc2626'],
+                $halfCredit                                  => ['bg' => '#f59e0b', 'border' => '#d97706'],
+                (bool)$s->is_initial                         => ['bg' => '#f59e0b', 'border' => '#d97706'],
+                !empty($s->recurring_id)                     => ['bg' => '#6366f1', 'border' => '#4f46e5'],
+                default                                      => ['bg' => '#4f46e5', 'border' => '#4338ca'],
             };
 
-            $recurringPrefix = !empty($s->recurring_id) ? '↻ ' : '';
+            $recurringPrefix  = !empty($s->recurring_id) ? '↻ ' : '';
+            $halfCreditSuffix = $halfCredit ? ' · half hour credit' : '';
 
             return [
                 'id'              => $s->id,
-                'title'           => $recurringPrefix . "{$s->student->first_name} | {$s->subject}",
+                'title'           => $recurringPrefix . "{$s->student->first_name} | {$s->subject}" . $halfCreditSuffix,
                 'start'           => $start->toIso8601String(),
                 'end'             => $end->toIso8601String(),
                 'backgroundColor' => $colors['bg'],
                 'borderColor'     => $colors['border'],
                 'extendedProps'   => [
-                    'subject'     => $s->subject,
-                    'duration'    => $s->duration,
-                    'status'      => $s->status,
-                    'tutorName'   => $s->tutor?->full_name ?? 'TBD',
-                    'recurringId' => $s->recurring_id,
+                    'subject'             => $s->subject,
+                    'duration'            => $s->duration,
+                    'status'              => $s->status,
+                    'tutorName'           => $s->tutor?->full_name ?? 'TBD',
+                    'studentName'         => $s->student?->full_name ?? '',
+                    'location'            => $s->location ?? '',
+                    'recurringId'         => $s->recurring_id,
+                    'insufficientCredits' => $noCredits,
                 ],
             ];
         });
@@ -80,7 +108,7 @@ class CalendarController extends Controller
         return response()->json($events);
     }
 
-    public function cancel(TutoringSession $session)
+    public function cancel(Request $request, TutoringSession $session)
     {
         $user = auth()->user();
 
@@ -106,6 +134,11 @@ class CalendarController extends Controller
             return response()->json(['success' => false, 'message' => 'Sessions can only be cancelled more than 24 hours in advance.'], 422);
         }
 
+        $reason = trim($request->input('reason', ''));
+        if ($reason === '') {
+            return response()->json(['success' => false, 'message' => 'A cancellation reason is required.'], 422);
+        }
+
         $cancelSeries = request()->boolean('series');
 
         if ($cancelSeries && $session->recurring_id) {
@@ -118,7 +151,7 @@ class CalendarController extends Controller
         }
 
         if ($session->tutor?->is_subscribed) {
-            $session->tutor->notify(new SessionCancelledByClient($session, $user));
+            $session->tutor->notify(new SessionCancelledByClient($session, $user, $reason));
         }
 
         return response()->json(['success' => true]);
