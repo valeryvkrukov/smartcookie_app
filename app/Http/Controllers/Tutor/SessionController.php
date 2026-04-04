@@ -258,25 +258,27 @@ class SessionController extends Controller
 
     public function destroy(Request $request, TutoringSession $session)
     {
-        // Check if the session belongs to the tutor
         if ($session->tutor_id !== auth()->id()) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Permission denied.'], 403);
+            }
             return back()->withErrors(['error' => 'Permission Denied: You can only cancel your own sessions.']);
         }
 
         if ($request->has('delete_series') && $session->recurring_id) {
             TutoringSession::where('recurring_id', $session->recurring_id)
                 ->where('date', '>=', $session->date)
-                ->where('status', 'Scheduled') // Don't touch `Billed` 
+                ->where('status', 'Scheduled')
                 ->delete();
-                
-            $message = "The session series has been cancelled successfully.";
         } else {
             $session->delete();
-            
-            $message = "The session has been cancelled.";
         }
 
-        return redirect()->route('tutor.calendar.index')->with('success', $message);
+        if ($request->ajax()) {
+            return response()->json(['success' => true]);
+        }
+
+        return redirect()->route('tutor.calendar.index')->with('success', 'Session cancelled.');
     }
 
 }
