@@ -56,15 +56,15 @@
                                         type: 'edit-student',
                                         isEdit: true,
                                         isSelfProfile: {{ $isSelf ? 'true' : 'false' }},
-                                        studentId: '{{ $student->id }}', 
-                                        title: 'Edit {{ $student->first_name }}\'s Profile',
-                                        firstName: '{{ $student->first_name }}',
-                                        lastName: '{{ $student->last_name }}',
-                                        grade: '{{ $student->student_grade }}',
-                                        blurb: @json($student->blurb ?? ''),
-                                        studentAddress: @json($student->address ?? ''),
-                                        studentPhone: @json($student->phone ?? ''),
-                                        studentEmail: @json($isSelf || str_ends_with($student->email ?? '', '@smartcookie.local') ? '' : ($student->email ?? '')),
+                                        studentId: {{ $student->id }}, 
+                                        title: {{ json_encode('Edit ' . $student->first_name . "'s Profile") }},
+                                        firstName: {{ json_encode($student->first_name) }},
+                                        lastName: {{ json_encode($student->last_name) }},
+                                        grade: {{ json_encode($student->student_grade ?? '') }},
+                                        blurb: {{ json_encode($student->blurb ?? '') }},
+                                        studentAddress: {{ json_encode($student->address ?? '') }},
+                                        studentPhone: {{ json_encode($student->phone ?? '') }},
+                                        studentEmail: {{ json_encode($isSelf || str_ends_with($student->email ?? '', '@smartcookie.local') ? '' : ($student->email ?? '')) }},
                                     } 
                                 }))"
                                 class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-[#212120] hover:text-white transition-all">
@@ -75,7 +75,7 @@
                             <button type="button"
                                 onclick="window.dispatchEvent(new CustomEvent('confirm-user-delete', { 
                                     detail: { 
-                                        name: '{{ $student->full_name }}', 
+                                        name: {{ json_encode($student->full_name) }}, 
                                         formId: 'delete-student-{{ $student->id }}' 
                                     } 
                                 }))"
