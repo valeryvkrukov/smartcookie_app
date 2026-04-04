@@ -29,3 +29,6 @@ jobs:
             npm run build
             php artisan migrate --force
             php artisan optimize
+            # Register Laravel scheduler in system crontab (idempotent)
+            CRON_JOB="* * * * * $(which php) /var/www/smartcookie/artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1"
+            ( crontab -l 2>/dev/null | grep -v 'artisan schedule:run'; echo "$CRON_JOB" ) | crontab -
