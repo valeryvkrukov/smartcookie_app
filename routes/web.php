@@ -103,8 +103,10 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/agreements', [AdminAgreementController::class, 'index'])->name('agreements.index');
     Route::post('/agreements/assign', [AdminAgreementController::class, 'assign'])->name('agreements.assign');
 
-    // ── Logs: system event log
+    // ── Logs: system event log with read/unread management
     Route::get('/system-logs', [AdminSystemLogController::class, 'index'])->name('system-logs.index');
+    Route::post('/system-logs/mark-read', [AdminSystemLogController::class, 'markRead'])->name('system-logs.mark-read');
+    Route::post('/system-logs/mark-all-read', [AdminSystemLogController::class, 'markAllRead'])->name('system-logs.mark-all-read');
 });
 
 require __DIR__.'/auth.php';
