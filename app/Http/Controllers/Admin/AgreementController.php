@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Agreement;
 use App\Models\AgreementRequest;
+use App\Models\User;
+use App\Notifications\NewAgreementAssigned;
 use Illuminate\Http\Request;
 
 class AgreementController extends Controller
@@ -47,12 +50,19 @@ class AgreementController extends Controller
         ]);
 
         // ── Duplicate guard: skip if this user-agreement pair already exists
-        AgreementRequest::firstOrCreate([
-            'user_id' => $data['user_id'],
+        $created = AgreementRequest::firstOrCreate([
+            'user_id'      => $data['user_id'],
             'agreement_id' => $data['agreement_id'],
         ], [
-            'status' => 'Awaiting signature'
+            'status' => 'Awaiting signature',
         ]);
+
+        // ── Notify: email the client only when a new request was created
+        if ($created->wasRecentlyCreated) {
+            $user      = User::findOrFail($data['user_id']);
+            $agreement = Agreement::findOrFail($data['agreement_id']);
+            $user->notify(new NewAgreementAssigned($agreement));
+        }
 
         return response()->json(['success' => true]);
     }

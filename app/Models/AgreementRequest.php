@@ -7,12 +7,13 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'agreement_id', 
-    'user_id', 
-    'status', 
-    'signed_full_name', 
-    'signed_date_manual', 
-    'signed_at'
+    'agreement_id',
+    'user_id',
+    'status',
+    'signed_full_name',
+    'signed_date_manual',
+    'signed_at',
+    'pdf_filename',
 ])]
 class AgreementRequest extends Model
 {

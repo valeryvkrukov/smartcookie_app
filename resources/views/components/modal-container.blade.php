@@ -87,15 +87,24 @@
                     </div>
 
                     <div class="space-y-6">
+                        {{-- ── Checkbox: explicit agreement to terms --}}
+                        <label class="flex items-start gap-3 cursor-pointer p-4 bg-slate-50 rounded-2xl border border-slate-100 hover:border-slate-200 transition-colors">
+                            <input type="checkbox" name="agree_terms" value="1" required
+                                   class="mt-0.5 w-4 h-4 rounded border-2 border-slate-300 text-[#212120] focus:ring-0 flex-shrink-0">
+                            <span class="text-[11px] font-bold text-slate-600 leading-snug">
+                                I have read and agree to the terms and conditions outlined in this agreement.
+                            </span>
+                        </label>
+
                         <div class="space-y-1">
                             <label class="label-premium">Type Your Full Name</label>
-                            <input type="text" name="signed_full_name" class="input-premium font-serif italic text-lg" 
+                            <input type="text" name="signed_full_name" class="input-premium font-serif italic text-lg"
                                 placeholder="{{ auth()->user()->full_name }}" required>
                         </div>
 
                         <div class="space-y-1">
                             <label class="label-premium">Current Date</label>
-                            <input type="date" name="signed_date_manual" class="input-premium" 
+                            <input type="date" name="signed_date_manual" class="input-premium"
                                 value="{{ now()->format('Y-m-d') }}" required>
                         </div>
                     </div>
