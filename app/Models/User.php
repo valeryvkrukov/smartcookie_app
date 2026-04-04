@@ -142,6 +142,14 @@ class User extends Authenticatable
     }
 
     /**
+     * Relation for student → tutors (student side of the pivot)
+     */
+    public function assignedTutors(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'tutor_student_assignments', 'student_id', 'tutor_id');
+    }
+
+    /**
      * Relation for tutor/students
      */
     public function assignedStudents(): BelongsToMany

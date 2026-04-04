@@ -94,7 +94,7 @@
                     <div class="grid grid-cols-2 gap-4 mb-8">
                         <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
                             <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Assigned Tutor</p>
-                            <p class="text-xs font-black text-slate-900">{{ $student->tutor->full_name ?? 'Not Assigned' }}</p>
+                            <p class="text-xs font-black text-slate-900">{{ $student->assignedTutors->first()->full_name ?? 'Not Assigned' }}</p>
                         </div>
                         <div class="p-6 bg-slate-50 rounded-3xl border border-slate-100">
                             <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-2">Active Subjects</p>

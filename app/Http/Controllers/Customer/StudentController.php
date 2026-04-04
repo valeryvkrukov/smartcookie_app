@@ -14,11 +14,11 @@ class StudentController extends Controller
 
         $linked = User::where('role', 'student')
             ->where('parent_id', $user->id)
-            ->with(['subjectRates', 'tutor'])
+            ->with(['subjectRates', 'assignedTutors'])
             ->get();
 
         if ($user->is_self_student) {
-            $user->loadMissing(['subjectRates', 'tutor']);
+            $user->loadMissing(['subjectRates', 'assignedTutors']);
             $students = collect([$user])->concat($linked);
         } else {
             $students = $linked;
