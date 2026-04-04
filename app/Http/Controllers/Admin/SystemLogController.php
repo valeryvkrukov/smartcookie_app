@@ -20,9 +20,9 @@ class SystemLogController extends Controller
 
     public function index(Request $request)
     {
-        $typeFilter = $request->input('type', 'all');
-        $unreadOnly = $request->boolean('unread', true);
-        $search     = trim($request->input('search', ''));
+        $typeFilter  = $request->input('type', 'all');
+        $readFilter  = $request->input('read', 'unread'); // 'unread' | 'read' | 'all'
+        $search      = trim($request->input('search', ''));
 
         $query = DatabaseNotification::with('notifiable')
             ->orderBy('created_at', 'desc');
@@ -31,8 +31,10 @@ class SystemLogController extends Controller
             $query->where('type', 'like', '%' . self::TYPE_MAP[$typeFilter] . '%');
         }
 
-        if ($unreadOnly) {
+        if ($readFilter === 'unread') {
             $query->whereNull('read_at');
+        } elseif ($readFilter === 'read') {
+            $query->whereNotNull('read_at');
         }
 
         if ($search !== '') {
@@ -68,7 +70,7 @@ class SystemLogController extends Controller
             'payment'           => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%CreditBalanceChanged%')->count(),
         ];
 
-        return view('admin.system-logs.index', compact('logs', 'typeFilter', 'counts', 'unreadOnly', 'search'));
+        return view('admin.system-logs.index', compact('logs', 'typeFilter', 'counts', 'readFilter', 'search'));
     }
 
     public function markRead(Request $request)
