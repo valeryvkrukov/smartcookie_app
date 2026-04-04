@@ -3,7 +3,6 @@
 
     @php
         $allIds    = $logs->pluck('id')->toArray();
-        $allIdsJson = json_encode($allIds);
         $tabs = [
             'all'               => ['label' => 'All Events',         'colour' => 'slate'],
             'registration'      => ['label' => 'Registrations',      'colour' => 'indigo'],
@@ -15,38 +14,51 @@
         ];
     @endphp
 
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('systemLogs', () => ({
+                selectedIds: [],
+                allIds:      @json($allIds),
+                markReadUrl: @json(route('admin.system-logs.mark-read')),
+                markAllUrl:  @json(route('admin.system-logs.mark-all-read')),
+                typeFilter:  @json($typeFilter),
+                search:      @json($search),
+                allSelected() {
+                    return this.selectedIds.length === this.allIds.length && this.allIds.length > 0;
+                },
+                toggleAll() {
+                    this.selectedIds = this.allSelected() ? [] : [...this.allIds];
+                },
+                async markSelected(ids = null) {
+                    const toMark = ids ?? this.selectedIds;
+                    if (!toMark.length) return;
+                    await fetch(this.markReadUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        },
+                        body: JSON.stringify({ ids: toMark }),
+                    });
+                    window.location.reload();
+                },
+                async markAll() {
+                    await fetch(this.markAllUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                        },
+                        body: JSON.stringify({ type: this.typeFilter, search: this.search }),
+                    });
+                    window.location.reload();
+                },
+            }));
+        });
+    </script>
+
     <div class="max-w-7xl mx-auto pb-20 space-y-6"
-         x-data="{
-             selectedIds: [],
-             allSelected() { return this.selectedIds.length === {{ count($allIds) }} && {{ count($allIds) }} > 0; },
-             toggleAll() {
-                 this.selectedIds = this.allSelected() ? [] : {{ $allIdsJson }};
-             },
-             async markSelected(ids = null) {
-                 const toMark = ids ?? this.selectedIds;
-                 if (!toMark.length) return;
-                 await fetch('{{ route('admin.system-logs.mark-read') }}', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                     },
-                     body: JSON.stringify({ ids: toMark }),
-                 });
-                 window.location.reload();
-             },
-             async markAll() {
-                 await fetch('{{ route('admin.system-logs.mark-all-read') }}', {
-                     method: 'POST',
-                     headers: {
-                         'Content-Type': 'application/json',
-                         'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
-                     },
-                     body: JSON.stringify({ type: @json($typeFilter), search: @json($search) }),
-                 });
-                 window.location.reload();
-             },
-         }">
+         x-data="systemLogs">
 
         {{-- ── Filter tabs: category buttons to filter event feed --}}
         <div class="flex flex-wrap gap-2">
