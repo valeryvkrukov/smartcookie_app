@@ -37,9 +37,28 @@ class AgreementController extends Controller
             });
         }
 
-        $requests = $query->orderByRaw("FIELD(status, 'Awaiting signature', 'Signed')")->get();
+        $requests  = $query->orderByRaw("FIELD(status, 'Awaiting signature', 'Signed')")->get();
+        $documents = Agreement::orderBy('name')->get();
 
-        return view('admin.agreements.index', compact('requests'));
+        return view('admin.agreements.index', compact('requests', 'documents'));
+    }
+
+    // ── Upload: create a new agreement document from a PDF file
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'pdf'  => 'required|file|mimes:pdf|max:20480',
+        ]);
+
+        $path = $request->file('pdf')->store('agreements', 'public');
+
+        Agreement::create([
+            'name'     => $data['name'],
+            'pdf_path' => $path,
+        ]);
+
+        return back()->with('success', 'Agreement "' . $data['name'] . '" uploaded successfully.');
     }
     
     public function assign(Request $request)

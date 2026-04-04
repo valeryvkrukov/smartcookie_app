@@ -101,6 +101,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // ── Compliance: agreement management and user assignment
     Route::get('/agreements', [AdminAgreementController::class, 'index'])->name('agreements.index');
+    Route::post('/agreements', [AdminAgreementController::class, 'store'])->name('agreements.store');
     Route::post('/agreements/assign', [AdminAgreementController::class, 'assign'])->name('agreements.assign');
 
     // ── Logs: system event log with read/unread management
