@@ -295,7 +295,7 @@
                             @click="
                                 $el.disabled = true;
                                 const origHtml = $el.innerHTML;
-                                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\'></i> SAVING...</span>';
+                                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\' style=\'display:inline-block;line-height:1\'></i> SAVING...</span>';
                                 const form = $el.closest('form');
                                 const formData = new FormData(form);
                                 fetch(form.action, {
@@ -309,6 +309,8 @@
                                 .then(r => r.json().then(d => ({ status: r.status, body: d })))
                                 .then(res => {
                                     if (res.status === 200 && res.body.success) {
+                                        $el.disabled = false;
+                                        $el.innerHTML = origHtml;
                                         open = false;
                                         if (window.calendar) window.calendar.refetchEvents();
                                         errorMessage = '';
@@ -357,7 +359,7 @@
                             @click="
                                 $el.disabled = true;
                                 const origHtml = $el.innerHTML;
-                                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\'></i> SAVING...</span>';
+                                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\' style=\'display:inline-block;line-height:1\'></i> SAVING...</span>';
 
                                 const form = $el.closest('form');
                                 const formData = new FormData(form);
@@ -531,7 +533,7 @@
                 const url = '{{ url('/customer/calendar/sessions') }}/' + this.sessionId + (series ? '?series=1' : '');
                 el.disabled = true;
                 const origHtml = el.innerHTML;
-                el.innerHTML = '<i class="ti-reload animate-spin mr-2 text-sm"></i> Cancelling...';
+                el.innerHTML = '<span class="inline-flex items-center justify-center"><i class="ti-reload animate-spin mr-2 text-sm" style="display:inline-block;line-height:1"></i> Cancelling...</span>';
                 const self = this;
                 fetch(url, {
                     method: 'DELETE',
@@ -544,6 +546,8 @@
                 .then(r => r.json())
                 .then(data => {
                     if (data.success) {
+                        el.disabled = false;
+                        el.innerHTML = origHtml;
                         self.open = false;
                         if (window.calendar) window.calendar.refetchEvents();
                     } else {

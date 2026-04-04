@@ -141,7 +141,7 @@
             @click="
                 $el.disabled = true;
                 const origHtml = $el.innerHTML;
-                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\'></i> SAVING...</span>';
+                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\' style=\'display:inline-block;line-height:1\'></i> SAVING...</span>';
 
                 const form = $el.closest('form');
                 const formData = new FormData(form);
@@ -157,6 +157,8 @@
                 .then(response => response.json().then(data => ({ status: response.status, body: data })))
                 .then(res => {
                     if (res.status === 200 && res.body.success) {
+                        $el.disabled = false;
+                        $el.innerHTML = origHtml;
                         open = false;
                         if (window.calendar) window.calendar.refetchEvents();
                         errorMessage = '';
