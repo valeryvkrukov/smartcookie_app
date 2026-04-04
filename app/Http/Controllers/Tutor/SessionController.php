@@ -117,14 +117,13 @@ class SessionController extends Controller
         }
 
         $data = $request->validate([
-            'recurs_weekly' => 'boolean',
             'student_id'    => 'required|integer|exists:users,id',
             'subject'       => 'required|string|max:255',
             'date'          => 'required|date',
             'start_time'    => 'required',
             'duration'      => 'required|in:0:30,1:00,1:30,2:00',
-            'location'      => 'required|string|max:255',
-            'is_initial'    => 'boolean',
+            'location'      => 'nullable|string|max:255',
+            'is_initial'    => 'nullable|boolean',
             'recurs_weekly' => 'nullable|boolean',
         ]);
 
@@ -186,22 +185,20 @@ class SessionController extends Controller
             'date'       => 'required|date',
             'start_time' => 'required',
             'duration'   => 'required|in:0:30,1:00,1:30,2:00',
+            'location'   => 'nullable|string|max:255',
         ]);
 
         $updateSeries = $request->input('update_series') === '1';
 
         if ($updateSeries && $session->recurring_id) {
-            // Update all future Scheduled instances in this series
             $futureSessions = TutoringSession::where('recurring_id', $session->recurring_id)
                 ->where('date', '>=', $session->date)
                 ->where('status', 'Scheduled')
                 ->get();
 
-            // Compute day offset: positive if moving forward (e.g. Mon→Wed = +2)
             $daysDiff = (int) Carbon::parse($session->date->format('Y-m-d'))
                           ->diffInDays(Carbon::parse($data['date']), false);
 
-            // Pre-check conflicts for each new date, excluding the entire series
             foreach ($futureSessions as $s) {
                 $newDate = $s->date->copy()->addDays($daysDiff);
                 if ($this->sessionService->hasConflict(
@@ -222,10 +219,10 @@ class SessionController extends Controller
                     'date'       => $s->date->copy()->addDays($daysDiff)->format('Y-m-d'),
                     'start_time' => $data['start_time'],
                     'duration'   => $data['duration'],
+                    'location'   => $data['location'] ?? null,
                 ]);
             }
         } else {
-            // Update only this instance — delink it from the series
             if ($this->sessionService->hasConflict(
                 auth()->id(), $data['date'], $data['start_time'], $data['duration'], $session->id
             )) {
@@ -241,7 +238,8 @@ class SessionController extends Controller
                 'date'         => $data['date'],
                 'start_time'   => $data['start_time'],
                 'duration'     => $data['duration'],
-                'recurring_id' => null, // Delink from series — this is now a standalone session
+                'location'     => $data['location'] ?? null,
+                'recurring_id' => null,
             ]);
         }
 
@@ -262,20 +260,23 @@ class SessionController extends Controller
     {
         // Check if the session belongs to the tutor
         if ($session->tutor_id !== auth()->id()) {
-            return response()->json(['success' => false, 'message' => 'Permission Denied.'], 403);
+            return back()->withErrors(['error' => 'Permission Denied: You can only cancel your own sessions.']);
         }
 
         if ($request->has('delete_series') && $session->recurring_id) {
-            // Delete all future non-billed sessions in this series
             TutoringSession::where('recurring_id', $session->recurring_id)
                 ->where('date', '>=', $session->date)
-                ->whereNotIn('status', ['Billed', 'Completed'])
+                ->where('status', 'Scheduled') // Don't touch `Billed` 
                 ->delete();
+                
+            $message = "The session series has been cancelled successfully.";
         } else {
             $session->delete();
+            
+            $message = "The session has been cancelled.";
         }
 
-        return response()->json(['success' => true]);
+        return redirect()->route('tutor.calendar.index')->with('success', $message);
     }
 
 }

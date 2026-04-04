@@ -74,6 +74,7 @@ class SessionController extends Controller
             'date'         => $request->date,
             'start_time'   => $startTime,
             'duration'     => $request->duration,
+            'location'     => $request->location ?: null,
             'is_initial'   => $request->boolean('is_initial'),
             'recurs_weekly'=> $request->boolean('recurs_weekly'),
         ]);

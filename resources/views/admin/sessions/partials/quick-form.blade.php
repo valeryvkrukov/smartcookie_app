@@ -10,8 +10,6 @@
     <form :action="isEdit ? '/admin/sessions/' + sessionId : '/admin/sessions'" method="POST" class="space-y-6">
         @csrf
         
-        <input type="hidden" name="location" value="Online">
-
         <template x-if="isEdit">
             <input type="hidden" name="_method" value="PUT">
         </template>
@@ -77,6 +75,12 @@
                     <div class="cursor-pointer text-center py-2 text-[10px] font-black text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all uppercase tracking-widest" x-text="val"></div>
                 </label>
             </template>
+        </div>
+
+        <!-- Location -->
+        <div class="space-y-1">
+            <label class="label-premium">Location <span class="text-slate-300 text-[8px] normal-case tracking-normal font-normal">optional</span></label>
+            <input type="text" name="location" x-model="sessionLocation" placeholder="Online" class="input-premium">
         </div>
 
         <!-- FLAGS -->

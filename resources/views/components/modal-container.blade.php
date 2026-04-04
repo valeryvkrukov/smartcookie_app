@@ -215,8 +215,6 @@
                     <form action="{{ route('tutor.sessions.store') }}" method="POST" class="space-y-6">
                         @csrf
                         <input type="hidden" name="student_id" :value="studentId">
-                        <input type="hidden" name="location" value="Online">
-
                         <!-- Subject -->
                         <div>
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
@@ -269,8 +267,35 @@
                             @endforeach
                         </div>
 
+                        <!-- Location -->
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location <span class="text-slate-300 font-normal normal-case tracking-normal">(optional)</span></label>
+                            <input type="text" name="location" x-model="sessionLocation" placeholder="Online" class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800">
+                        </div>
+
+                        <!-- FLAGS -->
+                        <div class="flex items-center gap-6">
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="is_initial" value="1"
+                                       :checked="isInitial"
+                                       @change="isInitial = $event.target.checked"
+                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Initial Session</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="recurs_weekly" value="1"
+                                       :checked="recurringWeekly"
+                                       @change="recurringWeekly = $event.target.checked"
+                                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                                <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Recurring (weekly ×12)</span>
+                            </label>
+                        </div>
+
                         <button type="button"
                             @click="
+                                $el.disabled = true;
+                                const origHtml = $el.innerHTML;
+                                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\'></i> SAVING...</span>';
                                 const form = $el.closest('form');
                                 const formData = new FormData(form);
                                 fetch(form.action, {
@@ -289,9 +314,15 @@
                                         errorMessage = '';
                                     } else {
                                         $dispatch('set-error', { message: res.body.message || 'Error occurred' });
+                                        $el.disabled = false;
+                                        $el.innerHTML = origHtml;
                                     }
                                 })
-                                .catch(() => $dispatch('set-error', { message: 'Connection error' }))
+                                .catch(() => {
+                                    $dispatch('set-error', { message: 'Connection error' });
+                                    $el.disabled = false;
+                                    $el.innerHTML = origHtml;
+                                })
                             "
                             class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all mt-2">
                             Schedule Session
@@ -456,6 +487,7 @@
             studentPhone: '',
             studentEmail: '',
             isSelfProfile: false,
+            sessionLocation: '',
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -491,7 +523,8 @@
                 this.studentAddress = detail.studentAddress || '';
                 this.studentPhone   = detail.studentPhone   || '';
                 this.studentEmail   = detail.studentEmail   || '';
-                this.isSelfProfile  = detail.isSelfProfile  || false;
+                this.isSelfProfile    = detail.isSelfProfile  || false;
+                this.sessionLocation  = detail.location || '';
             },
 
             doCancelSession(series, el) {

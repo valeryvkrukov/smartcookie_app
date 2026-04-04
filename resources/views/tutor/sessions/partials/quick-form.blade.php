@@ -10,8 +10,6 @@
     <form :action="isEdit ? '/tutor/sessions/' + sessionId : '{{ route('tutor.sessions.store') }}'" method="POST" class="space-y-6">
         @csrf
         
-        <input type="hidden" name="location" value="Online">
-
         <template x-if="isEdit">
             <input type="hidden" name="_method" value="PUT">
         </template>
@@ -79,6 +77,12 @@
                     </div>
                 </label>
             @endforeach
+        </div>
+
+        <!-- Location -->
+        <div>
+            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location <span class="text-slate-300 font-normal normal-case tracking-normal">(optional)</span></label>
+            <input type="text" name="location" x-model="sessionLocation" placeholder="Online" class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-bold text-slate-800">
         </div>
 
         <!-- Recurring series edit option — only shown when editing a recurring session -->

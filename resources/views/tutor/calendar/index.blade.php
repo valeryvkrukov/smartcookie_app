@@ -77,6 +77,7 @@
                             tutorId: props.tutorId,
                             subject: props.subject,
                             duration: props.duration,
+                            location: props.location,
                             date: s.startStr.split('T')[0],
                             time_h: h12,
                             time_m: mins,
