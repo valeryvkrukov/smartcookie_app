@@ -60,6 +60,9 @@ Route::middleware(['auth', 'role:customer', 'check.agreements'])->prefix('custom
     Route::post('/credits/purchase', [CustomerCreditController::class, 'purchase'])->name('credits.purchase');
     Route::get('/credits/success', [CustomerCreditController::class, 'success'])->name('credits.success');
 
+    // Session cancellation by client
+    Route::delete('/calendar/sessions/{session}', [CustomerCalendarController::class, 'cancel'])->name('calendar.cancel');
+
     // Agreements (Исключены из Middleware CheckAgreements внутри самого класса)
     Route::get('/agreements', [CustomerAgreementController::class, 'index'])->name('agreements.index');
     Route::post('/agreements/sign', [CustomerAgreementController::class, 'sign'])->name('agreements.sign');

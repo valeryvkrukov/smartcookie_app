@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Customer;
 
 use App\Http\Controllers\Controller;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Models\TutoringSession;
 use App\Models\User;
+use App\Notifications\SessionCancelledByClient;
 
 class CalendarController extends Controller
 {
@@ -43,20 +45,73 @@ class CalendarController extends Controller
 
         $events = $query->with('tutor', 'student')->get()->map(function($s) {
             $tutorTz = $s->tutor->time_zone ?? 'UTC';
-            $start = \Carbon\Carbon::createFromFormat('Y-m-d H:i:s', $s->date->format('Y-m-d') . ' ' . $s->start_time, $tutorTz);
+            $start = Carbon::createFromFormat('Y-m-d H:i:s', $s->date->format('Y-m-d') . ' ' . $s->start_time, $tutorTz);
             $end = $start->copy()
                 ->addHours((int)explode(':', $s->duration)[0])
                 ->addMinutes((int)explode(':', $s->duration)[1]);
+
+            $bgColor = match($s->status) {
+                'Billed', 'Completed' => '#10b981',
+                'Cancelled'           => '#94a3b8',
+                default               => '#4f46e5',
+            };
+            $borderColor = match($s->status) {
+                'Billed', 'Completed' => '#059669',
+                'Cancelled'           => '#64748b',
+                default               => '#4338ca',
+            };
+
             return [
-                'id' => $s->id,
-                'title' => "{$s->student->first_name} | {$s->subject}",
-                'start' => $start->toIso8601String(),
-                'end' => $end->toIso8601String(),
-                'backgroundColor' => $s->status === 'Billed' ? '#10b981' : '#4f46e5',
-                'borderColor' => $s->status === 'Billed' ? '#059669' : '#4338ca',
+                'id'              => $s->id,
+                'title'           => "{$s->student->first_name} | {$s->subject}",
+                'start'           => $start->toIso8601String(),
+                'end'             => $end->toIso8601String(),
+                'backgroundColor' => $bgColor,
+                'borderColor'     => $borderColor,
+                'extendedProps'   => [
+                    'subject'   => $s->subject,
+                    'duration'  => $s->duration,
+                    'status'    => $s->status,
+                    'tutorName' => $s->tutor?->full_name ?? 'TBD',
+                ],
             ];
         });
 
         return response()->json($events);
+    }
+
+    public function cancel(TutoringSession $session)
+    {
+        $user = auth()->user();
+
+        $authorized = ($session->student->parent_id === $user->id)
+            || ($user->is_self_student && $session->student_id === $user->id);
+
+        if (! $authorized) {
+            return response()->json(['success' => false, 'message' => 'Unauthorized.'], 403);
+        }
+
+        if ($session->status !== 'Scheduled') {
+            return response()->json(['success' => false, 'message' => 'Only scheduled sessions can be cancelled.'], 422);
+        }
+
+        $tutorTz      = $session->tutor?->time_zone ?? 'UTC';
+        $sessionStart = Carbon::createFromFormat(
+            'Y-m-d H:i:s',
+            $session->date->format('Y-m-d') . ' ' . $session->start_time,
+            $tutorTz
+        );
+
+        if (! $sessionStart->gt(Carbon::now($tutorTz)->addHours(24))) {
+            return response()->json(['success' => false, 'message' => 'Sessions can only be cancelled more than 24 hours in advance.'], 422);
+        }
+
+        $session->update(['status' => 'Cancelled']);
+
+        if ($session->tutor?->is_subscribed) {
+            $session->tutor->notify(new SessionCancelledByClient($session, $user));
+        }
+
+        return response()->json(['success' => true]);
     }
 }

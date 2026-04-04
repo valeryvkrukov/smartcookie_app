@@ -59,15 +59,28 @@
                     }
                 },
                 eventClick: function(info) {
-                    // Customers can only view session details, not edit
+                    const sessionStart = new Date(info.event.startStr);
+                    const hoursUntil = (sessionStart - new Date()) / (1000 * 60 * 60);
+                    const status = info.event.extendedProps.status || '';
+                    const canCancel = status === 'Scheduled' && hoursUntil > 24;
+
+                    const formattedStart = sessionStart.toLocaleString('en-US', {
+                        weekday: 'short', month: 'short', day: 'numeric',
+                        hour: 'numeric', minute: '2-digit'
+                    });
+
                     window.dispatchEvent(new CustomEvent('open-modal', { 
                         detail: { 
-                            type: 'session-info', // new modal view type for read-only session details
+                            type: 'session-info',
                             title: 'Session Details',
+                            sessionId: info.event.id,
                             subject: info.event.extendedProps.subject,
-                            tutorName: info.event.title,
+                            tutorName: info.event.extendedProps.tutorName,
                             date: info.event.startStr,
-                            duration: info.event.extendedProps.duration
+                            startTime: formattedStart,
+                            duration: info.event.extendedProps.duration,
+                            sessionStatus: status,
+                            canCancel: canCancel,
                         } 
                     }));
                 }

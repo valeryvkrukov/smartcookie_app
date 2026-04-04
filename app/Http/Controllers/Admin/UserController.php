@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Credit;
+use App\Notifications\ClientRateSet;
 use App\Notifications\StudentAssigned;
 
 class UserController extends Controller
@@ -74,11 +75,19 @@ class UserController extends Controller
             }
         }
 
-        // Update price of the Credit (for Parent) 
+        // Update price of the Credit (for Parent)
         if ($user->role === 'customer') {
+            $oldRate = $user->credit?->dollar_cost_per_credit;
+            $newRate = $request->input('dollar_cost_per_credit');
+
             $user->credit()->update([
-                'dollar_cost_per_credit' => $request->dollar_cost_per_credit
+                'dollar_cost_per_credit' => $newRate,
             ]);
+
+            // Notify client when rate is set or changed
+            if ($newRate && (string) $newRate !== (string) $oldRate) {
+                $user->notify(new ClientRateSet((float) $newRate));
+            }
         }
 
         // Add new value to the Tutor

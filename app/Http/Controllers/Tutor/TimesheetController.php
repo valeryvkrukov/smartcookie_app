@@ -97,7 +97,7 @@ class TimesheetController extends Controller
             'tutor_notes' => 'required|string|min:10|max:3000',
         ]);
 
-        $session = TutoringSession::with(['tutor', 'student.parent.credit'])
+        $session = TutoringSession::with(['tutor', 'student.parent.credit', 'student.credit'])
             ->findOrFail($validated['session_id']);
 
         if ($session->tutor_id !== auth()->id()) {
@@ -125,7 +125,8 @@ class TimesheetController extends Controller
             ], 422);
         }
 
-        $parent        = $session->student->parent;
+        // Self-student: the customer IS the billed party (no separate parent account)
+        $parent        = $session->student->parent ?? $session->student;
         $creditsNeeded = Timesheet::calculateCredits($session->duration);
 
         if ($parent->credit->credit_balance < $creditsNeeded) {
@@ -167,9 +168,10 @@ class TimesheetController extends Controller
                 reason: 'Session completed: ' . $session->subject . ' on ' . $session->date->format('Y-m-d'),
             ));
 
-            // If the balance has hit zero, send a low-balance reminder
-            if ($parent->credit->credit_balance <= 0) {
-                $parent->notify(new LowCreditBalance());
+            // Send low-balance alert when balance drops to half a credit or below
+            $balanceAfter = (float) $parent->credit->credit_balance;
+            if ($balanceAfter <= 0.5 && ($balanceAfter + $creditsNeeded) > 0.5) {
+                $parent->notify(new LowCreditBalance($balanceAfter));
             }
 
             $admins = User::where('is_admin', true)->get();

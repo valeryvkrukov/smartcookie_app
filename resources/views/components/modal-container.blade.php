@@ -333,6 +333,81 @@
                     </form>
                 </div>
             </template>
+            <template x-if="type === 'session-info'">
+                <div class="space-y-5">
+                    <div x-show="errorMessage"
+                         x-transition
+                         class="p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"
+                         style="display: none;">
+                        <i class="ti-alert text-lg"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest" x-text="errorMessage"></span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Subject</p>
+                            <p class="text-sm font-black text-slate-900" x-text="subject"></p>
+                        </div>
+                        <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Tutor</p>
+                            <p class="text-sm font-black text-slate-900" x-text="tutorNameDisplay"></p>
+                        </div>
+                        <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Date &amp; Time</p>
+                            <p class="text-sm font-black text-slate-900" x-text="startTimeDisplay"></p>
+                        </div>
+                        <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Duration</p>
+                            <p class="text-sm font-black text-slate-900"
+                               x-text="duration === '0:30' ? '30 min' : duration === '1:00' ? '1 hour' : duration === '1:30' ? '1.5 hours' : duration + ' hrs'"></p>
+                        </div>
+                        <div class="flex items-center justify-between px-5 py-3.5 rounded-2xl border"
+                             :class="(sessionStatus === 'Billed' || sessionStatus === 'Completed') ? 'bg-emerald-50 border-emerald-100' : sessionStatus === 'Cancelled' ? 'bg-slate-50 border-slate-100' : 'bg-indigo-50 border-indigo-100'">
+                            <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Status</p>
+                            <span class="text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full"
+                                  :class="(sessionStatus === 'Billed' || sessionStatus === 'Completed') ? 'bg-emerald-100 text-emerald-700' : sessionStatus === 'Cancelled' ? 'bg-slate-200 text-slate-500' : 'bg-indigo-100 text-indigo-700'"
+                                  x-text="sessionStatus">
+                            </span>
+                        </div>
+                    </div>
+
+                    <template x-if="canCancel">
+                        <button type="button"
+                            @click="
+                                $el.disabled = true;
+                                const origHtml = $el.innerHTML;
+                                $el.innerHTML = '<i class=\"ti-reload animate-spin mr-2\"></i> Cancelling...';
+                                fetch('{{ url('/customer/calendar/sessions') }}/' + sessionId, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        open = false;
+                                        if (window.calendar) window.calendar.refetchEvents();
+                                    } else {
+                                        $dispatch('set-error', { message: data.message || 'Could not cancel session.' });
+                                        $el.disabled = false;
+                                        $el.innerHTML = origHtml;
+                                    }
+                                })
+                                .catch(() => {
+                                    $dispatch('set-error', { message: 'Connection error.' });
+                                    $el.disabled = false;
+                                    $el.innerHTML = origHtml;
+                                })
+                            "
+                            class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-rose-100 transition-all border border-rose-100 active:scale-[0.98]">
+                            Cancel Session
+                        </button>
+                    </template>
+                </div>
+            </template>
         </div>
     </div>
 
@@ -365,6 +440,10 @@
             tutorNotes: '',
             isInitial: false,
             recurringWeekly: false,
+            sessionStatus: '',
+            tutorNameDisplay: '',
+            startTimeDisplay: '',
+            canCancel: false,
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -393,6 +472,10 @@
                 this.tutorNotes = detail.tutorNotes || '';
                 this.isInitial = detail.isInitial || false;
                 this.recurringWeekly = detail.recurringWeekly || false;
+                this.sessionStatus = detail.sessionStatus || '';
+                this.tutorNameDisplay = detail.tutorName || '';
+                this.startTimeDisplay = detail.startTime || '';
+                this.canCancel = detail.canCancel || false;
             },
 
             tzOffsetLabel(studentTz) {
