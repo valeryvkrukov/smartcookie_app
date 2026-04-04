@@ -69,10 +69,11 @@ class CalendarController extends Controller
                 'backgroundColor' => $bgColor,
                 'borderColor'     => $borderColor,
                 'extendedProps'   => [
-                    'subject'   => $s->subject,
-                    'duration'  => $s->duration,
-                    'status'    => $s->status,
-                    'tutorName' => $s->tutor?->full_name ?? 'TBD',
+                    'subject'     => $s->subject,
+                    'duration'    => $s->duration,
+                    'status'      => $s->status,
+                    'tutorName'   => $s->tutor?->full_name ?? 'TBD',
+                    'recurringId' => $s->recurring_id,
                 ],
             ];
         });
@@ -106,7 +107,16 @@ class CalendarController extends Controller
             return response()->json(['success' => false, 'message' => 'Sessions can only be cancelled more than 24 hours in advance.'], 422);
         }
 
-        $session->update(['status' => 'Cancelled']);
+        $cancelSeries = request()->boolean('series');
+
+        if ($cancelSeries && $session->recurring_id) {
+            TutoringSession::where('recurring_id', $session->recurring_id)
+                ->where('status', 'Scheduled')
+                ->where('date', '>=', $session->date)
+                ->update(['status' => 'Cancelled']);
+        } else {
+            $session->update(['status' => 'Cancelled']);
+        }
 
         if ($session->tutor?->is_subscribed) {
             $session->tutor->notify(new SessionCancelledByClient($session, $user));

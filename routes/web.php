@@ -63,7 +63,7 @@ Route::middleware(['auth', 'role:customer', 'check.agreements'])->prefix('custom
     // Session cancellation by client
     Route::delete('/calendar/sessions/{session}', [CustomerCalendarController::class, 'cancel'])->name('calendar.cancel');
 
-    // Agreements (Исключены из Middleware CheckAgreements внутри самого класса)
+    // Agreements (Excluded from Middleware CheckAgreements inside the class itself)
     Route::get('/agreements', [CustomerAgreementController::class, 'index'])->name('agreements.index');
     Route::post('/agreements/sign', [CustomerAgreementController::class, 'sign'])->name('agreements.sign');
 

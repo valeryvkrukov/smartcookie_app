@@ -55,12 +55,16 @@
                                     detail: { 
                                         type: 'edit-student',
                                         isEdit: true,
+                                        isSelfProfile: {{ $isSelf ? 'true' : 'false' }},
                                         studentId: '{{ $student->id }}', 
                                         title: 'Edit {{ $student->first_name }}\'s Profile',
                                         firstName: '{{ $student->first_name }}',
                                         lastName: '{{ $student->last_name }}',
                                         grade: '{{ $student->student_grade }}',
-                                        blurb: '{{ $student->blurb }}'
+                                        blurb: @json($student->blurb ?? ''),
+                                        studentAddress: @json($student->address ?? ''),
+                                        studentPhone: @json($student->phone ?? ''),
+                                        studentEmail: @json($isSelf || str_ends_with($student->email ?? '', '@smartcookie.local') ? '' : ($student->email ?? '')),
                                     } 
                                 }))"
                                 class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-[#212120] hover:text-white transition-all">

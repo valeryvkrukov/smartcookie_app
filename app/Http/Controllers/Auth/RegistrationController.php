@@ -41,11 +41,13 @@ class RegistrationController extends Controller
             'address'        => 'required|string',
             'phone'          => 'required|string',
             // Student fields — required only when NOT self-student
-            'student_name'   => $isSelfStudent ? 'nullable|string|max:255' : 'required|string|max:255',
-            'student_grade'  => $isSelfStudent ? 'nullable|string' : 'required|string',
-            'student_school' => $isSelfStudent ? 'nullable|string' : 'required|string',
-            'student_email'  => 'nullable|email',
-            'tutoring_goals' => 'nullable|string',
+            'student_name'    => $isSelfStudent ? 'nullable|string|max:255' : 'required|string|max:255',
+            'student_grade'   => $isSelfStudent ? 'nullable|string' : 'required|string',
+            'student_school'  => $isSelfStudent ? 'nullable|string' : 'required|string',
+            'student_email'   => 'nullable|email|unique:users,email',
+            'student_address' => 'nullable|string|max:500',
+            'student_phone'   => 'nullable|string|max:50',
+            'tutoring_goals'  => 'nullable|string',
         ]);
 
         return DB::transaction(function () use ($request, $isSelfStudent) {
@@ -78,11 +80,17 @@ class RegistrationController extends Controller
                 User::create([
                     'first_name'     => $studentFirstName,
                     'last_name'      => $studentLastName,
-                    'email'          => $request->student_email ?? 'student_' . uniqid() . '@tutor.com',
+                    'email'          => $request->filled('student_email')
+                        ? $request->student_email
+                        : 'student_' . uniqid() . '@tutor.com',
                     'password'       => Hash::make(Str::random(16)),
                     'parent_id'      => $parent->id,
                     'student_grade'  => $request->student_grade,
                     'student_school' => $request->student_school,
+                    'student_address'=> $request->student_address,
+                    'student_phone'  => $request->student_phone,
+                    'address'        => $request->student_address,
+                    'phone'          => $request->student_phone,
                     'tutoring_goals' => $request->tutoring_goals,
                     'role'           => 'student',
                 ]);

@@ -145,7 +145,21 @@
                         <label class="label-premium">Blurb</label>
                         <textarea type="text" name="blurb" class="input-premium" placeholder="Tell us about your student..."></textarea>
                     </div>
-                    
+                    <div class="space-y-1">
+                        <label class="label-premium">Home Address <span class="text-rose-400">*</span></label>
+                        <input type="text" name="address" class="input-premium" placeholder="123 Street, City, State" required>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="space-y-1">
+                            <label class="label-premium">Phone <span class="text-rose-400">*</span></label>
+                            <input type="text" name="phone" class="input-premium" placeholder="555-0123" required>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="label-premium">Email <span class="text-slate-300 text-[8px] normal-case">optional</span></label>
+                            <input type="email" name="student_email" class="input-premium" placeholder="student@email.com">
+                        </div>
+                    </div>
+
                     <button type="button" @click="submitModalForm($el)" class="btn-primary">Create Profile</button>
                 </form>
             </template>
@@ -171,6 +185,20 @@
                         <label class="label-premium">Blurb</label>
                         <textarea type="text" name="blurb" x-model="blurb" class="input-premium" placeholder="Tell us about your student..."></textarea>
                     </div>
+                    <div class="space-y-1">
+                        <label class="label-premium">Home Address <span class="text-rose-400">*</span></label>
+                        <input type="text" name="address" x-model="studentAddress" class="input-premium" placeholder="123 Street, City, State" required>
+                    </div>
+                    <div class="space-y-1">
+                        <label class="label-premium">Phone <span class="text-rose-400">*</span></label>
+                        <input type="text" name="phone" x-model="studentPhone" class="input-premium" placeholder="555-0123" required>
+                    </div>
+                    <template x-if="!isSelfProfile">
+                        <div class="space-y-1">
+                            <label class="label-premium">Email <span class="text-slate-300 text-[8px] normal-case">optional</span></label>
+                            <input type="email" name="student_email" x-model="studentEmail" class="input-premium" placeholder="student@email.com">
+                        </div>
+                    </template>
                     <button type="button" @click="submitModalForm($el)" class="btn-primary">Update Profile</button>
                 </form>
             </template>
@@ -372,39 +400,19 @@
                     </div>
 
                     <template x-if="canCancel">
-                        <button type="button"
-                            @click="
-                                $el.disabled = true;
-                                const origHtml = $el.innerHTML;
-                                $el.innerHTML = '<i class=\"ti-reload animate-spin mr-2\"></i> Cancelling...';
-                                fetch('{{ url('/customer/calendar/sessions') }}/' + sessionId, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
-                                        'X-Requested-With': 'XMLHttpRequest',
-                                        'Accept': 'application/json'
-                                    }
-                                })
-                                .then(r => r.json())
-                                .then(data => {
-                                    if (data.success) {
-                                        open = false;
-                                        if (window.calendar) window.calendar.refetchEvents();
-                                    } else {
-                                        $dispatch('set-error', { message: data.message || 'Could not cancel session.' });
-                                        $el.disabled = false;
-                                        $el.innerHTML = origHtml;
-                                    }
-                                })
-                                .catch(() => {
-                                    $dispatch('set-error', { message: 'Connection error.' });
-                                    $el.disabled = false;
-                                    $el.innerHTML = origHtml;
-                                })
-                            "
-                            class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-rose-100 transition-all border border-rose-100 active:scale-[0.98]">
-                            Cancel Session
-                        </button>
+                        <div class="space-y-3">
+                            <button type="button" @click="doCancelSession(false, $el)"
+                                class="w-full py-4 bg-rose-50 text-rose-600 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-rose-100 transition-all border border-rose-100 active:scale-[0.98]">
+                                <template x-if="isRecurring"><span>Cancel This Session Only</span></template>
+                                <template x-if="!isRecurring"><span>Cancel Session</span></template>
+                            </button>
+                            <template x-if="isRecurring">
+                                <button type="button" @click="doCancelSession(true, $el)"
+                                    class="w-full py-4 bg-rose-100 text-rose-700 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-rose-200 transition-all border border-rose-200 active:scale-[0.98]">
+                                    Cancel All Upcoming in Series
+                                </button>
+                            </template>
+                        </div>
                     </template>
                 </div>
             </template>
@@ -444,6 +452,10 @@
             tutorNameDisplay: '',
             startTimeDisplay: '',
             canCancel: false,
+            studentAddress: '',
+            studentPhone: '',
+            studentEmail: '',
+            isSelfProfile: false,
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -476,6 +488,42 @@
                 this.tutorNameDisplay = detail.tutorName || '';
                 this.startTimeDisplay = detail.startTime || '';
                 this.canCancel = detail.canCancel || false;
+                this.studentAddress = detail.studentAddress || '';
+                this.studentPhone   = detail.studentPhone   || '';
+                this.studentEmail   = detail.studentEmail   || '';
+                this.isSelfProfile  = detail.isSelfProfile  || false;
+            },
+
+            doCancelSession(series, el) {
+                const url = '{{ url('/customer/calendar/sessions') }}/' + this.sessionId + (series ? '?series=1' : '');
+                el.disabled = true;
+                const origHtml = el.innerHTML;
+                el.innerHTML = '<i class="ti-reload animate-spin mr-2 text-sm"></i> Cancelling...';
+                const self = this;
+                fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').getAttribute('content'),
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.success) {
+                        self.open = false;
+                        if (window.calendar) window.calendar.refetchEvents();
+                    } else {
+                        self.errorMessage = data.message || 'Could not cancel session.';
+                        el.disabled = false;
+                        el.innerHTML = origHtml;
+                    }
+                })
+                .catch(() => {
+                    self.errorMessage = 'Connection error.';
+                    el.disabled = false;
+                    el.innerHTML = origHtml;
+                });
             },
 
             tzOffsetLabel(studentTz) {

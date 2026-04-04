@@ -32,10 +32,13 @@ class StudentController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name' => 'required|string|max:255',
+            'first_name'    => 'required|string|max:255',
+            'last_name'     => 'required|string|max:255',
             'student_grade' => 'nullable|string|max:100',
-            'blurb' => 'nullable|string|max:1000',
+            'blurb'         => 'nullable|string|max:1000',
+            'address'       => 'required|string|max:500',
+            'phone'         => 'required|string|max:50',
+            'student_email' => 'nullable|email|unique:users,email',
         ]);
 
         User::create([
@@ -43,10 +46,14 @@ class StudentController extends Controller
             'last_name'     => $data['last_name'],
             'student_grade' => $data['student_grade'],
             'blurb'         => $data['blurb'],
+            'address'       => $data['address'],
+            'phone'         => $data['phone'],
             'role'          => 'student',
             'parent_id'     => auth()->id(),
             'password'      => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(12)),
-            'email'         => strtolower($data['first_name'] . '.' . $data['last_name'] . '.' . uniqid() . '@smartcookie.local'),
+            'email'         => !empty($data['student_email'])
+                ? $data['student_email']
+                : strtolower($data['first_name'] . '.' . $data['last_name'] . '.' . uniqid() . '@smartcookie.local'),
         ]);
 
         return response()->json(['success' => true]);
@@ -61,12 +68,24 @@ class StudentController extends Controller
             'last_name'     => 'required|string|max:255',
             'student_grade' => 'nullable|string|max:100',
             'blurb'         => 'nullable|string|max:1000',
+            'address'       => 'required|string|max:500',
+            'phone'         => 'required|string|max:50',
+            'student_email' => 'nullable|email|unique:users,email,' . $id,
         ]);
 
-        // Self-student editing their own profile
+        $updateData = [
+            'first_name'    => $data['first_name'],
+            'last_name'     => $data['last_name'],
+            'student_grade' => $data['student_grade'],
+            'blurb'         => $data['blurb'],
+            'address'       => $data['address'],
+            'phone'         => $data['phone'],
+        ];
+
+        // Self-student editing their own profile (email managed via /profile page)
         if ($user->is_self_student && (int) $id === $user->id) {
-            $user->update($data);
-            return redirect()->route('customer.students.index')->with('success', 'Profile updated.');
+            $user->update($updateData);
+            return response()->json(['success' => true]);
         }
 
         $student = User::where('id', $id)
@@ -74,9 +93,14 @@ class StudentController extends Controller
             ->where('parent_id', $user->id)
             ->firstOrFail();
 
-        $student->update($data);
+        // Only update email if a real one was provided (not empty)
+        if (!empty($data['student_email'])) {
+            $updateData['email'] = $data['student_email'];
+        }
 
-        return redirect()->route('customer.students.index')->with('success', 'Student updated.');
+        $student->update($updateData);
+
+        return response()->json(['success' => true]);
     }
 
     public function destroy($id)

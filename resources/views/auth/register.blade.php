@@ -89,6 +89,23 @@
                 <x-input-label value="School / College" class="label-premium" />
                 <x-text-input name="student_school" :value="old('student_school')" class="input-premium" />
             </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <x-input-label value="Student Phone" class="label-premium" />
+                    <x-text-input name="student_phone" :value="old('student_phone')" class="input-premium" placeholder="555-0123" />
+                </div>
+                <div class="space-y-1">
+                    <x-input-label value="Student Email" class="label-premium" />
+                    <span class="text-slate-300 text-[8px] font-black uppercase tracking-widest ml-1">optional</span>
+                    <x-text-input name="student_email" type="email" :value="old('student_email')" class="input-premium" placeholder="student@email.com" />
+                </div>
+            </div>
+
+            <div class="space-y-1">
+                <x-input-label value="Student Home Address" class="label-premium" />
+                <x-text-input name="student_address" :value="old('student_address')" class="input-premium" placeholder="123 Street, City, State" />
+            </div>
         </div>
 
         <!-- SECTION 3: SECURITY -->

@@ -81,6 +81,7 @@
                             duration: info.event.extendedProps.duration,
                             sessionStatus: status,
                             canCancel: canCancel,
+                            isRecurring: !!info.event.extendedProps.recurringId,
                         } 
                     }));
                 }
