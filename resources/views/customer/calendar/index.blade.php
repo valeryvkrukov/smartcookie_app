@@ -21,6 +21,7 @@
 
     <!-- Calendar container -->
     <div class="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-8 overflow-hidden">
+        <x-calendar-legend />
         <div id="calendar"></div>
     </div>
 

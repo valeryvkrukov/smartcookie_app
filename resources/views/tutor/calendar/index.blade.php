@@ -7,6 +7,7 @@
     </x-slot>
 
     <div class="bg-white p-6 rounded-[2.5rem] border border-slate-200 shadow-sm">
+        <x-calendar-legend />
         <div id="calendar" class="min-h-[700px]"></div>
     </div>
 

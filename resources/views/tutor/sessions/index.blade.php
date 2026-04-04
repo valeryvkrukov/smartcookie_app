@@ -14,6 +14,7 @@
             
             <!-- MAIN CALENDAR -->
             <div class="flex-1 bg-white p-6 shadow rounded-lg">
+                <x-calendar-legend />
                 <div id="calendar" style="min-height: 600px;"></div>
             </div>
 

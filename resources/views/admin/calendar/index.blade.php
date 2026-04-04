@@ -17,6 +17,7 @@
             </div>
         </div>
 
+        <x-calendar-legend :show-no-credits="true" />
         <div id="calendar" style="min-height: 700px;"></div>
     </div>
 

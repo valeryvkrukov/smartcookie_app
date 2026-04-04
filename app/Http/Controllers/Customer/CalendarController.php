@@ -50,24 +50,23 @@ class CalendarController extends Controller
                 ->addHours((int)explode(':', $s->duration)[0])
                 ->addMinutes((int)explode(':', $s->duration)[1]);
 
-            $bgColor = match($s->status) {
-                'Billed', 'Completed' => '#10b981',
-                'Cancelled'           => '#94a3b8',
-                default               => '#4f46e5',
+            $colors = match(true) {
+                $s->status === 'Cancelled'                  => ['bg' => '#94a3b8', 'border' => '#64748b'],
+                in_array($s->status, ['Billed','Completed']) => ['bg' => '#10b981', 'border' => '#059669'],
+                (bool)$s->is_initial                        => ['bg' => '#f59e0b', 'border' => '#d97706'],
+                !empty($s->recurring_id)                    => ['bg' => '#6366f1', 'border' => '#4f46e5'],
+                default                                     => ['bg' => '#4f46e5', 'border' => '#4338ca'],
             };
-            $borderColor = match($s->status) {
-                'Billed', 'Completed' => '#059669',
-                'Cancelled'           => '#64748b',
-                default               => '#4338ca',
-            };
+
+            $recurringPrefix = !empty($s->recurring_id) ? '↻ ' : '';
 
             return [
                 'id'              => $s->id,
-                'title'           => "{$s->student->first_name} | {$s->subject}",
+                'title'           => $recurringPrefix . "{$s->student->first_name} | {$s->subject}",
                 'start'           => $start->toIso8601String(),
                 'end'             => $end->toIso8601String(),
-                'backgroundColor' => $bgColor,
-                'borderColor'     => $borderColor,
+                'backgroundColor' => $colors['bg'],
+                'borderColor'     => $colors['border'],
                 'extendedProps'   => [
                     'subject'     => $s->subject,
                     'duration'    => $s->duration,
