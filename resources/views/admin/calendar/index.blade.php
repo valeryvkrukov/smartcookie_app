@@ -56,11 +56,7 @@
                     info.jsEvent.preventDefault();
 
                     const s = info.event;
-                    const props =  s.extendedProps || s._def.extendedProps;
-                    const hours = s.start.getHours();
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const h12 = (hours % 12 || 12).toString().padStart(2, '0');
-                    const mins = s.start.getMinutes().toString().padStart(2, '0');
+                    const props = s.extendedProps || s._def.extendedProps;
 
                     window.dispatchEvent(new CustomEvent('open-modal', {
                         detail: { 
@@ -77,9 +73,9 @@
                             duration: props.duration,
                             location: props.location,
                             date: s.startStr.split('T')[0],
-                            time_h: h12,
-                            time_m: mins,
-                            time_ampm: ampm,
+                            time_h: props.time_h,
+                            time_m: props.time_m,
+                            time_ampm: props.time_ampm,
                             studentTimezone: (window.studentTimezoneMap || {})[props.studentId] || ''
                         }
                     }));
@@ -95,8 +91,6 @@
                 },
                 lazyFetching: false,
                 allDaySlot: false,
-                slotMinTime: '00:00:00',
-                slotMaxTime: '23:59:59',
                 firstDay: 0,
                 headerToolbar: {
                     left: 'prev,next today',

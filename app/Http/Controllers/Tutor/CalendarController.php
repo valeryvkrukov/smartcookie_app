@@ -61,6 +61,10 @@ class CalendarController extends Controller
                     'isRecurring'       => !empty($session->recurring_id),
                     'isInitial'         => (bool) $session->is_initial,
                     'isRecurringWeekly' => (bool) $session->recurs_weekly,
+                    // Pre-computed in tutor TZ — avoids client-side TZ conversion bugs
+                    'time_h'    => $start->format('h'),
+                    'time_m'    => $start->format('i'),
+                    'time_ampm' => $start->format('A'),
                 ]
             ];
         });

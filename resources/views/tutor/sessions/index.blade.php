@@ -48,7 +48,8 @@
                 ],
                 initialView: 'timeGridWeek',
                 timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
-                firstDay: 0, // Sunday
+                lazyFetching: false,
+                firstDay: 0,
                 allDaySlot: false,
                 slotMinTime: '06:00:00',
                 slotMaxTime: '22:00:00',

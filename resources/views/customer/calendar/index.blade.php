@@ -46,13 +46,16 @@
                 ],
                 initialView: 'timeGridWeek',
                 timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
+                lazyFetching: false,
+                firstDay: 0,
+                allDaySlot: false,
+                slotMinTime: '06:00:00',
+                slotMaxTime: '22:00:00',
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek'
                 },
-                slotMinTime: '06:00:00',
-                slotMaxTime: '22:00:00',
                 events: {
                     url: "{{ route('customer.calendar.events') }}",
                     extraParams: function() {
