@@ -186,6 +186,7 @@ class SessionController extends Controller
             'start_time' => 'required',
             'duration'   => 'required|in:0:30,1:00,1:30,2:00',
             'location'   => 'nullable|string|max:255',
+            'is_initial' => 'nullable|boolean',
         ]);
 
         $updateSeries = $request->input('update_series') === '1';
@@ -239,6 +240,7 @@ class SessionController extends Controller
                 'start_time'   => $data['start_time'],
                 'duration'     => $data['duration'],
                 'location'     => $data['location'] ?? null,
+                'is_initial'   => $request->boolean('is_initial'),
                 'recurring_id' => null,
             ]);
         }

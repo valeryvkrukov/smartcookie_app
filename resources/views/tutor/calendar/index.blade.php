@@ -60,10 +60,14 @@
                 eventClick: function(info) {
                     const s = info.event;
                     const props = s.extendedProps || s._def.extendedProps;
-                    const hours = s.start.getHours();
-                    const ampm = hours >= 12 ? 'PM' : 'AM';
-                    const h12 = (hours % 12 || 12).toString().padStart(2, '0');
-                    const mins = s.start.getMinutes().toString().padStart(2, '0');
+                    // Parse time from startStr (which FullCalendar formats in the configured
+                    // timezone) instead of s.start.getHours() (which uses browser-local time).
+                    // This prevents stored times from drifting when browser tz ≠ tutor tz.
+                    const startTimeStr = (s.startStr.split('T')[1] || '09:00:00');
+                    const h24 = parseInt(startTimeStr.substring(0, 2), 10);
+                    const mins = startTimeStr.substring(3, 5);
+                    const ampm = h24 >= 12 ? 'PM' : 'AM';
+                    const h12 = ((h24 % 12) || 12).toString().padStart(2, '0');
 
                     window.dispatchEvent(new CustomEvent('open-modal', {
                         detail: { 
