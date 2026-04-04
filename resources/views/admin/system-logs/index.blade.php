@@ -52,7 +52,7 @@
         <div class="flex flex-wrap gap-2">
             @foreach ($tabs as $key => $tab)
                 @php $active = $typeFilter === $key; @endphp
-                <a href="{{ route('admin.system-logs.index', array_filter(['type' => $key, 'search' => $search ?: null, 'read' => $readFilter !== 'unread' ? $readFilter : null])) }}">
+                <a href="{{ route('admin.system-logs.index', array_filter(['type' => $key, 'search' => $search ?: null, 'read' => $readFilter !== 'unread' ? $readFilter : null])) }}"
                    class="flex items-center gap-2 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all
                           {{ $active ? 'bg-[#212120] text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-100 hover:text-slate-700 hover:border-slate-200' }}">
                     {{ $tab['label'] }}
