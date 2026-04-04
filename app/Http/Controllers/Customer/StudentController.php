@@ -82,7 +82,7 @@ class StudentController extends Controller
             'phone'         => $data['phone'],
         ];
 
-        // Self-student editing their own profile (email managed via /profile page)
+        // ── Self-student: editing own profile (email managed via /profile page)
         if ($user->is_self_student && (int) $id === $user->id) {
             $user->update($updateData);
             return response()->json(['success' => true]);
@@ -93,7 +93,7 @@ class StudentController extends Controller
             ->where('parent_id', $user->id)
             ->firstOrFail();
 
-        // Only update email if a real one was provided (not empty)
+        // ── Email: update only when a non-empty value is provided
         if (!empty($data['student_email'])) {
             $updateData['email'] = $data['student_email'];
         }

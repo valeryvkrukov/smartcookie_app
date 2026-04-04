@@ -15,7 +15,7 @@
             <form action="{{ route('tutor.sessions.store') }}" method="POST" class="space-y-10">
                 @csrf
 
-                <!-- Студент -->
+                {{-- ── Student: dropdown to select the assigned student --}}
                 <div class="space-y-3">
                     <x-input-label value="Student" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1" />
                     <select name="student_id" required class="w-full border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 px-1 text-lg font-bold text-slate-800 transition-colors">
@@ -28,7 +28,7 @@
                     </select>
                 </div>
 
-                <!-- Предмет и Дата в ряд -->
+                {{-- ── Subject & date row: side-by-side grid on medium+ screens --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
                     <div class="space-y-3">
                         <x-input-label value="Subject" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1" />
@@ -40,7 +40,7 @@
                     </div>
                 </div>
 
-                <!-- Время: Компактный ряд -->
+                {{-- ── Start time: hour/minute selects with AM/PM toggle --}}
                 <div class="space-y-3">
                     <x-input-label value="Start Time" class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 ml-1" />
                     <div class="flex items-center space-x-4">
@@ -60,7 +60,7 @@
                     </div>
                 </div>
 
-                <!-- Опции: Чистые переключатели -->
+                {{-- ── Options: recurring and initial-consultation checkboxes --}}
                 <div class="pt-6 space-y-4">
                     <label class="flex items-center group cursor-pointer">
                         <input type="checkbox" name="recurs_weekly" value="1" class="w-5 h-5 rounded border-2 border-slate-200 text-[#212120] focus:ring-0 transition-all mr-3">
@@ -72,7 +72,7 @@
                     </label>
                 </div>
 
-                <!-- Кнопка: Строгая и мощная -->
+                {{-- ── Submit button: schedules the session --}}
                 <button type="submit" class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all">
                     Schedule Session
                 </button>

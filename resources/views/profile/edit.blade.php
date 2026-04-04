@@ -10,7 +10,7 @@
             
             <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/40">
                 <div class="flex flex-col md:flex-row gap-12">
-                    <!-- Photo Column -->
+                    {{-- ── Photo column: avatar with live file-reader preview --}}
                     <div class="flex flex-col items-center space-y-4">
                         <div class="relative group">
                             <div class="w-32 h-32 rounded-[2.5rem] overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
@@ -35,7 +35,7 @@
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Profile Photo</p>
                     </div>
 
-                    <!-- Name & Bio Column -->
+                    {{-- ── Name & bio column: first name, last name, tagline --}}
                     <div class="flex-1 space-y-8">
                         <div class="grid grid-cols-2 gap-6">
                             <div class="space-y-2">
@@ -55,7 +55,7 @@
                 </div>
             </div>
 
-            <!-- SECTION 2: Contact & Location -->
+            {{-- ── Section 2: Contact & location details --}}
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
                 <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl">
                     <h3 class="label-premium mb-8 text-indigo-600">Contact Details</h3>
@@ -75,7 +75,7 @@
                     </div>
                 </div>
 
-                <!-- SECTION 3: System Settings (Timezone) -->
+                {{-- ── Section 3: System preferences and timezone --}}
                 <div class="bg-[#212120] p-10 rounded-[3rem] shadow-2xl text-white">
                     <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-8">System Preferences</h3>
                     <div class="space-y-6 pt-4 border-t border-white/10">
@@ -109,7 +109,7 @@
             </div>
         </form>
 
-        <!-- SECURITY & PASSWORD (в отдельном блоке ниже) -->
+        {{-- ── Security & password: rendered in a separate card --}}
         <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl">
              @include('profile.partials.update-password-form')
         </div>

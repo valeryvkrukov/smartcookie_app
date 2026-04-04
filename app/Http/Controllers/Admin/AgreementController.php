@@ -46,7 +46,7 @@ class AgreementController extends Controller
             'agreement_id' => 'required|exists:agreements,id',
         ]);
 
-        // Check if there's already a request for this user and agreement
+        // ── Duplicate guard: skip if this user-agreement pair already exists
         AgreementRequest::firstOrCreate([
             'user_id' => $data['user_id'],
             'agreement_id' => $data['agreement_id'],

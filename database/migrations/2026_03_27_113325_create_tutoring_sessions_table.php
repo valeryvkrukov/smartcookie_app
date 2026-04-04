@@ -14,22 +14,22 @@ return new class extends Migration
         Schema::create('tutoring_sessions', function (Blueprint $table) {
             $table->id();
 
-            // Relationships
+            // ── Relations: foreign keys for tutor and student
             $table->foreignId('tutor_id')->constrained('users')->onDelete('cascade');
             $table->foreignId('student_id')->constrained('users')->onDelete('cascade');
 
-            // Tutoring data
+            // ── Session data: subject, date, time, duration, location
             $table->string('subject'); // Tutoring Subject: text box
             $table->date('date'); // Date: monthly calendar selector
             $table->time('start_time'); // Start Time: drop-down (H, M, AM/PM)
             $table->string('duration'); // Duration: 0:30, 1:00, 1:30, 2:00
             $table->string('location')->nullable(); // Location: text box
 
-            // Flags
+            // ── Flags: boolean flags for session type and recurrence
             $table->boolean('is_initial')->default(false); // Initial Session checkbox
             $table->boolean('recurs_weekly')->default(false); // Recurs Weekly checkbox
 
-            // Field for status (Scheduled, Canceled, Completed)
+            // ── Status: scheduling state (Scheduled, Cancelled, Completed)
             $table->string('status')->default('Scheduled');
             
             $table->timestamps();

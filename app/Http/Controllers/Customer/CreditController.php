@@ -53,15 +53,14 @@ class CreditController extends Controller
         $credit        = $user->credit;
         $ratePerCredit = $credit?->dollar_cost_per_credit;
 
-        // Block if admin has not yet set a rate
+        // ── Guard: reject purchase if admin has not set a credit rate
         if (!$ratePerCredit) {
             return back()->with('error', 'Credit purchasing is not yet available for your account. Please contact the administrator.');
         }
 
         $isFirstPurchase = !CreditPurchase::where('user_id', $user->id)->exists();
 
-        // For first-time buyers: only 1 credit
-        // For repeat buyers: validate against allowed packs (4, 6, 8, 10)
+        // ── Pack selection: 1 credit for first purchase; standard packs for repeat buyers
         if ($isFirstPurchase) {
             $creditsRequested = 1;
         } else {
@@ -114,7 +113,7 @@ class CreditController extends Controller
             return redirect()->away($url);
         }
 
-        // Zelle
+        // ── Zelle: redirect with payment instructions for manual transfer
         return redirect()->route('customer.credits.index')
             ->with('payment_instructions', [
                 'method' => 'Zelle',
@@ -151,7 +150,7 @@ class CreditController extends Controller
 
         $user = auth()->user();
 
-        // Read credits from Stripe metadata (set during purchase())
+        // ── Stripe metadata: credit count and purchase type stored when checkout was created
         $creditsPurchased = (float) ($checkoutSession->metadata->credits_purchased ?? 1);
         $isFirstPurchase  = ($checkoutSession->metadata->is_first_purchase ?? '0') === '1';
         $totalPaid        = $checkoutSession->amount_total / 100;

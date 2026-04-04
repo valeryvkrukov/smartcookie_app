@@ -48,7 +48,7 @@
      class="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto"
      style="display: none !important;">
     
-    <!-- Backdrop with blur -->
+    {{-- ── Backdrop: fixed overlay with blur, closes modal on click --}}
     <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md transition-opacity" @click="open = false"></div>
 
     <div x-show="open" 
@@ -68,13 +68,13 @@
         </p>
 
         <div class="mt-10 space-y-3">
-            <!-- Main Button (Delete / Single Instance) -->
+            {{-- ── Delete button: removes single instance (or item if not recurring) --}}
             <button type="button" @click="performDelete(false)"
                     class="w-full flex items-center justify-center py-4 bg-rose-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-rose-700 transition shadow-lg shadow-rose-100 leading-none">
                 <span x-text="isRecurring ? 'Only This Instance' : 'Confirm & Delete'"></span>
             </button>
 
-            <!-- Button for series (Recurring) -->
+            {{-- ── Series button: visible only for recurring, deletes all future --}}
             <template x-if="isRecurring">
                 <button type="button" 
                         @click="performDelete(true)"

@@ -121,7 +121,7 @@ class SessionController extends Controller
 
             return response()->json(['success' => true]);
         } catch (\Exception $e) {
-            // Catch exceptions from SessionService (for ex., "Time Conflict")
+            // ── Error handling: catch SessionService exceptions (time conflicts, etc.)
             return response()->json([
                 'success' => false, 
                 'message' => $e->getMessage()

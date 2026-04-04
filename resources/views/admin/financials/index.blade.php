@@ -3,7 +3,7 @@
 
     <div class="max-w-7xl mx-auto space-y-10 pb-20">
         
-        <!-- PERIOD SELECTOR (Modern Pill Style) -->
+        {{-- ── Period selector: pill-style filter for time range --}}
         <div class="flex justify-center">
             <div class="inline-flex bg-white p-1.5 rounded-[2rem] border border-slate-100 shadow-xl">
                 @foreach(['all' => 'All Time', 'month' => 'This Month', 'quarter' => 'Quarter', 'year' => 'Year'] as $key => $label)
@@ -15,40 +15,40 @@
             </div>
         </div>
 
-        <!-- STATS GRID -->
+        {{-- ── Stats grid: four KPI cards (profit, revenue, payouts, credits) --}}
         <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <!-- Net Profit (Главная метрика для Софи) -->
+            {{-- ── Net profit: primary KPI card --}}
             <div class="bg-[#1A1A19] rounded-[3.5rem] p-8 text-white shadow-2xl relative overflow-hidden group border border-white/5">
                 <div class="absolute -right-10 -top-10 w-32 h-32 bg-emerald-500/20 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-700"></div>
                 <p class="text-[9px] font-black uppercase tracking-[0.4em] text-emerald-400 mb-4">Net Profit</p>
                 <h2 class="text-4xl font-black tracking-tighter">${{ number_format($stats['net_profit'], 2) }}</h2>
             </div>
 
-            <!-- Gross Revenue -->
+            {{-- ── Gross revenue: total payments received --}}
             <div class="bg-white rounded-[3.5rem] p-8 border border-slate-100 shadow-xl">
                 <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Gross Revenue</p>
                 <h2 class="text-4xl font-black tracking-tighter text-slate-900">${{ number_format($stats['total_revenue'], 2) }}</h2>
             </div>
 
-            <!-- Payouts -->
+            {{-- ── Tutor payouts: total paid out to tutors --}}
             <div class="bg-white rounded-[3.5rem] p-8 border border-slate-100 shadow-xl">
                 <p class="text-[9px] font-black uppercase tracking-[0.4em] text-rose-500 mb-4">Tutor Payouts</p>
                 <h2 class="text-4xl font-black tracking-tighter text-slate-900">${{ number_format($stats['tutor_payouts'], 2) }}</h2>
             </div>
 
-            <!-- Liabilities -->
+            {{-- ── Client credits: outstanding credit liabilities --}}
             <div class="bg-white rounded-[3.5rem] p-8 border border-slate-100 shadow-xl">
                 <p class="text-[9px] font-black uppercase tracking-[0.4em] text-slate-400 mb-4">Client Credits</p>
                 <h2 class="text-4xl font-black tracking-tighter text-slate-900">{{ number_format($stats['client_balances'], 2) }} <span class="text-lg text-slate-400">cr</span></h2>
             </div>
         </div>
 
-        <!-- TRANSACTION LOG -->
+        {{-- ── Transaction log: searchable and paginated payment history --}}
         <div class="bg-white rounded-[3.5rem] border border-slate-100 shadow-xl overflow-hidden">
             <div class="p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-6">
                 <h3 class="text-xl font-black text-slate-900 tracking-tight">Recent Transactions</h3>
                 
-                <!-- Search -->
+                {{-- ── Search: filters transaction log by client name --}}
                 <form action="{{ route('admin.financials.index') }}" method="GET" class="relative w-full md:w-80">
                     <input type="text" name="search" value="{{ request('search') }}" 
                            class="w-full pl-6 pr-12 py-4 bg-slate-50 border-none rounded-2xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-500 transition-all" 

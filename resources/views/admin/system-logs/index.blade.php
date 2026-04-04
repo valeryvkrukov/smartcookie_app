@@ -3,7 +3,7 @@
 
     <div class="max-w-7xl mx-auto pb-20 space-y-10">
 
-        {{-- ── FILTER TABS ──────────────────────────────────────────────── --}}
+        {{-- ── Filter tabs: category buttons to filter event feed --}}
         <div class="flex flex-wrap gap-2">
             @php
                 $tabs = [
@@ -30,7 +30,7 @@
             @endforeach
         </div>
 
-        {{-- ── EVENT FEED ───────────────────────────────────────────────── --}}
+        {{-- ── Event feed: paginated log entries filtered by tab --}}
         @if ($logs->isEmpty())
             <div class="bg-white rounded-[3rem] border border-slate-100 shadow-xl p-20 text-center">
                 <div class="w-16 h-16 bg-slate-50 rounded-[1.5rem] flex items-center justify-center mx-auto mb-6">

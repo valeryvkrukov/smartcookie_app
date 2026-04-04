@@ -36,7 +36,7 @@ class RegisteredUserController extends Controller
             'last_name' => ['nullable', 'string', 'max:255'],
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            // TODO: uncomment when begin on prod and add real keys for reCAPTCHA v3
+            // ── TODO: uncomment in production once real reCAPTCHA v3 keys are configured
             /*'g-recaptcha-response' => ['required', function ($attribute, $value, $fail) {
                 $response = Http::asForm()->post('https://www.google.com/recaptcha/api/siteverify', [
                     'secret' => env('RECAPTCHA_SECRET_KEY'),

@@ -13,19 +13,19 @@ class CreditController extends Controller
     {
         $user = $request->user();
 
-        // to be sure that record already presented in th `credits`
+        // ── Guard: ensure credit record exists before proceeding
         $credit = Credit::firstOrCreate(
             ['user_id' => $user->id],
             ['credit_balance' => 0, 'dollar_cost_per_credit' => null]
         );
 
-        // check for cost setted by admin
+        // ── Guard: reject if admin has not yet set a credit rate
         $isLocked = is_null($credit->dollar_cost_per_credit);
 
-        // check for previous payments
+        // ── History: determine if this is the customer's first purchase
         $hasPurchased = CreditPurchase::where('user_id', $user->id)->exists();
 
-        // ?? check for available packages
+        // ── Packs: first purchase unlocks 1 credit; repeat buyers get standard packs
         $availablePacks = $hasPurchased ? [4, 6, 8, 10] : [1];
 
         $history = Timesheet::where('parent_id', $user->id)

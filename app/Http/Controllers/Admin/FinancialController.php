@@ -25,17 +25,17 @@ class FinancialController extends Controller
             $query->whereYear('created_at', now()->year);
         }
 
-        // Key financial stats
+        // ── Stats: compute key financial KPIs
         $stats = [
             'total_revenue' => (clone $query)->sum('total_paid'),
             'tutor_payouts' => TutoringSession::where('status', 'completed')->sum('tutor_rate'),
             'client_balances' => Credit::sum('credit_balance'),
         ];
 
-        // Net profit (Revenue - Payouts)
+        // ── Net profit: revenue minus tutor payouts
         $stats['net_profit'] = $stats['total_revenue'] - $stats['tutor_payouts'];
 
-        // Transactions list with filter and pagination
+        // ── Transactions: filtered and paginated payment history
         $transactions = $query->orderBy('created_at', 'desc')->paginate(15);
 
         return view('admin.financials.index', compact('stats', 'transactions', 'period'));

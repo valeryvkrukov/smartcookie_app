@@ -14,35 +14,35 @@ class TutoringSystemSeeder extends Seeder
      */
     public function run(): void
     {
-        // Create Admin
+        // ── Admin: create default admin account
         User::create([
             'first_name' => 'Admin', 'last_name' => 'User',
             'email' => 'admin@tutor.com', 'password' => Hash::make('password'),
             'role' => 'admin', 'is_admin' => true,
         ]);
 
-        // Create Tutor
+        // ── Tutor: create default tutor account
         $tutor = User::create([
             'first_name' => 'John', 'last_name' => 'Tutor',
             'email' => 'tutor@tutor.com', 'password' => Hash::make('password'),
             'role' => 'tutor', 'blurb' => 'Expert in Mathematics and Physics with 5 years experience.',
         ]);
 
-        // Create Client
+        // ── Customer: create default parent account
         $parent = User::create([
             'first_name' => 'Sarah', 'last_name' => 'Parent',
             'email' => 'parent@tutor.com', 'password' => Hash::make('password'),
             'role' => 'customer', 'address' => '123 Education St, NY', 'phone' => '555-0101',
         ]);
 
-        // Setup Credits for Parent
+        // ── Credits: set initial credit balance and rate for the parent
         Credit::create([
             'user_id' => $parent->id,
             'credit_balance' => 10.0, // 10 credits for tests
             'dollar_cost_per_credit' => 45.00, // Admin set rate
         ]);
 
-        // Students for Parent
+        // ── Students: create two students linked to the parent
         $student1 = User::create([
             'first_name' => 'Kevin', 'last_name' => 'Parent',
             'email' => 'kevin@school.com', 'password' => Hash::make(Str::random(16)),
@@ -57,13 +57,13 @@ class TutoringSystemSeeder extends Seeder
             'student_grade' => '8th Grade', 'student_school' => 'Lincoln Middle',
         ]);
 
-        // Assign Tutor to Student's
+        // ── Assignments: link tutor to both students
         \DB::table('tutor_student_assignments')->insert([
             ['tutor_id' => $tutor->id, 'student_id' => $student1->id, 'hourly_payout' => 30.00],
             ['tutor_id' => $tutor->id, 'student_id' => $student2->id, 'hourly_payout' => 25.00],
         ]);
 
-        // Make test Agreement
+        // ── Agreement: create a sample agreement document
         Agreement::create([
             'name' => 'General Tutoring Agreement 2026',
             'pdf_path' => 'agreements/test.pdf',

@@ -11,13 +11,13 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 ])]
 class Timesheet extends Model
 {
-    // Relation to Student
+    // ── Relation: belongs to the tutoring session
     public function student(): BelongsTo
     {
         return $this->belongsTo(TutoringSession::class, 'tutoring_session_id')->withDefault();
     }
 
-    // Relation to Parent
+    // ── Relation: belongs to the billed party (parent/user)
     public function parent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'parent_id');

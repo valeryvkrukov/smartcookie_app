@@ -26,7 +26,7 @@ class SessionController extends Controller
     {
         $tutorId = auth()->id();
 
-        // Block "Next 5 tutoring sessions"
+        // ── Next sessions: upcoming 5 sessions for the sidebar panel
         $nextSessions = TutoringSession::where('tutor_id', $tutorId)
             ->where('date', '>=', now()->toDateString())
             ->where('status', 'Scheduled')
@@ -36,7 +36,7 @@ class SessionController extends Controller
             ->take(5)
             ->get();
 
-        // Build JSON for FullCalendar JS
+        // ── Calendar events: build all-time event list for FullCalendar
         $events = TutoringSession::where('tutor_id', $tutorId)
             ->with('student')
             ->get()
@@ -71,7 +71,7 @@ class SessionController extends Controller
      */
     public function create(Request $request)
     {
-        // Tutor can select only from students assigned to him
+        // ── Students: filter to tutor-assigned students only
         $user = auth()->user();
 
         $students = $user->assignedStudents()->get();
@@ -107,9 +107,9 @@ class SessionController extends Controller
         if ($request->filled(['time_h', 'time_m', 'time_ampm'])) {
             $timeString = "{$request->time_h}:{$request->time_m} {$request->time_ampm}";
             try {
-                // Convert "01:30 PM" to "13:30:00"
+                // ── Time conversion: "01:30 PM" → "13:30:00"
                 $startTime = Carbon::createFromFormat('h:i A', $timeString)->format('H:i:s');
-                // Merge the start_time into the request so it can be validated and passed to the service
+                // ── Merge: inject start_time so it passes validation and reaches the service
                 $request->merge(['start_time' => $startTime]);
             } catch (\Exception $e) {
                 return response()->json(['success' => false, 'message' => 'Invalid time format'], 422);
@@ -127,7 +127,7 @@ class SessionController extends Controller
             'recurs_weekly' => 'nullable|boolean',
         ]);
 
-        // Prevent scheduling in the past (tutor's own timezone)
+        // ── Validation: reject sessions scheduled in the past (tutor's timezone)
         $tutorTz = auth()->user()->time_zone ?? 'UTC';
         $sessionStart = Carbon::createFromFormat(
             'Y-m-d H:i:s',
@@ -153,7 +153,7 @@ class SessionController extends Controller
 
             //return back()->with('success', 'Scheduled!');
         } catch (\Exception $e) {
-            // If service throws an error (0 credits or conflicts) - receive a graceful error to this effect
+            // ── Error handling: graceful 422 for credit or time-conflict failures
             if ($request->ajax()) {
                 return response()->json([
                     'success' => false, 

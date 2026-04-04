@@ -15,7 +15,7 @@ class DashboardController extends Controller
             return redirect()->route('login');
         }
 
-        // Data for Customer
+        // ── Customer: dashboard data for parent role
         if ($user->role === 'customer') {
             $data = [
                 'balance' => $user->credit->credit_balance ?? 0,
@@ -28,7 +28,7 @@ class DashboardController extends Controller
             return view('dashboard.customer', $data);
         }
 
-        // Data for Tutor
+        // ── Tutor: dashboard data for tutor role
         if ($user->role === 'tutor') {
             $data = [
                 'today_sessions' => TutoringSession::where('tutor_id', $user->id)
@@ -41,7 +41,7 @@ class DashboardController extends Controller
             return view('dashboard.tutor', $data);
         }
 
-        // Data for Admin
+        // ── Admin: render admin dashboard view
         return view('dashboard.admin');
     }
 

@@ -12,13 +12,13 @@
         </div>
         <div class="p-6 mx-auto sm:px-6 lg:px-8 flex flex-col md:flex-row gap-6">
             
-            <!-- MAIN CALENDAR -->
+            {{-- ── Main calendar: FullCalendar week view --}}
             <div class="flex-1 bg-white p-6 shadow rounded-lg">
                 <x-calendar-legend />
                 <div id="calendar" style="min-height: 600px;"></div>
             </div>
 
-            <!-- RIGHT PANEL: NEXT 5 -->
+            {{-- ── Right panel: next 5 upcoming sessions --}}
             <div class="w-full md:w-80 space-y-4">
                 <div class="bg-white p-6 shadow rounded-lg">
                     <h3 class="font-bold text-gray-800 mb-4 border-b pb-2 italic text-indigo-600 underline uppercase">Next 5 Sessions</h3>

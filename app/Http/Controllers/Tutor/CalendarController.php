@@ -18,7 +18,7 @@ class CalendarController extends Controller
 
     public function events(Request $request)
     {
-        // Take tutor's sessions that fall within the date range sent by FullCalendar (start/end)
+        // ── Sessions: fetch tutor sessions within FullCalendar's requested date range
         $sessions = TutoringSession::where('tutor_id', auth()->id())
             ->whereBetween('date', [$request->start, $request->end])
             ->with('student') // To show student name in the title
@@ -61,7 +61,7 @@ class CalendarController extends Controller
                     'isRecurring'       => !empty($session->recurring_id),
                     'isInitial'         => (bool) $session->is_initial,
                     'isRecurringWeekly' => (bool) $session->recurs_weekly,
-                    // Pre-computed in tutor TZ — avoids client-side TZ conversion bugs
+                    // ── Time props: pre-computed in tutor timezone to avoid client-side TZ bugs
                     'time_h'    => $start->format('h'),
                     'time_m'    => $start->format('i'),
                     'time_ampm' => $start->format('A'),

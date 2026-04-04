@@ -10,7 +10,7 @@
         @forelse($students as $student)
             <div class="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden flex flex-col">
                 
-                <!-- Header: Name and Balance -->
+                {{-- ── Header: student name and credit balance --}}
                 <div class="p-6 border-b border-slate-50 flex justify-between items-start bg-slate-50/30">
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 bg-[#212120] text-white rounded-2xl flex items-center justify-center font-bold text-xl shadow-sm">
@@ -22,7 +22,7 @@
                         </div>
                     </div>
                     
-                    <!-- Credit Balance (Important for Tutor) -->
+                    {{-- ── Credit balance: highlighted for tutor visibility --}}
                     <div class="flex flex-col items-end">
                         <span class="text-[9px] font-black text-slate-400 uppercase tracking-tighter">Credits</span>
                         <span class="text-sm font-black {{ ($student->parent->credit->credit_balance ?? 0) > 0 ? 'text-emerald-500' : 'text-rose-500' }}">
@@ -31,7 +31,7 @@
                     </div>
                 </div>
                 
-                <!-- Body: Academic Info -->
+                {{-- ── Body: academic info (grade, school, parent, goals) --}}
                 <div class="p-6 space-y-4 flex-1">
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-1">
@@ -50,7 +50,7 @@
                             {{ $student->parent->full_name ?? 'Not Assigned' }}
                         </div>
                     </div>
-                    <!-- Goal -->
+                    {{-- ── Goal: learning goals with italic quote style --}}
                     <div class="pt-1 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Learning Goal</p>
                         <p class="text-xs text-slate-600 italic leading-relaxed">
@@ -59,16 +59,16 @@
                     </div>
                 </div>
 
-                <!-- Footer: Quick Actions (Mobile-First) -->
+                {{-- ── Footer: quick-action buttons (call/email parent) --}}
                 <div class="px-6 py-4 bg-slate-50 flex items-center justify-between border-t border-slate-100">
                     <div class="flex items-center space-x-3">
-                        <!-- Call Parent -->
+                        {{-- ── Call parent: tel link, shown only if phone exists --}}
                         @if($student->parent->phone)
                         <a href="tel:{{ $student->parent->phone }}" class="p-2 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm transition-colors">
                             <i class="ti-mobile text-sm"></i>
                         </a>
                         @endif
-                        <!-- Write to Parent -->
+                        {{-- ── Write to parent: mailto link --}}
                         <a href="mailto:{{ $student->parent->email }}" class="p-2 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm transition-colors">
                             <i class="ti-email text-sm"></i>
                         </a>

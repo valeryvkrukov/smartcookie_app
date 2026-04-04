@@ -4,7 +4,7 @@
             <h3 class="font-bold text-slate-800">{{ $request->agreement->name }}</h3>
         </div>
         <div class="p-6">
-            <!-- Show PDF file contents -->
+            {{-- ── PDF viewer: renders agreement file via iframe --}}
             <div class="mb-6 border rounded overflow-hidden">
                 <iframe src="{{ asset('storage/' . $request->agreement->pdf_path) }}" 
                         width="100%" height="500px" style="border: none;"></iframe>

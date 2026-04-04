@@ -21,7 +21,7 @@ class CheckAgreements
                 ->where('status', 'Awaiting signature')
                 ->exists();
 
-            // If there are pending agreements and the user is not already on the agreements page, redirect them
+            // ── Redirect: block access if the user has pending unsigned agreements
             if ($hasPending && !$request->is('customer/agreements*')) {
                 return redirect()->route('customer.agreements.index')
                     ->with('error', 'Please sign the required documents to continue.');

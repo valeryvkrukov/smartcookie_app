@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         User::truncate();
         \Schema::enableForeignKeyConstraints();
 
-        // --- 1. ADMINS ---
+        // ── 1. Admins: create fixed admin accounts
         $admins = [
             ['first_name' => 'Valery', 'last_name' => 'Krukov', 'email' => 'valery.v.krukov@gmail.com'],
             ['first_name' => 'Sofi', 'last_name' => 'Admin', 'email' => 'sofi@smartcookie.com'],
@@ -43,10 +43,10 @@ class DatabaseSeeder extends Seeder
             ]));
         }
 
-        // --- 2. TUTORS ---
+        // ── 2. Tutors: generate tutor accounts
         $tutors = User::factory()->count(8)->tutor()->create();
 
-        // --- 3. CUSTOMERS ---
+        // ── 3. Customers: generate customer accounts with credits and purchase history
         $customers = User::factory()->count(14)->customer()->create();
 
         $customers->each(function (User $customer) use ($faker) {
@@ -67,7 +67,7 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        // --- 4. STUDENTS ---
+        // ── 4. Students: generate students linked to customers and assign tutors
         $students = $customers->flatMap(function (User $customer) use ($faker) {
             return User::factory()
                 ->count(rand(1, 3))
@@ -86,7 +86,7 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
-        // --- 5. TUTORING SESSIONS ---
+        // ── 5. Sessions: generate tutoring sessions for each tutor
         $subjects = ['Math', 'English', 'Science', 'History', 'Physics', 'Chemistry'];
 
         $sessions = collect();
@@ -115,7 +115,7 @@ class DatabaseSeeder extends Seeder
             }
         });
 
-        // --- 6. TIMESHEETS ---
+        // ── 6. Timesheets: generate billing records for all sessions
         $sessions->each(function (TutoringSession $session) use ($faker) {
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
@@ -127,7 +127,7 @@ class DatabaseSeeder extends Seeder
             ]);
         });
 
-        // --- 7. AGREEMENTS ---
+        // ── 7. Agreements: generate agreement documents
         $agreements = collect();
 
         foreach (range(1, 6) as $i) {
@@ -139,7 +139,7 @@ class DatabaseSeeder extends Seeder
             $agreements->push($agreement);
         }
 
-        // --- 8. AGREEMENT REQUESTS ---
+        // ── 8. Agreement requests: assign agreements to a random subset of users
         $usersForAgreements = $customers->concat($tutors)->shuffle();
 
         foreach ($usersForAgreements->take(20) as $user) {

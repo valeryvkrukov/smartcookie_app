@@ -27,7 +27,7 @@ class MigrateLegacyData extends Command
 
         \Illuminate\Database\Eloquent\Model::unguard();
 
-        // Migrate users
+        // ── Users: migrate user records from legacy database
         $legacyUsers = DB::connection('legacy_mysql')->table('users')->get();
 
         foreach ($legacyUsers as $old) {
@@ -47,7 +47,7 @@ class MigrateLegacyData extends Command
                 ]
             );
 
-            // Migrate credits
+            // ── Credits: migrate credit balance for this user
             $oldCredit = DB::connection('legacy_mysql')->table('credits')
                 ->where('user_id', $old->id)
                 ->first();
@@ -71,17 +71,17 @@ class MigrateLegacyData extends Command
 
         $this->info('Migrating Students...');
 
-        // Migrate students
+        // ── Students: migrate student records linked to parent accounts
         $legacyStudents = DB::connection('legacy_mysql')->table('students')->get();
 
         foreach ($legacyStudents as $oldStudent) {
-            // Get `old` parent 
+            // ── Legacy lookup: find original parent in legacy database
             $oldParent = DB::connection('legacy_mysql')->table('users')
                 ->where('id', $oldStudent->user_id)
                 ->first();
             
             if ($oldParent) {
-                // Get `new` parent by email
+                // ── New lookup: find migrated parent by matching email
                 $newParent = User::where('email', $oldParent->email)->first();
 
                 if ($newParent) {
@@ -129,19 +129,19 @@ class MigrateLegacyData extends Command
         $legacySignatures = DB::connection('legacy_mysql')->table('signed_aggreements')->get();
 
         foreach ($legacySignatures as $sig) {
-            // Get `old` user
+            // ── Legacy lookup: find original user in legacy database
             $oldUser = DB::connection('legacy_mysql')->table('users')->where('id', $sig->user_id)->first();
             
-            // Get old agreement by ID for naming
+            // ── Legacy lookup: find original agreement for name matching
             $oldAg = DB::connection('legacy_mysql')->table('aggreements')->where('aggreement_id', $sig->aggreement_id)->first();
 
             if ($oldUser && $oldAg) {
-                // Get that user and agreement in the modified DB
+                // ── New lookup: find migrated user and agreement by email/name
                 $newUser = User::where('email', $oldUser->email)->first();
                 $newAg = Agreement::where('name', $oldAg->aggreement_name)->first();
 
                 if ($newUser && $newAg) {
-                    // Make record about signment
+                    // ── Signature: create agreement request record
                     DB::table('agreement_requests')->updateOrInsert(
                         ['user_id' => $newUser->id, 'agreement_id' => $newAg->id],
                         [

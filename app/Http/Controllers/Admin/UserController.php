@@ -57,7 +57,7 @@ class UserController extends Controller
         
         $user->update($data);
 
-        // Update `Admin` flag ("Tutor with Admin checkbox" in the docs)
+        // ── Flags: update admin, subscription, and self-student flags
         $user->update([
             'is_admin'        => $request->has('is_admin'),
             'is_subscribed'   => $request->has('is_subscribed'),
@@ -75,7 +75,7 @@ class UserController extends Controller
             }
         }
 
-        // Update price of the Credit (for Parent)
+        // ── Credit rate: update dollar cost per credit for a customer account
         if ($user->role === 'customer') {
             $oldRate = $user->credit?->dollar_cost_per_credit;
             $newRate = $request->input('dollar_cost_per_credit');
@@ -84,13 +84,13 @@ class UserController extends Controller
                 'dollar_cost_per_credit' => $newRate,
             ]);
 
-            // Notify client when rate is set or changed
+            // ── Notification: alert client when rate is first set or changed
             if ($newRate && (string) $newRate !== (string) $oldRate) {
                 $user->notify(new ClientRateSet((float) $newRate));
             }
         }
 
-        // Add new value to the Tutor
+        // ── Assignment: attach a new student to the tutor
         if ($request->filled('new_student_id') && $request->filled('new_hourly_payout')) {
             $payout = (float) $request->new_hourly_payout;
 
@@ -98,7 +98,7 @@ class UserController extends Controller
                 $request->new_student_id => ['hourly_payout' => $payout]
             ]);
 
-            // Notify the tutor about the new student assignment
+            // ── Notification: inform tutor of new student assignment
             $student = User::find($request->new_student_id);
             if ($student) {
                 $user->notify(new StudentAssigned($student, $payout));

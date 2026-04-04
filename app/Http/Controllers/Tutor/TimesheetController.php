@@ -18,14 +18,14 @@ class TimesheetController extends Controller
     {
         $tutorId = auth()->id();
 
-        // 1. All sessions for this tutor, ordered by date (newest first)
+        // ── Sessions: all sessions for this tutor ordered by date descending
         $sessions = \App\Models\TutoringSession::where('tutor_id', $tutorId)
             ->with('student')
             ->orderBy('date', 'desc')
             ->paginate(15);
 
-        // 2. The same "Pending Logs" (passed, but not filled)
-        // We use our scope or write the condition directly:
+        // ── Pending sessions: past sessions not yet logged or completed
+        // ── Note: using direct condition instead of a named scope
         $pendingSessions = \App\Models\TutoringSession::where('tutor_id', $tutorId)
             ->where('date', '<', now()->format('Y-m-d'))
             ->where('status', '!=', 'completed')
@@ -38,23 +38,23 @@ class TimesheetController extends Controller
     {
         $session = TutoringSession::with(['student.parent.credit', 'student.credit'])->findOrFail($request->session_id);
 
-        // Atomic check: if the session is already paid, do nothing
+        // ── Guard: reject if session has already been billed
         if ($session->status === 'Billed') {
             return back()->with('error', 'This session has already been logged.');
         }
 
-        // Self-student: the customer IS the billed party
+        // ── Billing party: self-student means the customer is billed directly
         $parent = $session->student->parent ?? $session->student;
 
-        // Calculate credits (0:30 = 0.5)
+        // ── Credits: calculate amount required based on session duration
         $creditsNeeded = Timesheet::calculateCredits($session->duration);
 
-        // Balance checking
+        // ── Guard: reject if credit balance is insufficient
         if ($parent->credit->credit_balance < $creditsNeeded) {
             return back()->withErrors(['error' => "Insufficient credits! Balance: {$parent->credit->credit_balance}"]);
         }
 
-        // Calculate hourly payout for the Tutor
+        // ── Payout: compute tutor payout from assignment hourly rate
         $assignment = DB::table('tutor_student_assignments')
             ->where('tutor_id', $session->tutor_id)
             ->where('student_id', $session->student_id)
@@ -66,7 +66,7 @@ class TimesheetController extends Controller
             $parent->credit->decrement('credit_balance', $creditsNeeded);
             $parent->credit->refresh();
 
-            // Create record in Timesheet
+            // ── Timesheet: create billing record
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id' => $session->tutor_id,
@@ -76,7 +76,7 @@ class TimesheetController extends Controller
                 'period' => now()->day <= 15 ? '1-15' : '16-end'
             ]);
 
-            // Mark session as completed
+            // ── Status: mark session as Billed
             $session->update(['status' => 'Billed']);
 
             $parent->notify(new CreditBalanceChanged(
@@ -108,7 +108,7 @@ class TimesheetController extends Controller
             return response()->json(['success' => false, 'message' => 'This session has already been billed.'], 422);
         }
 
-        // Prevent completing a session before it has ended
+        // ── Guard: reject if session end time is still in the future
         $tutorTz = $session->tutor->time_zone ?? 'UTC';
         [$dh, $dm] = explode(':', $session->duration);
         $sessionEnd = Carbon::createFromFormat(
@@ -125,7 +125,7 @@ class TimesheetController extends Controller
             ], 422);
         }
 
-        // Self-student: the customer IS the billed party (no separate parent account)
+        // ── Billing party: self-student is billed directly (no separate parent account)
         $parent        = $session->student->parent ?? $session->student;
         $creditsNeeded = Timesheet::calculateCredits($session->duration);
 
@@ -168,7 +168,7 @@ class TimesheetController extends Controller
                 reason: 'Session completed: ' . $session->subject . ' on ' . $session->date->format('Y-m-d'),
             ));
 
-            // Send low-balance alert when balance drops to half a credit or below
+            // ── Low balance: notify client when balance drops to 0.5 credits or below
             $balanceAfter = (float) $parent->credit->credit_balance;
             if ($balanceAfter <= 0.5 && ($balanceAfter + $creditsNeeded) > 0.5) {
                 $parent->notify(new LowCreditBalance($balanceAfter));

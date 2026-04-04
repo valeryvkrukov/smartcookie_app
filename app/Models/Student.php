@@ -13,7 +13,7 @@ class Student extends User
         static::addGlobalScope('role', fn (Builder $builder) => $builder->where('role', 'student'));
     }
 
-    // Relation via assingments
+    // ── Relation: tutors linked via tutor_student_assignments pivot
     public function assignedTutors()
     {
         return $this->belongsToMany(Tutor::class, 'tutor_student_assignments', 'student_id', 'tutor_id');

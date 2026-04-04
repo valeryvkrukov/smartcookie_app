@@ -61,7 +61,7 @@ class CalendarController extends Controller
     {
         $query = TutoringSession::with(['tutor', 'student.parent.credit']);
 
-        // Filter by tutor if tutor_id is provided
+        // ── Filter: narrow sessions by tutor_id when provided
         if ($request->filled('tutor_id')) {
             $query->where('tutor_id', $request->tutor_id);
         }
@@ -104,7 +104,7 @@ class CalendarController extends Controller
                     'isRecurring'        => !empty($session->recurring_id),
                     'isInitial'          => (bool) $session->is_initial,
                     'isRecurringWeekly'  => (bool) $session->recurs_weekly,
-                    // Pre-computed in tutor TZ — avoids client-side TZ conversion bugs
+                    // ── Time props: pre-computed in tutor timezone to avoid client-side TZ bugs
                     'time_h'    => $start->format('h'),
                     'time_m'    => $start->format('i'),
                     'time_ampm' => $start->format('A'),

@@ -1,8 +1,8 @@
 window.submitModalForm = function(buttonElement) {
     const form = buttonElement.closest('form');
     const formData = new FormData(form);
-    
-    // Визуальный фидбек
+
+    // ── Visual feedback: disable button and show loading state
     buttonElement.disabled = true;
     const originalText = buttonElement.innerHTML;
     buttonElement.innerHTML = '<span class="inline-flex items-center justify-center">PROCESSING...</span>';
@@ -20,22 +20,22 @@ window.submitModalForm = function(buttonElement) {
         const data = await response.json();
         
         if (response.ok && data && data.success) {
-            // OK: close modal and refresh calendar or page
+            // ── Success: close modal and trigger UI refresh
             window.dispatchEvent(new CustomEvent('close-modal'));
-            
-            // If calendar exists, refetch events, otherwise reload page
+
+            // ── Refresh: refetch calendar events if present, otherwise reload page
             if (window.calendar) {
                 window.calendar.refetchEvents();
             } else {
                 window.location.reload();
             }
         } else {
-            // ERROR: show error message from server or generic one
-            window.dispatchEvent(new CustomEvent('set-error', { 
-                detail: { message: data.message || 'Validation error' } 
+            // ── Error: dispatch server message or generic validation fallback
+            window.dispatchEvent(new CustomEvent('set-error', {
+                detail: { message: data.message || 'Validation error' }
             }));
-            
-            // Return the button text, as .finally will execute later
+
+            // ── Restore: re-enable button (innerHTML reset after this block)
             buttonElement.disabled = false;
         }
         buttonElement.innerHTML = originalText;

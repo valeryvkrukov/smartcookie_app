@@ -31,8 +31,8 @@ class StripeEventListener
         $session  = $event->data->object;
         $metadata = $session->metadata ?? null;
 
-        // Skip if this event was already handled by the success() redirect callback
-        // (metadata presence signals our intentional purchase flow)
+        // ── Idempotency: skip if already handled by the success() callback
+        // ── Metadata signals an intentional purchase, not an external Stripe event
         if (!$metadata || !isset($metadata->credits_purchased)) {
             return;
         }

@@ -247,7 +247,7 @@
         </div>
     </form>
 
-    <!-- Скрытая форма удаления -->
+    {{-- ── Delete form: hidden, submitted programmatically on modal confirmation --}}
     <form id="delete-user-{{ $user->id }}" action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="hidden">
         @csrf @method('DELETE')
     </form>

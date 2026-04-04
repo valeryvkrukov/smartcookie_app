@@ -23,10 +23,10 @@ return new class extends Migration
             $table->foreignId('agreement_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained()->onDelete('cascade'); // Client or Tutor
 
-            // Status: "Awaiting signature" or "Signed"
+            // ── Status: "Awaiting signature" or "Signed"
             $table->string('status')->default('Awaiting signature');
 
-            // Fields that the user fills out when signing
+            // ── Signature fields: data entered by the user when signing
             $table->string('signed_full_name')->nullable();
             $table->date('signed_date_manual')->nullable(); // Entered "by hands"
             $table->timestamp('signed_at')->nullable(); // Accurate system timestamp

@@ -8,7 +8,7 @@
                 <span class="text-indigo-600">{{ $credit->credit_balance }} Credits</span>
             </h2>
 
-            {{-- If cost isn't set -> locked --}}
+            {{-- ── Purchase section: locked if credit cost not yet configured --}}
             <div class="{{ $isLocked ? 'opacity-50 pointer-events-none' : '' }}">
                 @if($isLocked)
                     <p class="text-red-500 mb-4 font-bold italic">

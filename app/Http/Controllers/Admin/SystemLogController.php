@@ -31,7 +31,7 @@ class SystemLogController extends Controller
 
         $logs = $query->paginate(50)->withQueryString();
 
-        // data is already cast to array by DatabaseNotification
+        // ── Payload: data already cast to array by DatabaseNotification
         $logs->each(function ($n) {
             $n->payload  = is_array($n->data) ? $n->data : (json_decode($n->data, true) ?? []);
             $n->label    = $this->label($n->type);

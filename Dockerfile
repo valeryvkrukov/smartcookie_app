@@ -1,20 +1,21 @@
 FROM php:8.4-apache
 
+# ── System: install PHP extensions, Node.js, cron, and supervisor
 RUN apt-get update && apt-get install -y --no-install-recommends \
         default-mysql-client \
+        nodejs \
+        npm \
         cron \
         supervisor \
     && docker-php-ext-install pdo_mysql \
     && rm -rf /var/lib/apt/lists/*
-
-RUN apt-get update && apt-get install -y nodejs npm
 
 # ── Cron: run Laravel scheduler every minute
 RUN echo '* * * * * www-data cd /var/www/html && php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1' \
     > /etc/cron.d/laravel-scheduler \
     && chmod 0644 /etc/cron.d/laravel-scheduler
 
-# ── Supervisord: keep Apache + cron running together
+# ── Supervisor: run Apache and cron as managed processes
 RUN mkdir -p /var/log/supervisor
 COPY supervisord.conf /etc/supervisor/conf.d/app.conf
 

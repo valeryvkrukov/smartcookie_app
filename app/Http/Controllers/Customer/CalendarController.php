@@ -46,13 +46,13 @@ class CalendarController extends Controller
     public function events(Request $request)
     {
         $query = TutoringSession::where(function ($q) {
-            // normal parent: sessions of their children
+            // ── Parent query: sessions for all children of this customer
             $q->whereHas('student', fn($sq) => $sq->where('parent_id', auth()->id()))
-              // self-student: sessions where the customer IS the student
+              // ── Self-student query: customer is the student directly
               ->orWhere('student_id', auth()->id());
         });
 
-        // Optional filtering by student
+        // ── Filter: narrow to a specific student when student_id is provided
         if ($request->filled('student_id')) {
             $query->where('student_id', $request->student_id);
         }
@@ -64,7 +64,7 @@ class CalendarController extends Controller
                 ->addHours((int)explode(':', $s->duration)[0])
                 ->addMinutes((int)explode(':', $s->duration)[1]);
 
-            // Credit state \xe2\x80\x94 only meaningful for future Scheduled sessions
+            // ── Credit state: computed only for future Scheduled sessions
             $isFutureScheduled = $s->status === 'Scheduled' && $s->date->gte(now()->startOfDay());
             $creditBalance = $s->student?->parent
                 ? ($s->student->parent->credit?->credit_balance ?? 0)

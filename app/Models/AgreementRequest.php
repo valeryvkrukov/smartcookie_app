@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class AgreementRequest extends Model
 {
-    // Prepare the date for Carbon lib
+    // ── Casts: date casting for Carbon compatibility
     protected function casts(): array
     {
         return [
@@ -25,13 +25,13 @@ class AgreementRequest extends Model
         ];
     }
 
-    // Relation to PDF doc
+    // ── Relation: belongs to the agreement document
     public function agreement(): BelongsTo
     {
         return $this->belongsTo(Agreement::class);
     }
 
-    // Relation to user (Client or Tutor)
+    // ── Relation: belongs to the signatory user
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

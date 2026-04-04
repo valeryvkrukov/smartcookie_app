@@ -11,7 +11,7 @@ class TutorController extends Controller
     {
         $user = $request->user();
         
-        // Get all Students with their Tutors
+        // ── Query: load students with their assigned tutors
         $students = $user->assignedStudents()->get();
 
         return view('client.tutors.index', compact('students'));

@@ -18,10 +18,9 @@ class SendSessionReminders extends Command
     {
         $now = Carbon::now('UTC');
 
-        // ── 30-hour reminders ───────────────────────────────────────────────
-        // Window: sessions whose UTC start time is between 29h50m and 30h10m from now
-        // (runs every 10 min / hourly — 20-minute window avoids duplicates if cron
-        //  occasionally runs a minute late while still preventing double-sends)
+        // ── Reminders 30h: send reminder emails 30 hours before a scheduled session
+        // ── Window: sessions starting between 29h50m and 30h10m from now (UTC)
+        // ── Note: 20-minute window absorbs cron timing jitter and prevents double-sends
         $windowStart = $now->copy()->addMinutes(29 * 60 + 50);
         $windowEnd   = $now->copy()->addMinutes(30 * 60 + 10);
 
@@ -51,7 +50,7 @@ class SendSessionReminders extends Command
 
         $this->info("30h reminders: {$sessions->count()} session(s) processed.");
 
-        // ── 24-hour zero-credit auto-cancellation ───────────────────────────
+        // ── Cancellation 24h: auto-cancel sessions with zero credits 24 hours before start────
         $cancelWindowStart = $now->copy()->addMinutes(23 * 60 + 50);
         $cancelWindowEnd   = $now->copy()->addMinutes(24 * 60 + 10);
 

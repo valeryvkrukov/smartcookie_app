@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            // General profile fields
+            // ── Profile: general user profile fields
             $table->string('first_name')->after('id');
             $table->string('last_name')->nullable()->after('first_name');
             $table->string('phone')->nullable();
@@ -20,22 +20,22 @@ return new class extends Migration
             $table->string('time_zone')->default('UTC');
             $table->boolean('is_subscribed')->default(true);
 
-            // Remove standard field 'name' if exists
+            // ── Cleanup: drop the standard 'name' column if it exists
             if (Schema::hasColumn('users', 'name')) {
                 $table->dropColumn('name');
             }
 
-            // Roles logic
+            // ── Roles: role enum and admin flag
             $table->enum('role', ['admin', 'tutor', 'customer', 'student'])->default('customer');
             $table->boolean('is_admin')->default(false);
 
-            // Student fields
+            // ── Student: student-specific columns
             $table->foreignId('parent_id')->nullable()->constrained('users')->onDelete('cascade');
             $table->string('student_grade')->nullable();
             $table->string('student_school')->nullable();
             $table->text('tutoring_goals')->nullable();
 
-            // Tutor fields
+            // ── Tutor: tutor-specific columns
             $table->text('blurb')->nullable(); // tutor description
             $table->string('photo')->nullable();
         });
