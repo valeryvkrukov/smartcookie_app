@@ -1,15 +1,37 @@
 {
+  "node_modules/ti-icons/fonts/themify.eot": {
+    "file": "assets/themify-BifPJsew.eot",
+    "src": "node_modules/ti-icons/fonts/themify.eot"
+  },
+  "node_modules/ti-icons/fonts/themify.svg": {
+    "file": "assets/themify-Bfliuhp5.svg",
+    "src": "node_modules/ti-icons/fonts/themify.svg"
+  },
+  "node_modules/ti-icons/fonts/themify.ttf": {
+    "file": "assets/themify-DuU3rJAt.ttf",
+    "src": "node_modules/ti-icons/fonts/themify.ttf"
+  },
+  "node_modules/ti-icons/fonts/themify.woff": {
+    "file": "assets/themify-BgsFA67P.woff",
+    "src": "node_modules/ti-icons/fonts/themify.woff"
+  },
   "resources/css/app.css": {
-    "file": "assets/app-DpUYl_xK.css",
+    "file": "assets/app-BcW9avQV.css",
     "name": "app",
     "names": [
       "app.css"
     ],
     "src": "resources/css/app.css",
-    "isEntry": true
+    "isEntry": true,
+    "assets": [
+      "assets/themify-BifPJsew.eot",
+      "assets/themify-BgsFA67P.woff",
+      "assets/themify-DuU3rJAt.ttf",
+      "assets/themify-Bfliuhp5.svg"
+    ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-pugprltx.js",
+    "file": "assets/app-CpObolYA.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

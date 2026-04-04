@@ -21,6 +21,9 @@ window.submitModalForm = function(buttonElement) {
         
         if (response.ok && data && data.success) {
             // ── Success: close modal and trigger UI refresh
+            buttonElement.disabled = false;
+            buttonElement.innerHTML = originalText;
+
             window.dispatchEvent(new CustomEvent('close-modal'));
 
             // ── Refresh: refetch calendar events if present, otherwise reload page
@@ -35,10 +38,10 @@ window.submitModalForm = function(buttonElement) {
                 detail: { message: data.message || 'Validation error' }
             }));
 
-            // ── Restore: re-enable button (innerHTML reset after this block)
+            // ── Restore: re-enable button
             buttonElement.disabled = false;
+            buttonElement.innerHTML = originalText;
         }
-        buttonElement.innerHTML = originalText;
     })
     .catch(err => {
         console.error('Fetch Error:', err);
