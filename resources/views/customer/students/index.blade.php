@@ -27,6 +27,7 @@
         <!-- Students Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
             @forelse($students as $student)
+            @php $isSelf = isset($selfStudentId) && $student->id === $selfStudentId; @endphp
             <div class="bg-white rounded-[3.5rem] p-10 border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col group hover:-translate-y-1 transition-all duration-500 relative overflow-hidden">
                 
                 <!-- Decor on the background -->
@@ -35,17 +36,19 @@
                 <div class="relative z-10">
                     <div class="flex items-center justify-between mb-10">
                         <div class="flex items-center space-x-6">
-                            <div class="w-16 h-16 bg-indigo-600 text-white rounded-[1.5rem] flex items-center justify-center text-2xl font-black shadow-lg shadow-indigo-100">
+                            <div class="w-16 h-16 {{ $isSelf ? 'bg-emerald-600' : 'bg-indigo-600' }} text-white rounded-[1.5rem] flex items-center justify-center text-2xl font-black shadow-lg {{ $isSelf ? 'shadow-emerald-100' : 'shadow-indigo-100' }}">
                                 {{ substr($student->first_name, 0, 1) }}
                             </div>
                             <div>
-                                <h3 class="text-xl font-black text-slate-900 tracking-tight">{{ $student->full_name }}</h3>
+                                <div class="flex items-center gap-2">
+                                    <h3 class="text-xl font-black text-slate-900 tracking-tight">{{ $student->full_name }}</h3>
+                                    @if($isSelf)
+                                        <span class="text-[8px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full">You</span>
+                                    @endif
+                                </div>
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ $student->student_grade ?? 'No Grade Set' }}</p>
                             </div>
                         </div>
-                        <!--a href="{{ route('customer.students.edit', $student->id) }}" class="text-slate-300 hover:text-indigo-600 transition-colors">
-                            <i class="ti-pencil text-sm"></i>
-                        </a-->
                         <div class="flex items-center space-x-2 absolute right-4">
                             <button type="button"
                                 onclick="window.dispatchEvent(new CustomEvent('open-modal', { 
@@ -64,6 +67,7 @@
                                 <i class="ti-pencil text-xs"></i>
                             </button>
 
+                            @if(!$isSelf)
                             <button type="button"
                                 onclick="window.dispatchEvent(new CustomEvent('confirm-user-delete', { 
                                     detail: { 
@@ -78,6 +82,7 @@
                             <form id="delete-student-{{ $student->id }}" action="{{ route('customer.students.destroy', $student->id) }}" method="POST" class="hidden">
                                 @csrf @method('DELETE')
                             </form>
+                            @endif
                         </div>
                     </div>
 
