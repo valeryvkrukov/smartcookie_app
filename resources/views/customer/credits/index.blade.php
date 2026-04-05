@@ -146,7 +146,7 @@
                                                 .then(r => r.json())
                                                 .then(data => {
                                                     checkoutUrl = data.url;
-                                                    qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(data.url);
+                                                    qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=L&data=' + encodeURIComponent(data.url);
                                                     showQr = true;
                                                     loading = false;
                                                 })
@@ -162,7 +162,7 @@
                             {{-- QR VIEW --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="qrUrl" alt="Stripe QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
+                                    <img :src="qrUrl" alt="Stripe QR" class="w-52 h-52 rounded-2xl border border-slate-100 p-2" />
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-2">Scan on your phone</p>
                                     <button type="button" @click="showQr = false; qrUrl = ''; checkoutUrl = '';"
                                             class="mt-3 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
