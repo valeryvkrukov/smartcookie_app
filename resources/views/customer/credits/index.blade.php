@@ -178,7 +178,22 @@
                         </div>
 
                         {{-- VENMO --}}
-                        <div x-data="{ showQr: false }" class="p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 flex flex-col min-h-[260px]">
+                        <div x-data="{ showQr: false, qrUrl: '' }"
+                             x-init="
+                                var recipient = $el.dataset.recipient;
+                                var note      = $el.dataset.note;
+                                var rate      = {{ (float)($ratePerCredit ?? 0) }};
+                                $watch('$root.selectedPack', function(pack) {
+                                    var deep = 'venmo://paycharge?txn=pay&recipients=' + recipient + '&note=' + encodeURIComponent(note) + '&amount=' + (pack * rate).toFixed(2);
+                                    qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(deep);
+                                });
+                                var pack = {{ $isFirstPurchase ? 1 : 4 }};
+                                var deep = 'venmo://paycharge?txn=pay&recipients=' + recipient + '&note=' + encodeURIComponent(note) + '&amount=' + (pack * rate).toFixed(2);
+                                qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(deep);
+                             "
+                             data-recipient="{{ ltrim($paymentMethods['venmo']['username'], '@') }}"
+                             data-note="{{ $paymentMethods['venmo']['note'] }}"
+                             class="p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 flex flex-col min-h-[260px]">
 
                             {{-- DEFAULT VIEW --}}
                             <div x-show="!showQr" class="flex flex-col h-full">
@@ -202,7 +217,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an empty-data fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent('venmo://paycharge?txn=pay&recipients={{ ltrim($paymentMethods['venmo']['username'], '@') }}&note={{ rawurlencode($paymentMethods['venmo']['note']) }}&amount=' + (selectedPack * {{ (float)($ratePerCredit ?? 0) }}).toFixed(2))"
+                                    <img :src="qrUrl"
                                          alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
                                     <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
                                     <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
@@ -216,7 +231,10 @@
                         </div>
 
                         {{-- ZELLE --}}
-                        <div x-data="{ showQr: false }" class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col min-h-[260px]">
+                        <div x-data="{ showQr: false, qrUrl: '' }"
+                             x-init="qrUrl = $el.dataset.qrUrl"
+                             data-qr-url="{{ $paymentMethods['zelle']['qr_url'] }}"
+                             class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col min-h-[260px]">
 
                             {{-- DEFAULT VIEW --}}
                             <div x-show="!showQr" class="flex flex-col h-full">
@@ -247,7 +265,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an early fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent('{{ $paymentMethods['zelle']['phone'] }}')"
+                                    <img :src="qrUrl"
                                          alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
                                     <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
