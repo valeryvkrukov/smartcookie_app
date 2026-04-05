@@ -6,7 +6,7 @@
         @if(session('payment_instructions'))
             <div class="p-8 rounded-[2.5rem] bg-emerald-50 border border-emerald-100 shadow-sm">
                 <p class="text-sm font-black text-emerald-900">Payment instructions for {{ session('payment_instructions.method') }}:</p>
-                <p class="mt-4 text-sm text-slate-600">Send <span class="font-black text-slate-900">${{ session('payment_instructions.amount') }}</span> to <span class="font-black text-slate-900">{{ session('payment_instructions.email') }}</span>.</p>
+                <p class="mt-4 text-sm text-slate-600">Send <span class="font-black text-slate-900">${{ session('payment_instructions.amount') }}</span> to <span class="font-black text-slate-900">{{ session('payment_instructions.contact') }}</span>.</p>
                 <p class="mt-2 text-sm text-slate-600">Use note: <span class="font-black text-slate-900">{{ session('payment_instructions.note') }}</span></p>
                 <p class="mt-2 text-sm text-slate-600">This covers <span class="font-black text-slate-900">{{ session('payment_instructions.credits') }}</span> credit(s).</p>
                 <p class="mt-3 text-[10px] uppercase tracking-[0.3em] text-slate-400">Credits will be added after payment confirmation.</p>
@@ -131,31 +131,83 @@
                         </form>
 
                         {{-- VENMO --}}
-                        <a href="{{ $paymentMethods['venmo']['web_url'] }}" target="_blank" rel="noopener noreferrer"
-                           class="block text-left p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 hover:-translate-y-1 transition-all duration-300 group">
-                            <div class="w-12 h-12 bg-white/20 text-white rounded-[1.2rem] flex items-center justify-center text-2xl mb-6">
-                                <i class="ti-mobile"></i>
+                        <div x-data="{ showQr: false }" class="p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 flex flex-col min-h-[260px]">
+
+                            {{-- DEFAULT VIEW --}}
+                            <div x-show="!showQr" class="flex flex-col h-full">
+                                <div class="w-12 h-12 bg-white/20 text-white rounded-[1.2rem] flex items-center justify-center text-2xl mb-6">
+                                    <i class="ti-mobile"></i>
+                                </div>
+                                <h4 class="text-lg font-black tracking-tight">Venmo</h4>
+                                <p class="text-[10px] text-sky-100/60 uppercase tracking-widest mt-1">{{ $paymentMethods['venmo']['username'] }}</p>
+                                <div class="flex gap-3 mt-auto pt-6">
+                                    <a href="{{ $paymentMethods['venmo']['web_url'] }}" target="_blank" rel="noopener noreferrer"
+                                       class="flex-1 py-3 bg-white text-[#3d95ce] rounded-xl text-[9px] font-black uppercase tracking-widest text-center hover:bg-sky-50 transition-colors">
+                                        Open App
+                                    </a>
+                                    <button type="button" @click="showQr = true"
+                                            class="flex-1 py-3 bg-white/20 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-white/30 transition-colors">
+                                        Show QR
+                                    </button>
+                                </div>
                             </div>
-                            <h4 class="text-lg font-black tracking-tight">Venmo</h4>
-                            <p class="text-[10px] font-bold text-sky-100/60 uppercase tracking-widest mt-2">Open App &nbsp;<i class="ti-arrow-right group-hover:translate-x-1 transition-transform inline-block"></i></p>
-                        </a>
+
+                            {{-- QR VIEW --}}
+                            <div x-show="showQr" class="flex flex-col items-center text-center">
+                                <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent('venmo://paycharge?txn=pay&recipients={{ ltrim($paymentMethods['venmo']['username'], '@') }}&note={{ rawurlencode($paymentMethods['venmo']['note']) }}&amount=' + (selectedPack * {{ (float)($ratePerCredit ?? 0) }}).toFixed(2))"
+                                     alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
+                                <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
+                                <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
+                                <button type="button" @click="showQr = false"
+                                        class="mt-4 text-[9px] font-black uppercase tracking-widest text-sky-100/60 hover:text-white transition-colors">
+                                    &larr; Back
+                                </button>
+                            </div>
+
+                        </div>
 
                         {{-- ZELLE --}}
-                        <form action="{{ route('customer.credits.purchase') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="payment_method" value="zelle">
-                            @if(!$isFirstPurchase)
-                                <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
-                            @endif
-                            <button type="submit"
-                                    class="w-full text-left p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 group">
+                        <div x-data="{ showQr: false }" class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col min-h-[260px]">
+
+                            {{-- DEFAULT VIEW --}}
+                            <div x-show="!showQr" class="flex flex-col h-full">
                                 <div class="w-12 h-12 bg-purple-600 text-white rounded-[1.2rem] flex items-center justify-center text-2xl mb-6 shadow-lg shadow-purple-200">
                                     <i class="ti-shift-right"></i>
                                 </div>
                                 <h4 class="text-lg font-black text-slate-900 tracking-tight">Zelle</h4>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Bank Transfer &nbsp;<i class="ti-arrow-right group-hover:translate-x-1 transition-transform inline-block"></i></p>
-                            </button>
-                        </form>
+                                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">{{ $paymentMethods['zelle']['phone'] }}</p>
+                                <div class="flex gap-3 mt-auto pt-6">
+                                    <form action="{{ route('customer.credits.purchase') }}" method="POST" class="flex-1">
+                                        @csrf
+                                        <input type="hidden" name="payment_method" value="zelle">
+                                        @if(!$isFirstPurchase)
+                                            <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
+                                        @endif
+                                        <button type="submit"
+                                                class="w-full py-3 bg-slate-900 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-black transition-colors">
+                                            Get Info
+                                        </button>
+                                    </form>
+                                    <button type="button" @click="showQr = true"
+                                            class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors">
+                                        Show QR
+                                    </button>
+                                </div>
+                            </div>
+
+                            {{-- QR VIEW --}}
+                            <div x-show="showQr" class="flex flex-col items-center text-center">
+                                <img src="{{ $paymentMethods['zelle']['qr_url'] }}"
+                                     alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
+                                <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
+                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
+                                <button type="button" @click="showQr = false"
+                                        class="mt-4 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
+                                    &larr; Back
+                                </button>
+                            </div>
+
+                        </div>
 
                     </div>
                 </div>

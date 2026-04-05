@@ -28,16 +28,19 @@ class CreditController extends Controller
         $ratePerCredit = $credit->dollar_cost_per_credit ?? null;
         $isFirstPurchase = !CreditPurchase::where('user_id', $user->id)->exists();
 
+        $venmoUser  = ltrim(config('payments.venmo.username'), '@');
+        $zellePhone = config('payments.zelle.phone');
+
         $paymentMethods = [
             'venmo' => [
-                'username' => config('payments.venmo.username'),
+                'username' => '@' . $venmoUser,
                 'note'     => config('payments.venmo.note'),
-                'web_url'  => 'https://venmo.com/'.ltrim(config('payments.venmo.username'), '@'),
-                'deep_link'=> 'venmo://paycharge?txn=pay&recipients='.urlencode(config('payments.venmo.username')).'&note='.urlencode(config('payments.venmo.note')),
+                'web_url'  => 'https://venmo.com/' . $venmoUser,
             ],
             'zelle' => [
-                'email' => config('payments.zelle.email'),
-                'note'  => config('payments.zelle.note'),
+                'phone'  => $zellePhone,
+                'note'   => config('payments.zelle.note'),
+                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($zellePhone),
             ],
         ];
 
@@ -115,11 +118,11 @@ class CreditController extends Controller
         // ── Zelle: redirect with payment instructions for manual transfer
         return redirect()->route('customer.credits.index')
             ->with('payment_instructions', [
-                'method' => 'Zelle',
-                'email'  => config('payments.zelle.email'),
-                'note'   => config('payments.zelle.note'),
-                'amount' => number_format($creditsRequested * $ratePerCredit, 2),
-                'credits'=> $creditsRequested,
+                'method'  => 'Zelle',
+                'contact' => config('payments.zelle.phone'),
+                'note'    => config('payments.zelle.note'),
+                'amount'  => number_format($creditsRequested * $ratePerCredit, 2),
+                'credits' => $creditsRequested,
             ]);
     }
 

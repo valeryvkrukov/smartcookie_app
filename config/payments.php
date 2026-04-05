@@ -10,12 +10,12 @@ return [
     ],
 
     'venmo' => [
-        'username' => env('PAYMENTS_VENMO_USERNAME', '@SmartCookieTutors'),
-        'note' => env('PAYMENTS_VENMO_NOTE', 'SmartCookie Credits'),
+        'username' => env('PAYMENTS_VENMO_USERNAME', '@sofifed'),
+        'note' => env('PAYMENTS_VENMO_NOTE', 'Tutoring Credits (Top-up)'),
     ],
 
     'zelle' => [
-        'email' => env('PAYMENTS_ZELLE_EMAIL', 'payments@smartcookie.com'),
-        'note' => env('PAYMENTS_ZELLE_NOTE', 'SmartCookie Credits'),
+        'phone' => env('PAYMENTS_ZELLE_PHONE', '410-952-4967'),
+        'note'  => env('PAYMENTS_ZELLE_NOTE', 'Tutoring Credits (Top-up)'),
     ],
 ];
