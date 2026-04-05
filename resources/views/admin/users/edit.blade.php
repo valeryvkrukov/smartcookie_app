@@ -172,30 +172,36 @@
                     $pendingMethod   = $user->credit?->pending_payment_method ?? 'venmo';
                     $pendingCredits  = ($rate && $pendingAmount) ? round($pendingAmount / $rate, 2) : null;
                 @endphp
-                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6">
-                    <div class="flex items-baseline justify-between mb-6">
-                        <h3 class="label-premium">Credit Balance</h3>
-                        <p class="text-3xl font-black text-indigo-600">
-                            {{ number_format($user->credit?->credit_balance ?? 0, 2) }}
-                        </p>
+
+                {{-- Current balance --}}
+                <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl mt-6">
+                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Credit Balance</p>
+                    <p class="text-4xl font-black text-indigo-600">{{ number_format($user->credit?->credit_balance ?? 0, 2) }}</p>
+                </div>
+
+                {{-- Pending payment confirmation --}}
+                <div class="bg-white p-8 rounded-[2.5rem] border {{ $pendingAmount ? 'border-amber-200' : 'border-slate-100' }} shadow-xl mt-3">
+                    <div class="flex items-center gap-2 mb-5">
+                        @if($pendingAmount)
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            <p class="text-[8px] font-black text-amber-600 uppercase tracking-widest">Pending Payment</p>
+                        @else
+                            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">No Pending Payment</p>
+                        @endif
                     </div>
 
+                    @if($pendingAmount)
                     <form action="{{ route('admin.users.apply-payment', $user->id) }}" method="POST" class="space-y-4">
                         @csrf
 
-                        {{-- Read-only summary row --}}
                         <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl">
                             <div>
                                 <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount</p>
-                                <p class="text-2xl font-black text-slate-800">
-                                    {{ $pendingAmount ? '$' . number_format($pendingAmount, 2) : '—' }}
-                                </p>
+                                <p class="text-2xl font-black text-slate-800">${{ number_format($pendingAmount, 2) }}</p>
                             </div>
                             <div>
                                 <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Credits</p>
-                                <p class="text-2xl font-black text-indigo-600">
-                                    {{ $pendingCredits ?? '—' }}
-                                </p>
+                                <p class="text-2xl font-black text-indigo-600">{{ $pendingCredits ?? '—' }}</p>
                                 @if($rate)
                                     <p class="text-[8px] text-slate-400">@ ${{ $rate }}/cr</p>
                                 @endif
@@ -206,8 +212,7 @@
                             </div>
                         </div>
 
-                        {{-- Hidden values --}}
-                        <input type="hidden" name="total_paid"     value="{{ $pendingAmount ?? 0 }}">
+                        <input type="hidden" name="total_paid"     value="{{ $pendingAmount }}">
                         <input type="hidden" name="credits"        value="{{ $pendingCredits ?? 0 }}">
                         <input type="hidden" name="payment_method" value="{{ $pendingMethod }}">
 
@@ -221,6 +226,9 @@
                             Confirm Payment &amp; Apply Credits
                         </button>
                     </form>
+                    @else
+                    <p class="text-xs text-slate-400">Client hasn't submitted a payment notification yet.</p>
+                    @endif
                 </div>
                 @endif
             </div>
