@@ -164,10 +164,6 @@
                                 <div class="flex flex-col items-center text-center">
                                     <img :src="qrUrl" alt="Stripe QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-2">Scan on your phone</p>
-                                    <a :href="checkoutUrl"
-                                       class="mt-3 w-full py-3 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest text-center hover:bg-indigo-700 transition-colors">
-                                        <i class="ti-credit-card mr-1"></i> Go to Checkout
-                                    </a>
                                     <button type="button" @click="showQr = false; qrUrl = ''; checkoutUrl = '';"
                                             class="mt-3 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
                                         &larr; Back
@@ -178,7 +174,9 @@
                         </div>
 
                         {{-- VENMO --}}
-                        <div x-data="{ showQr: false }"
+                        <div x-data="{ showQr: false, venmoQrUrl: '' }"
+                             x-init="venmoQrUrl = (window.PaymentConfig?.venmoQrUrls ?? {})[selectedPack] || (window.PaymentConfig?.venmoQrUrls ?? {})[{{ $isFirstPurchase ? 1 : 4 }}] || ''"
+                             x-effect="venmoQrUrl = (window.PaymentConfig?.venmoQrUrls ?? {})[selectedPack] || ''"
                              class="p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 flex flex-col min-h-[260px]">
 
                             {{-- DEFAULT VIEW --}}
@@ -187,7 +185,7 @@
                                     <i class="ti-mobile"></i>
                                 </div>
                                 <h4 class="text-lg font-black tracking-tight">Venmo</h4>
-                                <p class="text-[10px] text-white/75 uppercase tracking-widest mt-1">{{ $paymentMethods['venmo']['username'] }}</p>
+                                <p class="text-[10px] text-white/60 uppercase tracking-widest mt-1">{{ $paymentMethods['venmo']['username'] }}</p>
                                 <div class="flex gap-3 mt-auto pt-6">
                                     <a href="{{ $paymentMethods['venmo']['web_url'] }}" target="_blank" rel="noopener noreferrer"
                                        class="flex-1 py-3 bg-white text-[#3d95ce] rounded-xl text-[9px] font-black uppercase tracking-widest text-center hover:bg-sky-50 transition-colors">
@@ -203,7 +201,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an empty-data fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="window.PaymentConfig.venmoQrUrls[selectedPack]"
+                                    <img :src="venmoQrUrl"
                                          alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
                                     <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
                                     <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
