@@ -166,25 +166,65 @@
                 </div>
 
                 {{-- ── Manual Payment / Credit Top-up ─────────────────────────── --}}
-                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6">
-                    <h3 class="label-premium mb-1">Credit Balance</h3>
-                    <p class="text-3xl font-black text-indigo-600 mb-6">
-                        {{ number_format($user->credit?->credit_balance ?? 0, 2) }}
-                    </p>
+                @php
+                    $rate            = $user->credit?->dollar_cost_per_credit;
+                    $pendingAmount   = $user->credit?->pending_payment_amount;
+                    $pendingMethod   = $user->credit?->pending_payment_method ?? 'venmo';
+                @endphp
+                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6"
+                     x-data="{
+                         amount: '{{ $pendingAmount ?? '' }}',
+                         method: '{{ $pendingMethod }}',
+                         rate:   {{ $rate ?? 0 }},
+                         get credits() {
+                             const a = parseFloat(this.amount);
+                             return (this.rate > 0 && a > 0) ? (a / this.rate).toFixed(2) : '—';
+                         }
+                     }">
+                    <div class="flex items-baseline justify-between mb-6">
+                        <h3 class="label-premium">Credit Balance</h3>
+                        <p class="text-3xl font-black text-indigo-600">
+                            {{ number_format($user->credit?->credit_balance ?? 0, 2) }}
+                        </p>
+                    </div>
+
+                    @if($pendingAmount)
+                    <div class="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3">
+                        <i class="ti-time text-amber-500 text-base flex-shrink-0"></i>
+                        <div class="flex-1 text-[10px] text-amber-700">
+                            <span class="font-black">Pending:</span>
+                            ${{ number_format($pendingAmount, 2) }} via <span class="capitalize font-black">{{ $pendingMethod }}</span>
+                            — form pre-filled below.
+                        </div>
+                    </div>
+                    @endif
 
                     <form action="{{ route('admin.users.apply-payment', $user->id) }}" method="POST" class="space-y-4">
                         @csrf
-                        <div class="space-y-2">
-                            <label class="label-premium">Credits to Add</label>
-                            <input type="number" name="credits" step="0.5" min="0.5" max="100" class="input-premium" required>
-                        </div>
-                        <div class="space-y-2">
-                            <label class="label-premium">Amount Paid ($)</label>
-                            <input type="number" name="total_paid" step="0.01" min="0" class="input-premium" required>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="label-premium">Amount Paid ($)</label>
+                                <input type="number" name="total_paid" step="0.01" min="0"
+                                       x-model="amount"
+                                       class="input-premium" required>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="label-premium">Credits to Apply</label>
+                                @if($rate)
+                                    {{-- Auto-calculated: hidden real field + visible readonly display --}}
+                                    <input type="hidden" name="credits" :value="credits">
+                                    <div class="input-premium bg-slate-50 text-indigo-700 font-black" x-text="credits"></div>
+                                    <p class="text-[8px] text-slate-400">Rate: ${{ $rate }} / credit</p>
+                                @else
+                                    {{-- No rate set: let admin enter manually --}}
+                                    <input type="number" name="credits" step="0.5" min="0.5" max="100"
+                                           class="input-premium" required placeholder="Enter manually (no rate set)">
+                                @endif
+                            </div>
                         </div>
                         <div class="space-y-2">
                             <label class="label-premium">Payment Method</label>
-                            <select name="payment_method" class="input-premium">
+                            <select name="payment_method" x-model="method" class="input-premium">
                                 <option value="venmo">Venmo</option>
                                 <option value="zelle">Zelle</option>
                                 <option value="cash">Cash</option>

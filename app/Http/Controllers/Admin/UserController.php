@@ -25,6 +25,12 @@ class UserController extends Controller
             $query->where('role', $role);
         }
 
+        // ── Special filter: customers with a pending (unconfirmed) manual payment
+        if ($request->input('pending') === '1') {
+            $query->where('role', 'customer')
+                  ->whereHas('credit', fn($q) => $q->whereNotNull('pending_payment_amount'));
+        }
+
         if ($search = $request->input('search')) {
             $query->where(function($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
@@ -33,9 +39,12 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->orderBy('last_name')->paginate(config('app.pagination_num', 12))->withQueryString();
+        $users        = $query->orderBy('last_name')->paginate(config('app.pagination_num', 12))->withQueryString();
+        $pendingCount = User::where('role', 'customer')
+                            ->whereHas('credit', fn($q) => $q->whereNotNull('pending_payment_amount'))
+                            ->count();
 
-        return view('admin.users.index', compact('users'));
+        return view('admin.users.index', compact('users', 'pendingCount'));
     }
 
     public function edit(User $user)
@@ -130,7 +139,7 @@ class UserController extends Controller
         abort_if($user->role !== 'customer', 403);
 
         $data = $request->validate([
-            'credits'        => ['required', 'numeric', 'min:0.5', 'max:100'],
+            'credits'        => ['required', 'numeric', 'min:0.1', 'max:500'],
             'total_paid'     => ['required', 'numeric', 'min:0'],
             'payment_method' => ['required', 'in:venmo,zelle,cash,other'],
             'note'           => ['nullable', 'string', 'max:255'],
@@ -190,6 +199,12 @@ class UserController extends Controller
             note: $note,
             confirmedByName: $admin->full_name,
         ));
+
+        // ── Clear pending payment request if it existed
+        $user->credit->update([
+            'pending_payment_amount' => null,
+            'pending_payment_method' => null,
+        ]);
 
         return redirect()->route('admin.users.edit', $user->id)
             ->with('success', "Applied {$credits} credit(s) to {$user->full_name}'s account.");

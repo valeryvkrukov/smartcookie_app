@@ -1,6 +1,22 @@
 <x-app-layout>
     <x-slot name="header_title">User Directory</x-slot>
 
+    @if($pendingCount > 0)
+    <div class="mb-6 flex items-center gap-4 p-5 bg-amber-50 border border-amber-200 rounded-[2rem] shadow-sm">
+        <div class="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-lg flex-shrink-0">
+            <i class="ti-time"></i>
+        </div>
+        <div class="flex-1">
+            <p class="text-xs font-black text-amber-800">{{ $pendingCount }} {{ Str::plural('client', $pendingCount) }} awaiting payment confirmation</p>
+            <p class="text-[9px] text-amber-600 mt-0.5">Review and apply their credits via the filter below.</p>
+        </div>
+        <a href="{{ route('admin.users.index', ['pending' => 1]) }}"
+           class="px-4 py-2 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition-colors whitespace-nowrap">
+            View Pending
+        </a>
+    </div>
+    @endif
+
     <!-- Header: Search & Tabs -->
     <div class="mb-10 space-y-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -8,10 +24,20 @@
             <div class="flex bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
                 @foreach(['all' => 'All', 'admin' => 'Admins', 'tutor' => 'Tutors', 'customer' => 'Clients', 'student' => 'Students'] as $val => $label)
                     <a href="{{ route('admin.users.index', ['role' => $val == 'all' ? '' : $val]) }}" 
-                       class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ (request('role') == $val || (request('role') == '' && $val == 'all')) ? 'bg-[#212120] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600' }}">
+                       class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ (request('role') == $val || (request('role') == '' && $val == 'all' && !request('pending'))) ? 'bg-[#212120] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600' }}">
                         {{ $label }}
                     </a>
                 @endforeach
+                {{-- Pending Payments tab --}}
+                <a href="{{ route('admin.users.index', ['pending' => 1]) }}"
+                   class="relative px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ request('pending') ? 'bg-amber-500 text-white shadow-lg' : 'text-amber-500 hover:text-amber-700' }}">
+                    Pending Payment
+                    @if($pendingCount > 0)
+                    <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 text-white text-[7px] font-black rounded-full flex items-center justify-center">
+                        {{ $pendingCount }}
+                    </span>
+                    @endif
+                </a>
             </div>
 
             <!-- Search -->
@@ -39,7 +65,12 @@
                     {{ $user->role === 'student' ? 'bg-rose-50 text-rose-600' : '' }}">
                     {{ $user->role }}
                 </span>
-                <div class="flex space-x-2">
+                <div class="flex items-center space-x-2">
+                    @if($user->role === 'customer' && $user->credit?->pending_payment_amount)
+                    <span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-lg text-[7px] font-black uppercase tracking-widest flex items-center gap-1">
+                        <i class="ti-time"></i> ${{ number_format($user->credit->pending_payment_amount, 2) }}
+                    </span>
+                    @endif
                     <a href="{{ route('admin.users.edit', $user->id) }}" class="text-slate-300 hover:text-indigo-600 transition-colors"><i class="ti-pencil"></i></a>
                 </div>
             </div>

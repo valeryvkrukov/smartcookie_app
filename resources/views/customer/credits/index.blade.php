@@ -264,6 +264,60 @@
                     </div>
                 </div>
 
+                {{-- NOTIFY ADMIN OF MANUAL PAYMENT --}}
+                @if($ratePerCredit)
+                <div class="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm" x-data="{
+                    amount: '',
+                    method: 'venmo',
+                    get credits() {
+                        const a = parseFloat(this.amount);
+                        const r = {{ $ratePerCredit ?? 0 }};
+                        return (r > 0 && a > 0) ? (a / r).toFixed(2) : '—';
+                    }
+                }">
+                    <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest mb-1">Sent a Payment?</h3>
+                    <p class="text-[10px] text-slate-400 mb-6">Let the admin know so they can confirm and add your credits.</p>
+
+                    @if(auth()->user()->credit?->pending_payment_amount)
+                        <div class="mb-6 p-4 bg-amber-50 border border-amber-100 rounded-2xl text-[10px] font-bold text-amber-700 flex items-center gap-3">
+                            <i class="ti-time text-amber-500 text-base"></i>
+                            Pending: <span class="font-black">${{ number_format(auth()->user()->credit->pending_payment_amount, 2) }}</span>
+                            via <span class="font-black capitalize">{{ auth()->user()->credit->pending_payment_method }}</span>
+                            &mdash; awaiting admin confirmation.
+                        </div>
+                    @endif
+
+                    <form action="{{ route('customer.credits.notify-payment') }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="label-premium">Amount Sent ($)</label>
+                                <input type="number" name="pending_amount" step="0.01" min="1"
+                                       x-model="amount"
+                                       class="input-premium" required placeholder="e.g. 60.00">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="label-premium">Credits You'll Receive</label>
+                                <div class="input-premium bg-slate-50 text-indigo-700 font-black" x-text="credits"></div>
+                            </div>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label-premium">Payment Method</label>
+                            <select name="pending_method" x-model="method" class="input-premium">
+                                <option value="venmo">Venmo</option>
+                                <option value="zelle">Zelle</option>
+                                <option value="cash">Cash</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <button type="submit"
+                                class="w-full py-3 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-all">
+                            Notify Admin of Payment
+                        </button>
+                    </form>
+                </div>
+                @endif
+
                 {{-- HOW CREDITS WORK --}}
                 <div class="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-8 space-y-4">
                     <h3 class="text-sm font-black text-slate-800 uppercase tracking-widest">How Credits Work</h3>

@@ -61,6 +61,7 @@ Route::middleware(['auth', 'role:customer', 'check.agreements'])->prefix('custom
     Route::get('/credits', [CustomerCreditController::class, 'index'])->name('credits.index');
     Route::post('/credits/purchase', [CustomerCreditController::class, 'purchase'])->name('credits.purchase');
     Route::post('/credits/stripe-url', [CustomerCreditController::class, 'stripeCheckoutUrl'])->name('credits.stripe-url');
+    Route::post('/credits/notify-payment', [CustomerCreditController::class, 'notifyPayment'])->name('credits.notify-payment');
 
     // ── Cancellation: client-initiated session cancel
     Route::delete('/calendar/sessions/{session}', [CustomerCalendarController::class, 'cancel'])->name('calendar.cancel');

@@ -268,4 +268,29 @@ class CreditController extends Controller
 
         return redirect()->route('customer.credits.index')->with('success', 'Credits added successfully!');
     }
+
+    /**
+     * Customer signals to the admin: "I've sent a Venmo/Zelle payment, please confirm."
+     * Stores the pending amount and method on the credit record for the admin to review.
+     */
+    public function notifyPayment(Request $request)
+    {
+        $data = $request->validate([
+            'pending_amount' => ['required', 'numeric', 'min:1', 'max:9999'],
+            'pending_method' => ['required', 'in:venmo,zelle,cash,other'],
+        ]);
+
+        $user = auth()->user();
+        $user->credit()->firstOrCreate(
+            ['user_id' => $user->id],
+            ['credit_balance' => 0, 'dollar_cost_per_credit' => null]
+        );
+        $user->credit->update([
+            'pending_payment_amount' => $data['pending_amount'],
+            'pending_payment_method' => $data['pending_method'],
+        ]);
+
+        return redirect()->route('customer.credits.index')
+            ->with('success', 'Your payment notification has been sent to the admin. Credits will be added once confirmed.');
+    }
 }
