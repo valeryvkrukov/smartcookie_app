@@ -187,7 +187,7 @@
                                     <i class="ti-mobile"></i>
                                 </div>
                                 <h4 class="text-lg font-black tracking-tight">Venmo</h4>
-                                <p class="text-[10px] text-sky-100/60 uppercase tracking-widest mt-1">{{ $paymentMethods['venmo']['username'] }}</p>
+                                <p class="text-[10px] text-white/75 uppercase tracking-widest mt-1">{{ $paymentMethods['venmo']['username'] }}</p>
                                 <div class="flex gap-3 mt-auto pt-6">
                                     <a href="{{ $paymentMethods['venmo']['web_url'] }}" target="_blank" rel="noopener noreferrer"
                                        class="flex-1 py-3 bg-white text-[#3d95ce] rounded-xl text-[9px] font-black uppercase tracking-widest text-center hover:bg-sky-50 transition-colors">
@@ -203,7 +203,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an empty-data fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="window.PaymentConfig.venmoQrUrl(selectedPack)"
+                                    <img :src="window.PaymentConfig.venmoQrUrls[selectedPack]"
                                          alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
                                     <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
                                     <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
@@ -249,7 +249,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an early fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="window.PaymentConfig.zelleQrUrl"
+                                    <img src="{{ $paymentMethods['zelle']['qr_url'] }}"
                                          alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
                                     <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
@@ -291,16 +291,7 @@
 @push('scripts')
 <script>
 window.PaymentConfig = {
-    zelleQrUrl: @json($paymentMethods['zelle']['qr_url']),
-    venmoRecipient: @json(ltrim($paymentMethods['venmo']['username'], '@')),
-    venmoNote: @json($paymentMethods['venmo']['note']),
-    venmoRate: {{ (float)($ratePerCredit ?? 0) }},
-    venmoQrUrl: function(pack) {
-        var deep = 'venmo://paycharge?txn=pay&recipients=' + this.venmoRecipient
-            + '&note=' + encodeURIComponent(this.venmoNote)
-            + '&amount=' + (pack * this.venmoRate).toFixed(2);
-        return 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&charset-source=UTF-8&data=' + encodeURIComponent(deep);
-    }
+    venmoQrUrls: @json($venmoQrUrls)
 };
 </script>
 @endpush

@@ -29,12 +29,13 @@ class CreditController extends Controller
         $isFirstPurchase = !CreditPurchase::where('user_id', $user->id)->exists();
 
         $venmoUser  = ltrim(config('payments.venmo.username'), '@');
+        $venmoNote  = config('payments.venmo.note');
         $zellePhone = config('payments.zelle.phone');
 
         $paymentMethods = [
             'venmo' => [
                 'username' => '@' . $venmoUser,
-                'note'     => config('payments.venmo.note'),
+                'note'     => $venmoNote,
                 'web_url'  => 'https://venmo.com/' . $venmoUser,
             ],
             'zelle' => [
@@ -44,8 +45,21 @@ class CreditController extends Controller
             ],
         ];
 
+        // Pre-build Venmo QR URLs server-side for every available pack
+        // so the view never needs to construct URLs in JavaScript.
+        $venmoQrUrls = [];
+        if ($ratePerCredit) {
+            foreach ([1, 4, 6, 8, 10] as $pack) {
+                $deepLink = 'venmo://paycharge?txn=pay'
+                    . '&recipients=' . rawurlencode($venmoUser)
+                    . '&note='       . rawurlencode($venmoNote)
+                    . '&amount='     . number_format($pack * $ratePerCredit, 2, '.', '');
+                $venmoQrUrls[$pack] = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&charset-source=UTF-8&data=' . urlencode($deepLink);
+            }
+        }
+
         return view('customer.credits.index', compact(
-            'balance', 'ratePerCredit', 'isFirstPurchase', 'paymentMethods'
+            'balance', 'ratePerCredit', 'isFirstPurchase', 'paymentMethods', 'venmoQrUrls'
         ));
     }
 
