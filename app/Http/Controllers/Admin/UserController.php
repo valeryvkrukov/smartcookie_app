@@ -139,25 +139,24 @@ class UserController extends Controller
         abort_if($user->role !== 'customer', 403);
 
         $data = $request->validate([
-            'credits'        => ['required', 'numeric', 'min:0.1', 'max:500'],
-            'total_paid'     => ['required', 'numeric', 'min:0'],
-            'payment_method' => ['required', 'in:venmo,zelle,cash,other'],
-            'note'           => ['nullable', 'string', 'max:255'],
+            'note' => ['nullable', 'string', 'max:255'],
         ]);
 
-        $credits   = (float) $data['credits'];
-        $totalPaid = (float) $data['total_paid'];
-        $method    = ucfirst($data['payment_method']);
+        $credit = $user->credit;
+        abort_if(! $credit || ! $credit->pending_payment_amount, 422);
+
+        $totalPaid = (float) $credit->pending_payment_amount;
+        $method    = ucfirst($credit->pending_payment_method ?? 'other');
+        $rate      = $credit->dollar_cost_per_credit;
+        $credits   = $rate > 0 ? round($totalPaid / $rate, 2) : 0;
         $note      = trim($data['note'] ?? '');
         $admin     = auth()->user();
 
+        abort_if($credits <= 0, 422, 'Cannot apply payment: rate per credit is not set for this client.');
+
         // ── Apply credits to balance
-        $user->credit()->firstOrCreate(
-            ['user_id' => $user->id],
-            ['credit_balance' => 0, 'dollar_cost_per_credit' => null]
-        );
-        $user->credit->increment('credit_balance', $credits);
-        $user->credit->refresh();
+        $credit->increment('credit_balance', $credits);
+        $credit->refresh();
 
         // ── Record purchase for financial reports
         CreditPurchase::create([
@@ -177,7 +176,7 @@ class UserController extends Controller
         $user->notify(new CreditBalanceChanged(
             amount: $credits,
             direction: 'credit',
-            balanceAfter: $user->credit->credit_balance,
+            balanceAfter: $credit->credit_balance,
             reason: $reason,
         ));
 
@@ -189,7 +188,7 @@ class UserController extends Controller
             Notification::send($tutors, new CreditsPurchased($user, $credits));
         }
 
-        // ── System log: notify all admins so the payment appears in system logs
+        // ── System log: notify all admins
         $admins = User::where('is_admin', true)->get();
         Notification::send($admins, new ManualPaymentConfirmed(
             client: $user,
@@ -200,8 +199,8 @@ class UserController extends Controller
             confirmedByName: $admin->full_name,
         ));
 
-        // ── Clear pending payment request if it existed
-        $user->credit->update([
+        // ── Clear pending payment
+        $credit->update([
             'pending_payment_amount' => null,
             'pending_payment_method' => null,
         ]);

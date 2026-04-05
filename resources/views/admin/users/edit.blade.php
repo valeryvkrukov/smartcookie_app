@@ -213,9 +213,6 @@
                             </div>
                         </div>
 
-                        <input type="hidden" name="total_paid"     value="{{ $pendingAmount }}">
-                        <input type="hidden" name="credits"        value="{{ $pendingCredits ?? 0 }}">
-                        <input type="hidden" name="payment_method" value="{{ $pendingMethod }}">
 
                         <div class="space-y-2 p-5">
                             <label class="label-premium">Note (optional)</label>
