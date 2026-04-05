@@ -155,7 +155,10 @@ class UserController extends Controller
         abort_if($credits <= 0, 422, 'Cannot apply payment: rate per credit is not set for this client.');
 
         // ── Apply credits to balance
-        $credit->increment('credit_balance', $credits);
+        DB::table('credits')
+            ->where('user_id', $user->id)
+            ->increment('credit_balance', $credits);
+
         $credit->refresh();
 
         // ── Record purchase for financial reports
@@ -200,10 +203,12 @@ class UserController extends Controller
         ));
 
         // ── Clear pending payment
-        $credit->update([
-            'pending_payment_amount' => null,
-            'pending_payment_method' => null,
-        ]);
+        DB::table('credits')
+            ->where('user_id', $user->id)
+            ->update([
+                'pending_payment_amount' => null,
+                'pending_payment_method' => null,
+            ]);
 
         return redirect()->route('admin.users.edit', $user->id)
             ->with('success', "Applied {$credits} credit(s) to {$user->full_name}'s account.");
