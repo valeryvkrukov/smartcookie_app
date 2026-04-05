@@ -179,18 +179,17 @@
 
                         {{-- VENMO --}}
                         <div x-data="{ showQr: false, qrUrl: '' }"
-                             x-init="
-                                var recipient = $el.dataset.recipient;
-                                var note      = $el.dataset.note;
-                                var rate      = {{ (float)($ratePerCredit ?? 0) }};
-                                $watch('$root.selectedPack', function(pack) {
-                                    var deep = 'venmo://paycharge?txn=pay&recipients=' + recipient + '&note=' + encodeURIComponent(note) + '&amount=' + (pack * rate).toFixed(2);
-                                    qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(deep);
-                                });
-                                var pack = {{ $isFirstPurchase ? 1 : 4 }};
-                                var deep = 'venmo://paycharge?txn=pay&recipients=' + recipient + '&note=' + encodeURIComponent(note) + '&amount=' + (pack * rate).toFixed(2);
-                                qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(deep);
-                             "
+                             x-init="(() => {
+                                const recipient = $el.dataset.recipient;
+                                const note      = $el.dataset.note;
+                                const rate      = {{ (float)($ratePerCredit ?? 0) }};
+                                const buildUrl  = (pack) => {
+                                    const deep = 'venmo://paycharge?txn=pay&recipients=' + recipient + '&note=' + encodeURIComponent(note) + '&amount=' + (pack * rate).toFixed(2);
+                                    return 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(deep);
+                                };
+                                qrUrl = buildUrl({{ $isFirstPurchase ? 1 : 4 }});
+                                $watch('selectedPack', pack => { qrUrl = buildUrl(pack); });
+                             })()"
                              data-recipient="{{ ltrim($paymentMethods['venmo']['username'], '@') }}"
                              data-note="{{ $paymentMethods['venmo']['note'] }}"
                              class="p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 flex flex-col min-h-[260px]">
