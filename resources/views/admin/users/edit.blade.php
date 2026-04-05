@@ -170,17 +170,9 @@
                     $rate            = $user->credit?->dollar_cost_per_credit;
                     $pendingAmount   = $user->credit?->pending_payment_amount;
                     $pendingMethod   = $user->credit?->pending_payment_method ?? 'venmo';
+                    $pendingCredits  = ($rate && $pendingAmount) ? round($pendingAmount / $rate, 2) : null;
                 @endphp
-                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6"
-                     x-data="{
-                         amount: '{{ $pendingAmount ?? '' }}',
-                         method: '{{ $pendingMethod }}',
-                         rate:   {{ $rate ?? 0 }},
-                         get credits() {
-                             const a = parseFloat(this.amount);
-                             return (this.rate > 0 && a > 0) ? (a / this.rate).toFixed(2) : '—';
-                         }
-                     }">
+                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6">
                     <div class="flex items-baseline justify-between mb-6">
                         <h3 class="label-premium">Credit Balance</h3>
                         <p class="text-3xl font-black text-indigo-600">
@@ -188,49 +180,37 @@
                         </p>
                     </div>
 
-                    @if($pendingAmount)
-                    <div class="mb-5 p-4 bg-amber-50 border border-amber-200 rounded-2xl flex items-center gap-3">
-                        <i class="ti-time text-amber-500 text-base flex-shrink-0"></i>
-                        <div class="flex-1 text-[10px] text-amber-700">
-                            <span class="font-black">Pending:</span>
-                            ${{ number_format($pendingAmount, 2) }} via <span class="capitalize font-black">{{ $pendingMethod }}</span>
-                            — form pre-filled below.
-                        </div>
-                    </div>
-                    @endif
-
                     <form action="{{ route('admin.users.apply-payment', $user->id) }}" method="POST" class="space-y-4">
                         @csrf
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <label class="label-premium">Amount Paid ($)</label>
-                                <input type="number" name="total_paid" step="0.01" min="0"
-                                       x-model="amount"
-                                       class="input-premium" required>
+
+                        {{-- Read-only summary row --}}
+                        <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl">
+                            <div>
+                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount</p>
+                                <p class="text-sm font-black text-slate-800">
+                                    {{ $pendingAmount ? '$' . number_format($pendingAmount, 2) : '—' }}
+                                </p>
                             </div>
-                            <div class="space-y-2">
-                                <label class="label-premium">Credits to Apply</label>
+                            <div>
+                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Credits</p>
+                                <p class="text-sm font-black text-indigo-600">
+                                    {{ $pendingCredits ?? '—' }}
+                                </p>
                                 @if($rate)
-                                    {{-- Auto-calculated: hidden real field + visible readonly display --}}
-                                    <input type="hidden" name="credits" :value="credits">
-                                    <div class="input-premium bg-slate-50 text-indigo-700 font-black" x-text="credits"></div>
-                                    <p class="text-[8px] text-slate-400">Rate: ${{ $rate }} / credit</p>
-                                @else
-                                    {{-- No rate set: let admin enter manually --}}
-                                    <input type="number" name="credits" step="0.5" min="0.5" max="100"
-                                           class="input-premium" required placeholder="Enter manually (no rate set)">
+                                    <p class="text-[8px] text-slate-400">@ ${{ $rate }}/cr</p>
                                 @endif
                             </div>
+                            <div>
+                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Method</p>
+                                <p class="text-sm font-black text-slate-800 capitalize">{{ $pendingMethod }}</p>
+                            </div>
                         </div>
-                        <div class="space-y-2">
-                            <label class="label-premium">Payment Method</label>
-                            <select name="payment_method" x-model="method" class="input-premium">
-                                <option value="venmo">Venmo</option>
-                                <option value="zelle">Zelle</option>
-                                <option value="cash">Cash</option>
-                                <option value="other">Other</option>
-                            </select>
-                        </div>
+
+                        {{-- Hidden values --}}
+                        <input type="hidden" name="total_paid"     value="{{ $pendingAmount ?? 0 }}">
+                        <input type="hidden" name="credits"        value="{{ $pendingCredits ?? 0 }}">
+                        <input type="hidden" name="payment_method" value="{{ $pendingMethod }}">
+
                         <div class="space-y-2">
                             <label class="label-premium">Note (optional)</label>
                             <input type="text" name="note" maxlength="255" class="input-premium"

@@ -10,7 +10,7 @@
             <p class="text-xs font-black text-amber-800">{{ $pendingCount }} {{ Str::plural('client', $pendingCount) }} awaiting payment confirmation</p>
             <p class="text-[9px] text-amber-600 mt-0.5">Look for the amber badge on client cards below.</p>
         </div>
-        <a href="{{ route('admin.users.index', ['role' => 'customer']) }}"
+        <a href="{{ route('admin.users.index', ['pending' => 1]) }}"
            class="px-4 py-2 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition-colors whitespace-nowrap">
             View Pending
         </a>
