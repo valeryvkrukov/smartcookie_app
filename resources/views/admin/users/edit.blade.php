@@ -164,6 +164,44 @@
                         </div>
                     </label>
                 </div>
+
+                {{-- ── Manual Payment / Credit Top-up ─────────────────────────── --}}
+                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6">
+                    <h3 class="label-premium mb-1">Credit Balance</h3>
+                    <p class="text-3xl font-black text-indigo-600 mb-6">
+                        {{ number_format($user->credit?->credit_balance ?? 0, 2) }}
+                    </p>
+
+                    <form action="{{ route('admin.users.apply-payment', $user->id) }}" method="POST" class="space-y-4">
+                        @csrf
+                        <div class="space-y-2">
+                            <label class="label-premium">Credits to Add</label>
+                            <input type="number" name="credits" step="0.5" min="0.5" max="100" class="input-premium" required>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label-premium">Amount Paid ($)</label>
+                            <input type="number" name="total_paid" step="0.01" min="0" class="input-premium" required>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label-premium">Payment Method</label>
+                            <select name="payment_method" class="input-premium">
+                                <option value="venmo">Venmo</option>
+                                <option value="zelle">Zelle</option>
+                                <option value="cash">Cash</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        <div class="space-y-2">
+                            <label class="label-premium">Note (optional)</label>
+                            <input type="text" name="note" maxlength="255" class="input-premium"
+                                   placeholder="e.g. transaction ref or memo">
+                        </div>
+                        <button type="submit"
+                                class="w-full py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
+                            Confirm Payment &amp; Apply Credits
+                        </button>
+                    </form>
+                </div>
                 @endif
             </div>
 

@@ -4,11 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Credit;
+use App\Models\CreditPurchase;
 use App\Notifications\ClientRateSet;
 use App\Notifications\StudentAssigned;
+use App\Notifications\CreditBalanceChanged;
+use App\Notifications\CreditsPurchased;
+use App\Notifications\ManualPaymentConfirmed;
 
 class UserController extends Controller
 {
@@ -118,5 +123,75 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', "User [{$name}] has been successfully deleted.");
+    }
+
+    public function applyPayment(Request $request, User $user)
+    {
+        abort_if($user->role !== 'customer', 403);
+
+        $data = $request->validate([
+            'credits'        => ['required', 'numeric', 'min:0.5', 'max:100'],
+            'total_paid'     => ['required', 'numeric', 'min:0'],
+            'payment_method' => ['required', 'in:venmo,zelle,cash,other'],
+            'note'           => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $credits   = (float) $data['credits'];
+        $totalPaid = (float) $data['total_paid'];
+        $method    = ucfirst($data['payment_method']);
+        $note      = trim($data['note'] ?? '');
+        $admin     = auth()->user();
+
+        // ── Apply credits to balance
+        $user->credit()->firstOrCreate(
+            ['user_id' => $user->id],
+            ['credit_balance' => 0, 'dollar_cost_per_credit' => null]
+        );
+        $user->credit->increment('credit_balance', $credits);
+        $user->credit->refresh();
+
+        // ── Record purchase for financial reports
+        CreditPurchase::create([
+            'user_id'           => $user->id,
+            'amount'            => $credits,
+            'credits_purchased' => $credits,
+            'total_paid'        => $totalPaid,
+            'stripe_session_id' => null,
+            'type'              => 'deposit',
+        ]);
+
+        // ── Notify customer of balance change
+        $reason = "Manual payment confirmed via {$method}"
+            . ($note ? " – {$note}" : '')
+            . " (confirmed by {$admin->full_name})";
+
+        $user->notify(new CreditBalanceChanged(
+            amount: $credits,
+            direction: 'credit',
+            balanceAfter: $user->credit->credit_balance,
+            reason: $reason,
+        ));
+
+        // ── Notify tutors assigned to this customer's students
+        $tutors = User::whereHas('assignedStudents', function ($q) use ($user) {
+            $q->where('parent_id', $user->id);
+        })->get();
+        if ($tutors->isNotEmpty()) {
+            Notification::send($tutors, new CreditsPurchased($user, $credits));
+        }
+
+        // ── System log: notify all admins so the payment appears in system logs
+        $admins = User::where('is_admin', true)->get();
+        Notification::send($admins, new ManualPaymentConfirmed(
+            client: $user,
+            creditsPurchased: $credits,
+            totalPaid: $totalPaid,
+            paymentMethod: $method,
+            note: $note,
+            confirmedByName: $admin->full_name,
+        ));
+
+        return redirect()->route('admin.users.edit', $user->id)
+            ->with('success', "Applied {$credits} credit(s) to {$user->full_name}'s account.");
     }
 }

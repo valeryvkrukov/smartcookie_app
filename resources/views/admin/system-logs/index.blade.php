@@ -11,6 +11,7 @@
             'session_update'    => ['label' => 'Sessions Updated',   'colour' => 'amber'],
             'session_completed' => ['label' => 'Session Reports',    'colour' => 'teal'],
             'payment'           => ['label' => 'Payments',           'colour' => 'sky'],
+            'manual_payment'    => ['label' => 'Manual Payments',    'colour' => 'emerald'],
         ];
     @endphp
 

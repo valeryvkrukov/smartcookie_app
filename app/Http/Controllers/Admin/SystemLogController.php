@@ -16,6 +16,7 @@ class SystemLogController extends Controller
         'session_update'    => 'SessionUpdated',
         'session_completed' => 'SessionCompleted',
         'payment'           => 'CreditBalanceChanged',
+        'manual_payment'    => 'ManualPaymentConfirmed',
     ];
 
     public function index(Request $request)
@@ -68,6 +69,7 @@ class SystemLogController extends Controller
             'session_update'    => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%SessionUpdated%')->count(),
             'session_completed' => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%SessionCompleted%')->count(),
             'payment'           => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%CreditBalanceChanged%')->count(),
+            'manual_payment'    => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%ManualPaymentConfirmed%')->count(),
         ];
 
         return view('admin.system-logs.index', compact('logs', 'typeFilter', 'counts', 'readFilter', 'search'));
@@ -121,6 +123,7 @@ class SystemLogController extends Controller
             str_contains($class, 'SessionUpdated')            => 'Session Updated',
             str_contains($class, 'SessionCompleted')          => 'Session Completed',
             str_contains($class, 'CreditBalanceChanged')      => 'Balance Changed',
+            str_contains($class, 'ManualPaymentConfirmed')        => 'Manual Payment',
             default                                           => class_basename($class),
         };
     }
@@ -134,6 +137,7 @@ class SystemLogController extends Controller
             str_contains($class, 'SessionUpdated')            => 'amber',
             str_contains($class, 'SessionCompleted')          => 'teal',
             str_contains($class, 'CreditBalanceChanged')      => 'sky',
+            str_contains($class, 'ManualPaymentConfirmed')        => 'emerald',
             default                                           => 'slate',
         };
     }
@@ -147,6 +151,7 @@ class SystemLogController extends Controller
             str_contains($class, 'SessionUpdated')            => 'ti-pencil',
             str_contains($class, 'SessionCompleted')          => 'ti-check',
             str_contains($class, 'CreditBalanceChanged')      => 'ti-wallet',
+            str_contains($class, 'ManualPaymentConfirmed')        => 'ti-receipt',
             default                                           => 'ti-bell',
         };
     }

@@ -48,16 +48,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
+// ── Stripe success: public so Stripe can redirect an unauthenticated phone browser after QR payment.
+//    Security comes from the unguessable Stripe session_id; user is resolved from Stripe metadata.
+Route::get('/customer/credits/success', [CustomerCreditController::class, 'success'])->name('customer.credits.success');
+
 // ── Customer: routes scoped to parent role; check.agreements blocks access until all agreements are signed
 Route::middleware(['auth', 'role:customer', 'check.agreements'])->prefix('customer')->name('customer.')->group(function () {
     Route::get('/calendar', [CustomerCalendarController::class, 'index'])->name('calendar.index');
     Route::get('/calendar/events', [CustomerCalendarController::class, 'events'])->name('calendar.events');
-    
+
     // ── Financials: credit purchase and balance routes
     Route::get('/credits', [CustomerCreditController::class, 'index'])->name('credits.index');
     Route::post('/credits/purchase', [CustomerCreditController::class, 'purchase'])->name('credits.purchase');
     Route::post('/credits/stripe-url', [CustomerCreditController::class, 'stripeCheckoutUrl'])->name('credits.stripe-url');
-    Route::get('/credits/success', [CustomerCreditController::class, 'success'])->name('credits.success');
 
     // ── Cancellation: client-initiated session cancel
     Route::delete('/calendar/sessions/{session}', [CustomerCalendarController::class, 'cancel'])->name('calendar.cancel');
@@ -90,6 +93,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/users/{user}/edit', [AdminUserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [AdminUserController::class, 'update'])->name('users.update');
     Route::delete('/users/{user}', [AdminUserController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user}/apply-payment', [AdminUserController::class, 'applyPayment'])->name('users.apply-payment');
 
     // ── Calendar: admin calendar and session management
     Route::get('/calendar', [AdminCalendarController::class, 'index'])->name('calendar.index');
