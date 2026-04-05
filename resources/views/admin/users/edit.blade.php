@@ -200,11 +200,12 @@
                                 <p class="text-2xl font-black text-slate-800">${{ number_format($pendingAmount, 2) }}</p>
                             </div>
                             <div>
-                                <p class="label-premium mb-1">Credits</p>
-                                <p class="text-2xl font-black text-indigo-600">{{ $pendingCredits ?? '—' }}</p>
+                                <p class="label-premium mb-1">Credits
+                                <p class="text-2xl font-black text-indigo-600">{{ $pendingCredits ?? '—' }}
                                 @if($rate)
-                                    <p class="text-[8px] text-slate-400">@ ${{ $rate }}/cr</p>
+                                    <span class="text-[12px] text-slate-400">@ ${{ $rate }}/cr</span>
                                 @endif
+                                </p>
                             </div>
                             <div>
                                 <p class="label-premium mb-1">Method</p>
