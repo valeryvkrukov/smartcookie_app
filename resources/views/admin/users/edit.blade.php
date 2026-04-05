@@ -187,13 +187,13 @@
                         <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl">
                             <div>
                                 <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount</p>
-                                <p class="text-sm font-black text-slate-800">
+                                <p class="text-2xl font-black text-slate-800">
                                     {{ $pendingAmount ? '$' . number_format($pendingAmount, 2) : '—' }}
                                 </p>
                             </div>
                             <div>
                                 <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Credits</p>
-                                <p class="text-sm font-black text-indigo-600">
+                                <p class="text-2xl font-black text-indigo-600">
                                     {{ $pendingCredits ?? '—' }}
                                 </p>
                                 @if($rate)
@@ -202,7 +202,7 @@
                             </div>
                             <div>
                                 <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Method</p>
-                                <p class="text-sm font-black text-slate-800 capitalize">{{ $pendingMethod }}</p>
+                                <p class="text-2xl font-black text-slate-800 capitalize">{{ $pendingMethod }}</p>
                             </div>
                         </div>
 
