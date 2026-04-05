@@ -198,13 +198,12 @@
                         @endif
                     </div>
 
-                    <form action="{{ route('admin.users.apply-payment', $user->id) }}" method="POST" class="space-y-4">
-                        @csrf
+                    <div class="space-y-4">
 
                         <div class="grid grid-cols-2 gap-4">
                             <div class="space-y-2">
                                 <label class="label-premium">Amount Paid ($)</label>
-                                <input type="number" name="total_paid" step="0.01" min="0.01"
+                                <input form="apply-payment-form" type="number" name="total_paid" step="0.01" min="0.01"
                                        x-model="amount"
                                        value="{{ $pendingAmount ?? '' }}"
                                        class="input-premium" required>
@@ -212,11 +211,11 @@
                             <div class="space-y-2">
                                 <label class="label-premium">Credits</label>
                                 @if($rate)
-                                    <input type="hidden" name="credits" :value="parseFloat(credits) > 0 ? credits : 0">
+                                    <input form="apply-payment-form" type="hidden" name="credits" :value="parseFloat(credits) > 0 ? credits : 0">
                                     <div class="input-premium bg-slate-50 text-indigo-700 font-black" x-text="credits"></div>
                                     <p class="text-[8px] text-slate-400 ml-1">@ ${{ $rate }}/cr</p>
                                 @else
-                                    <input type="number" name="credits" step="0.5" min="0.5"
+                                    <input form="apply-payment-form" type="number" name="credits" step="0.5" min="0.5"
                                            class="input-premium" required placeholder="Enter manually">
                                     <p class="text-[8px] text-rose-400 ml-1">Rate not set — enter credits manually</p>
                                 @endif
@@ -225,7 +224,7 @@
 
                         <div class="space-y-2">
                             <label class="label-premium">Payment Method</label>
-                            <select name="payment_method" class="input-premium">
+                            <select form="apply-payment-form" name="payment_method" class="input-premium">
                                 <option value="venmo"  {{ $pendingMethod === 'venmo'  ? 'selected' : '' }}>Venmo</option>
                                 <option value="zelle"  {{ $pendingMethod === 'zelle'  ? 'selected' : '' }}>Zelle</option>
                                 <option value="cash"   {{ $pendingMethod === 'cash'   ? 'selected' : '' }}>Cash</option>
@@ -235,15 +234,15 @@
 
                         <div class="space-y-2">
                             <label class="label-premium">Note (optional)</label>
-                            <input type="text" name="note" maxlength="255" class="input-premium"
+                            <input form="apply-payment-form" type="text" name="note" maxlength="255" class="input-premium"
                                    placeholder="e.g. transaction ref or memo">
                         </div>
 
-                        <button type="submit"
+                        <button form="apply-payment-form" type="submit"
                                 class="w-full py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
                             Confirm Payment &amp; Apply Credits
                         </button>
-                    </form>
+                    </div>
                 </div>
                 @endif
             </div>
@@ -344,4 +343,11 @@
     <form id="delete-user-{{ $user->id }}" action="{{ route('admin.users.destroy', $user->id) }}" method="POST" class="hidden">
         @csrf @method('DELETE')
     </form>
+
+    {{-- ── Apply manual payment form (standalone — avoids nested-form issue) --}}
+    @if($user->role === 'customer')
+    <form id="apply-payment-form" action="{{ route('admin.users.apply-payment', $user->id) }}" method="POST" class="hidden">
+        @csrf
+    </form>
+    @endif
 </x-app-layout>
