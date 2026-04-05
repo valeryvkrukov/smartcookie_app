@@ -139,27 +139,24 @@ class UserController extends Controller
         abort_if($user->role !== 'customer', 403);
 
         $data = $request->validate([
-            'note' => ['nullable', 'string', 'max:255'],
+            'total_paid'     => ['required', 'numeric', 'min:0.01'],
+            'credits'        => ['required', 'numeric', 'min:0.1'],
+            'payment_method' => ['required', 'in:venmo,zelle,cash,other'],
+            'note'           => ['nullable', 'string', 'max:255'],
         ]);
 
-        $credit = $user->credit;
-        abort_if(! $credit || ! $credit->pending_payment_amount, 422);
-
-        $totalPaid = (float) $credit->pending_payment_amount;
-        $method    = ucfirst($credit->pending_payment_method ?? 'other');
-        $rate      = $credit->dollar_cost_per_credit;
-        $credits   = $rate > 0 ? round($totalPaid / $rate, 2) : 0;
+        $totalPaid = (float) $data['total_paid'];
+        $credits   = (float) $data['credits'];
+        $method    = ucfirst($data['payment_method']);
         $note      = trim($data['note'] ?? '');
         $admin     = auth()->user();
-
-        abort_if($credits <= 0, 422, 'Cannot apply payment: rate per credit is not set for this client.');
 
         // ── Apply credits to balance
         DB::table('credits')
             ->where('user_id', $user->id)
             ->increment('credit_balance', $credits);
 
-        $credit->refresh();
+        $newBalance = (float) DB::table('credits')->where('user_id', $user->id)->value('credit_balance');
 
         // ── Record purchase for financial reports
         CreditPurchase::create([
@@ -179,7 +176,7 @@ class UserController extends Controller
         $user->notify(new CreditBalanceChanged(
             amount: $credits,
             direction: 'credit',
-            balanceAfter: $credit->credit_balance,
+            balanceAfter: $newBalance,
             reason: $reason,
         ));
 
@@ -202,7 +199,7 @@ class UserController extends Controller
             confirmedByName: $admin->full_name,
         ));
 
-        // ── Clear pending payment
+        // ── Clear pending payment if it existed
         DB::table('credits')
             ->where('user_id', $user->id)
             ->update([

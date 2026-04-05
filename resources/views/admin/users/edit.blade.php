@@ -167,10 +167,9 @@
 
                 {{-- ── Manual Payment / Credit Top-up ─────────────────────────── --}}
                 @php
-                    $rate            = $user->credit?->dollar_cost_per_credit;
-                    $pendingAmount   = $user->credit?->pending_payment_amount;
-                    $pendingMethod   = $user->credit?->pending_payment_method ?? 'venmo';
-                    $pendingCredits  = ($rate && $pendingAmount) ? round($pendingAmount / $rate, 2) : null;
+                    $rate          = $user->credit?->dollar_cost_per_credit;
+                    $pendingAmount = $user->credit?->pending_payment_amount;
+                    $pendingMethod = $user->credit?->pending_payment_method ?? 'venmo';
                 @endphp
 
                 {{-- Current balance --}}
@@ -179,42 +178,62 @@
                     <p class="text-4xl font-black text-indigo-600">{{ number_format($user->credit?->credit_balance ?? 0, 2) }}</p>
                 </div>
 
-                {{-- Pending payment confirmation --}}
-                <div class="bg-white p-8 rounded-[2.5rem] border {{ $pendingAmount ? 'border-amber-200' : 'border-slate-100' }} shadow-xl mt-3">
+                {{-- Apply Manual Payment --}}
+                <div class="bg-white p-8 rounded-[2.5rem] border {{ $pendingAmount ? 'border-amber-200' : 'border-slate-100' }} shadow-xl mt-3"
+                     x-data="{
+                         amount: '{{ $pendingAmount ?? '' }}',
+                         rate: {{ $rate ?? 0 }},
+                         get credits() {
+                             const a = parseFloat(this.amount);
+                             return (this.rate > 0 && a > 0) ? (a / this.rate).toFixed(2) : '—';
+                         }
+                     }">
+
                     <div class="flex items-center gap-2 mb-5">
                         @if($pendingAmount)
                             <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
                             <p class="label-premium !text-amber-600">Pending Payment</p>
                         @else
-                            <p class="label-premium">No Pending Payment</p>
+                            <p class="label-premium">Apply Payment</p>
                         @endif
                     </div>
 
-                    @if($pendingAmount)
                     <form action="{{ route('admin.users.apply-payment', $user->id) }}" method="POST" class="space-y-4">
                         @csrf
 
-                        <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl">
-                            <div>
-                                <p class="label-premium mb-1">Amount</p>
-                                <p class="text-2xl font-black text-slate-800">${{ number_format($pendingAmount, 2) }}</p>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="space-y-2">
+                                <label class="label-premium">Amount Paid ($)</label>
+                                <input type="number" name="total_paid" step="0.01" min="0.01"
+                                       x-model="amount"
+                                       value="{{ $pendingAmount ?? '' }}"
+                                       class="input-premium" required>
                             </div>
-                            <div>
-                                <p class="label-premium mb-1">Credits
-                                <p class="text-2xl font-black text-indigo-600">{{ $pendingCredits ?? '—' }}
+                            <div class="space-y-2">
+                                <label class="label-premium">Credits</label>
                                 @if($rate)
-                                    <span class="text-[12px] text-slate-400">@ ${{ $rate }}/cr</span>
+                                    <input type="hidden" name="credits" :value="parseFloat(credits) > 0 ? credits : 0">
+                                    <div class="input-premium bg-slate-50 text-indigo-700 font-black" x-text="credits"></div>
+                                    <p class="text-[8px] text-slate-400 ml-1">@ ${{ $rate }}/cr</p>
+                                @else
+                                    <input type="number" name="credits" step="0.5" min="0.5"
+                                           class="input-premium" required placeholder="Enter manually">
+                                    <p class="text-[8px] text-rose-400 ml-1">Rate not set — enter credits manually</p>
                                 @endif
-                                </p>
-                            </div>
-                            <div>
-                                <p class="label-premium mb-1">Method</p>
-                                <p class="text-2xl font-black text-slate-800 capitalize">{{ $pendingMethod }}</p>
                             </div>
                         </div>
 
+                        <div class="space-y-2">
+                            <label class="label-premium">Payment Method</label>
+                            <select name="payment_method" class="input-premium">
+                                <option value="venmo"  {{ $pendingMethod === 'venmo'  ? 'selected' : '' }}>Venmo</option>
+                                <option value="zelle"  {{ $pendingMethod === 'zelle'  ? 'selected' : '' }}>Zelle</option>
+                                <option value="cash"   {{ $pendingMethod === 'cash'   ? 'selected' : '' }}>Cash</option>
+                                <option value="other"  {{ $pendingMethod === 'other'  ? 'selected' : '' }}>Other</option>
+                            </select>
+                        </div>
 
-                        <div class="space-y-2 p-5">
+                        <div class="space-y-2">
                             <label class="label-premium">Note (optional)</label>
                             <input type="text" name="note" maxlength="255" class="input-premium"
                                    placeholder="e.g. transaction ref or memo">
@@ -225,9 +244,6 @@
                             Confirm Payment &amp; Apply Credits
                         </button>
                     </form>
-                    @else
-                    <p class="text-xs text-slate-400">Client hasn't submitted a payment notification yet.</p>
-                    @endif
                 </div>
                 @endif
             </div>
