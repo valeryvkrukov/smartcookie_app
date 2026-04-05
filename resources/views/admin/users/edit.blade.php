@@ -175,7 +175,7 @@
 
                 {{-- Current balance --}}
                 <div class="bg-white p-6 rounded-[2.5rem] border border-slate-100 shadow-xl mt-6">
-                    <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Credit Balance</p>
+                    <p class="label-premium mb-1">Credit Balance</p>
                     <p class="text-4xl font-black text-indigo-600">{{ number_format($user->credit?->credit_balance ?? 0, 2) }}</p>
                 </div>
 
@@ -184,9 +184,9 @@
                     <div class="flex items-center gap-2 mb-5">
                         @if($pendingAmount)
                             <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                            <p class="text-[8px] font-black text-amber-600 uppercase tracking-widest">Pending Payment</p>
+                            <p class="label-premium !text-amber-600">Pending Payment</p>
                         @else
-                            <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest">No Pending Payment</p>
+                            <p class="label-premium">No Pending Payment</p>
                         @endif
                     </div>
 
@@ -196,18 +196,18 @@
 
                         <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-2xl">
                             <div>
-                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Amount</p>
+                                <p class="label-premium mb-1">Amount</p>
                                 <p class="text-2xl font-black text-slate-800">${{ number_format($pendingAmount, 2) }}</p>
                             </div>
                             <div>
-                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Credits</p>
+                                <p class="label-premium mb-1">Credits</p>
                                 <p class="text-2xl font-black text-indigo-600">{{ $pendingCredits ?? '—' }}</p>
                                 @if($rate)
                                     <p class="text-[8px] text-slate-400">@ ${{ $rate }}/cr</p>
                                 @endif
                             </div>
                             <div>
-                                <p class="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">Method</p>
+                                <p class="label-premium mb-1">Method</p>
                                 <p class="text-2xl font-black text-slate-800 capitalize">{{ $pendingMethod }}</p>
                             </div>
                         </div>
