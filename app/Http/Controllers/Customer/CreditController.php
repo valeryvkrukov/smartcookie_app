@@ -40,7 +40,7 @@ class CreditController extends Controller
             'zelle' => [
                 'phone'  => $zellePhone,
                 'note'   => config('payments.zelle.note'),
-                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' . urlencode($zellePhone),
+                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&charset-source=UTF-8&data=' . urlencode($zellePhone),
             ],
         ];
 

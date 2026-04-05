@@ -178,20 +178,7 @@
                         </div>
 
                         {{-- VENMO --}}
-                        <div x-data="{ showQr: false, qrUrl: '' }"
-                             x-init="(() => {
-                                const recipient = $el.dataset.recipient;
-                                const note      = $el.dataset.note;
-                                const rate      = {{ (float)($ratePerCredit ?? 0) }};
-                                const buildUrl  = (pack) => {
-                                    const deep = 'venmo://paycharge?txn=pay&recipients=' + recipient + '&note=' + encodeURIComponent(note) + '&amount=' + (pack * rate).toFixed(2);
-                                    return 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(deep);
-                                };
-                                qrUrl = buildUrl({{ $isFirstPurchase ? 1 : 4 }});
-                                $watch('selectedPack', pack => { qrUrl = buildUrl(pack); });
-                             })()"
-                             data-recipient="{{ ltrim($paymentMethods['venmo']['username'], '@') }}"
-                             data-note="{{ $paymentMethods['venmo']['note'] }}"
+                        <div x-data="{ showQr: false }"
                              class="p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 flex flex-col min-h-[260px]">
 
                             {{-- DEFAULT VIEW --}}
@@ -216,7 +203,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an empty-data fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="qrUrl"
+                                    <img :src="window.PaymentConfig.venmoQrUrl(selectedPack)"
                                          alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
                                     <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
                                     <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
@@ -230,9 +217,7 @@
                         </div>
 
                         {{-- ZELLE --}}
-                        <div x-data="{ showQr: false, qrUrl: '' }"
-                             x-init="qrUrl = $el.dataset.qrUrl"
-                             data-qr-url="{{ $paymentMethods['zelle']['qr_url'] }}"
+                        <div x-data="{ showQr: false }"
                              class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col min-h-[260px]">
 
                             {{-- DEFAULT VIEW --}}
@@ -264,7 +249,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an early fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img :src="qrUrl"
+                                    <img :src="window.PaymentConfig.zelleQrUrl"
                                          alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
                                     <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
@@ -303,4 +288,20 @@
         @endif
 
     </div>
+@push('scripts')
+<script>
+window.PaymentConfig = {
+    zelleQrUrl: @json($paymentMethods['zelle']['qr_url']),
+    venmoRecipient: @json(ltrim($paymentMethods['venmo']['username'], '@')),
+    venmoNote: @json($paymentMethods['venmo']['note']),
+    venmoRate: {{ (float)($ratePerCredit ?? 0) }},
+    venmoQrUrl: function(pack) {
+        var deep = 'venmo://paycharge?txn=pay&recipients=' + this.venmoRecipient
+            + '&note=' + encodeURIComponent(this.venmoNote)
+            + '&amount=' + (pack * this.venmoRate).toFixed(2);
+        return 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&charset-source=UTF-8&data=' + encodeURIComponent(deep);
+    }
+};
+</script>
+@endpush
 </x-app-layout>
