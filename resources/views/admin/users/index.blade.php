@@ -8,9 +8,9 @@
         </div>
         <div class="flex-1">
             <p class="text-xs font-black text-amber-800">{{ $pendingCount }} {{ Str::plural('client', $pendingCount) }} awaiting payment confirmation</p>
-            <p class="text-[9px] text-amber-600 mt-0.5">Review and apply their credits via the filter below.</p>
+            <p class="text-[9px] text-amber-600 mt-0.5">Look for the amber badge on client cards below.</p>
         </div>
-        <a href="{{ route('admin.users.index', ['pending' => 1]) }}"
+        <a href="{{ route('admin.users.index', ['role' => 'customer']) }}"
            class="px-4 py-2 bg-amber-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-amber-600 transition-colors whitespace-nowrap">
             View Pending
         </a>
@@ -24,20 +24,10 @@
             <div class="flex bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
                 @foreach(['all' => 'All', 'admin' => 'Admins', 'tutor' => 'Tutors', 'customer' => 'Clients', 'student' => 'Students'] as $val => $label)
                     <a href="{{ route('admin.users.index', ['role' => $val == 'all' ? '' : $val]) }}" 
-                       class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ (request('role') == $val || (request('role') == '' && $val == 'all' && !request('pending'))) ? 'bg-[#212120] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600' }}">
+                       class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ (request('role') == $val || (request('role') == '' && $val == 'all')) ? 'bg-[#212120] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600' }}">
                         {{ $label }}
                     </a>
                 @endforeach
-                {{-- Pending Payments tab --}}
-                <a href="{{ route('admin.users.index', ['pending' => 1]) }}"
-                   class="relative px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap {{ request('pending') ? 'bg-amber-500 text-white shadow-lg' : 'text-amber-500 hover:text-amber-700' }}">
-                    Pending Payment
-                    @if($pendingCount > 0)
-                    <span class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-rose-500 text-white text-[7px] font-black rounded-full flex items-center justify-center">
-                        {{ $pendingCount }}
-                    </span>
-                    @endif
-                </a>
             </div>
 
             <!-- Search -->

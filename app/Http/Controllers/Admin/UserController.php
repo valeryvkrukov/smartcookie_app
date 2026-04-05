@@ -25,12 +25,6 @@ class UserController extends Controller
             $query->where('role', $role);
         }
 
-        // ── Special filter: customers with a pending (unconfirmed) manual payment
-        if ($request->input('pending') === '1') {
-            $query->where('role', 'customer')
-                  ->whereHas('credit', fn($q) => $q->whereNotNull('pending_payment_amount'));
-        }
-
         if ($search = $request->input('search')) {
             $query->where(function($q) use ($search) {
                 $q->where('first_name', 'like', "%{$search}%")
