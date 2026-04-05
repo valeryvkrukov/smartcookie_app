@@ -28,7 +28,7 @@ class AgreementController extends Controller
                 $query->where('status', $request->status);
             }
 
-            $requests = $query->latest('signed_at')->paginate(15)->withQueryString();
+            $requests = $query->latest('signed_at')->paginate(config('app.pagination_num', 12))->withQueryString();
 
             return view('admin.agreements.index', compact('requests'));
         }

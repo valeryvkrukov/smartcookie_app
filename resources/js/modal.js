@@ -33,6 +33,14 @@ window.submitModalForm = function(buttonElement) {
                 window.location.reload();
             }
         } else {
+            // ── Stale event: the session no longer exists (deleted elsewhere).
+            // Refetch calendar to remove the ghost event and close the modal.
+            if (response.status === 404) {
+                window.dispatchEvent(new CustomEvent('close-modal'));
+                if (window.calendar) window.calendar.refetchEvents();
+                return;
+            }
+
             // ── Error: dispatch server message or generic validation fallback
             window.dispatchEvent(new CustomEvent('set-error', {
                 detail: { message: data.message || 'Validation error' }

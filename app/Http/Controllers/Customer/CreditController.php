@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\CreditPurchase;
 use App\Models\User;
 use App\Notifications\CreditBalanceChanged;
-use App\Notifications\CreditsPurchased;
 use App\Notifications\FirstCreditPurchase;
 use App\Notifications\LowCreditBalance;
 use Illuminate\Http\Request;
@@ -189,36 +188,6 @@ class CreditController extends Controller
             Notification::send($admins, new FirstCreditPurchase($user, $creditsPurchased, $totalPaid));
         }
 
-        // 4. Notify assigned tutors to schedule sessions
-        $this->notifyAssignedTutors($user, $creditsPurchased);
-
         return redirect()->route('customer.credits.index')->with('success', 'Credits added successfully!');
-    }
-
-    /**
-     * Find all tutors assigned to any of this client's students and notify them.
-     */
-    private function notifyAssignedTutors(User $client, float $creditsPurchased): void
-    {
-        $studentIds = $client->students()->pluck('id');
-
-        if ($studentIds->isEmpty()) {
-            return;
-        }
-
-        $tutorIds = \Illuminate\Support\Facades\DB::table('tutor_student_assignments')
-            ->whereIn('student_id', $studentIds)
-            ->pluck('tutor_id')
-            ->unique();
-
-        if ($tutorIds->isEmpty()) {
-            return;
-        }
-
-        $tutors = User::whereIn('id', $tutorIds)->get();
-
-        foreach ($tutors as $tutor) {
-            $tutor->notify(new CreditsPurchased($client, $creditsPurchased));
-        }
     }
 }

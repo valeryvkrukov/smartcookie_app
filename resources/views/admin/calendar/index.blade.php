@@ -105,6 +105,13 @@
             filterEl.addEventListener('change', function() {
                 window.calendar.refetchEvents();
             });
+
+            // ── Auto-refresh: re-fetch events every 2 minutes so credit colour
+            // changes (e.g. after a top-up) and session deletions made elsewhere
+            // are reflected without a full page reload.
+            setInterval(function() {
+                window.calendar.refetchEvents();
+            }, 120000);
         });
     </script>
     @endpush

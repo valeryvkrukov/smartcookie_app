@@ -123,4 +123,15 @@ return [
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Pagination
+    |--------------------------------------------------------------------------
+    |
+    | Default number of items per page used across all paginated queries.
+    | Override with APP_PAGINATION_NUM in your .env file.
+    |
+    */
+    'pagination_num' => (int) env('APP_PAGINATION_NUM', 12),
+
 ];

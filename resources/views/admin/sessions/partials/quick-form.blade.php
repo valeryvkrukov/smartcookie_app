@@ -103,6 +103,37 @@
             </template>
         </div>
 
+        <!-- Recurring series edit option — only shown when editing a recurring session -->
+        <template x-if="isEdit && isRecurring">
+            <div x-data="{ updateSeries: false }">
+                <input type="hidden" name="update_series" :value="updateSeries ? '1' : ''">
+                <div class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 space-y-3">
+                    <p class="text-[9px] font-black uppercase tracking-widest text-amber-700">
+                        <i class="ti-reload mr-1"></i> Recurring session
+                    </p>
+                    <div class="flex gap-2">
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" :checked="!updateSeries" @change="updateSeries = false" class="sr-only">
+                            <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                                 :class="!updateSeries ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'">
+                                Only this session
+                            </div>
+                        </label>
+                        <label class="flex-1 cursor-pointer">
+                            <input type="radio" :checked="updateSeries" @change="updateSeries = true" class="sr-only">
+                            <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                                 :class="updateSeries ? 'bg-amber-500 text-white shadow' : 'text-slate-400 hover:text-slate-600'">
+                                All future sessions
+                            </div>
+                        </label>
+                    </div>
+                    <p x-show="updateSeries" class="text-[9px] text-amber-600 leading-relaxed">
+                        Changing the date will shift all future sessions by the same number of days.
+                    </p>
+                </div>
+            </div>
+        </template>
+
         <button type="button" @click="submitModalForm($el)" class="btn-primary">
             <span x-text="isEdit ? 'Update Session' : 'Create Session'"></span>
         </button>

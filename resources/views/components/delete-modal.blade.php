@@ -36,9 +36,15 @@
             if (data.success) {
                 this.open = false;
                 if (window.calendar) window.calendar.refetchEvents();
+            } else {
+                this.open = false;
+                if (window.calendar) window.calendar.refetchEvents();
             }
         })
-        .catch(() => {});
+        .catch(() => {
+            this.open = false;
+            if (window.calendar) window.calendar.refetchEvents();
+        });
     }
 }"
      @confirm-delete.window="open = true; name = ($event.detail && $event.detail.name) ? $event.detail.name : ''; formId = ($event.detail && $event.detail.formId) ? $event.detail.formId : null; isRecurring = ($event.detail && $event.detail.isRecurring) ? $event.detail.isRecurring : false; useAjax = ($event.detail && $event.detail.useAjax) ? true : false"

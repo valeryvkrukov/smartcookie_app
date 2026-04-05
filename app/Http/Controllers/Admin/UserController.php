@@ -28,7 +28,7 @@ class UserController extends Controller
             });
         }
 
-        $users = $query->orderBy('last_name')->paginate(12)->withQueryString();
+        $users = $query->orderBy('last_name')->paginate(config('app.pagination_num', 12))->withQueryString();
 
         return view('admin.users.index', compact('users'));
     }

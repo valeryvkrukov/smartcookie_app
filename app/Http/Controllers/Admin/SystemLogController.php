@@ -49,7 +49,7 @@ class SystemLogController extends Controller
             });
         }
 
-        $logs = $query->paginate(50)->withQueryString();
+        $logs = $query->paginate(config('app.pagination_num', 12))->withQueryString();
 
         // ── Payload: data already cast to array by DatabaseNotification
         $logs->each(function ($n) {

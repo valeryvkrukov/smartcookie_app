@@ -22,7 +22,7 @@ class TimesheetController extends Controller
         $sessions = \App\Models\TutoringSession::where('tutor_id', $tutorId)
             ->with('student')
             ->orderBy('date', 'desc')
-            ->paginate(15);
+            ->paginate(config('app.pagination_num', 12));
 
         // ── Pending sessions: past sessions not yet logged or completed
         // ── Note: using direct condition instead of a named scope
@@ -38,8 +38,8 @@ class TimesheetController extends Controller
     {
         $session = TutoringSession::with(['student.parent.credit', 'student.credit'])->findOrFail($request->session_id);
 
-        // ── Guard: reject if session has already been billed
-        if ($session->status === 'Billed') {
+        // ── Guard: reject if session has already been billed or completed
+        if (in_array($session->status, ['Billed', 'Completed'])) {
             return back()->with('error', 'This session has already been logged.');
         }
 

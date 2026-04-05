@@ -67,17 +67,55 @@ class SessionController extends Controller
         $timeString = $request->time_h . ':' . $request->time_m . ' ' . $request->time_ampm;
         $startTime = Carbon::parse($timeString)->format('H:i:s');
 
-        $session->update([
-            'tutor_id'     => $request->tutor_id,
-            'student_id'   => $request->student_id,
-            'subject'      => $request->subject,
-            'date'         => $request->date,
-            'start_time'   => $startTime,
-            'duration'     => $request->duration,
-            'location'     => $request->location ?: null,
-            'is_initial'   => $request->boolean('is_initial'),
-            'recurs_weekly'=> $request->boolean('recurs_weekly'),
-        ]);
+        $updateSeries = $request->input('update_series') === '1';
+
+        if ($updateSeries && $session->recurring_id) {
+            $futureSessions = TutoringSession::where('recurring_id', $session->recurring_id)
+                ->where('date', '>=', $session->date)
+                ->where('status', 'Scheduled')
+                ->get();
+
+            $daysDiff = (int) Carbon::parse($session->date->format('Y-m-d'))
+                          ->diffInDays(Carbon::parse($data['date']), false);
+
+            foreach ($futureSessions as $s) {
+                $newDate = $s->date->copy()->addDays($daysDiff);
+                if ($this->sessionService->hasConflict(
+                    $data['tutor_id'], $newDate->format('Y-m-d'), $startTime, $data['duration'],
+                    null, $session->recurring_id
+                )) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Time conflict on {$newDate->format('M d')}: another session already scheduled at that time.",
+                    ], 422);
+                }
+            }
+
+            foreach ($futureSessions as $s) {
+                $s->update([
+                    'tutor_id'   => $data['tutor_id'],
+                    'student_id' => $data['student_id'],
+                    'subject'    => $data['subject'],
+                    'date'       => $s->date->copy()->addDays($daysDiff)->format('Y-m-d'),
+                    'start_time' => $startTime,
+                    'duration'   => $data['duration'],
+                    'location'   => $data['location'] ?? null,
+                ]);
+            }
+        } else {
+            $session->update([
+                'tutor_id'     => $request->tutor_id,
+                'student_id'   => $request->student_id,
+                'subject'      => $request->subject,
+                'date'         => $request->date,
+                'start_time'   => $startTime,
+                'duration'     => $request->duration,
+                'location'     => $request->location ?: null,
+                'is_initial'   => $request->boolean('is_initial'),
+                'recurs_weekly'=> $request->boolean('recurs_weekly'),
+                'recurring_id' => null,
+            ]);
+        }
 
         $session->refresh()->loadMissing('student.parent', 'tutor');
 
