@@ -106,10 +106,14 @@ class CreditController extends Controller
                 ],
             ]);
 
-            return redirect()->route('customer.credits.index')
-                ->with('stripe_checkout_url', $checkout_session->url)
-                ->with('stripe_checkout_amount', number_format($creditsRequested * $ratePerCredit, 2))
-                ->with('stripe_checkout_credits', $creditsRequested);
+            if ($request->boolean('prefer_qr')) {
+                return redirect()->route('customer.credits.index')
+                    ->with('stripe_checkout_url', $checkout_session->url)
+                    ->with('stripe_checkout_amount', number_format($creditsRequested * $ratePerCredit, 2))
+                    ->with('stripe_checkout_credits', $creditsRequested);
+            }
+
+            return redirect($checkout_session->url);
         }
 
         if ($data['payment_method'] === 'venmo') {

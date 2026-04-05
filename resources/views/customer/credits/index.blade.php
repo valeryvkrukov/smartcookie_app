@@ -133,21 +133,40 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                         {{-- STRIPE --}}
-                        <form action="{{ route('customer.credits.purchase') }}" method="POST">
-                            @csrf
-                            <input type="hidden" name="payment_method" value="stripe">
-                            @if(!$isFirstPurchase)
-                                <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
-                            @endif
-                            <button type="submit"
-                                    class="w-full text-left p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 group">
-                                <div class="w-12 h-12 bg-indigo-600 text-white rounded-[1.2rem] flex items-center justify-center text-2xl mb-6 shadow-lg shadow-indigo-200">
-                                    <i class="ti-credit-card"></i>
-                                </div>
-                                <h4 class="text-lg font-black text-slate-900 tracking-tight">Card / Apple Pay</h4>
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">via Stripe &nbsp;<i class="ti-arrow-right group-hover:translate-x-1 transition-transform inline-block"></i></p>
-                            </button>
-                        </form>
+                        <div class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col min-h-[260px]">
+                            <div class="w-12 h-12 bg-indigo-600 text-white rounded-[1.2rem] flex items-center justify-center text-2xl mb-6 shadow-lg shadow-indigo-200">
+                                <i class="ti-credit-card"></i>
+                            </div>
+                            <h4 class="text-lg font-black text-slate-900 tracking-tight">Card / Apple Pay</h4>
+                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">via Stripe</p>
+                            <div class="flex gap-3 mt-auto pt-6">
+                                {{-- Go to checkout directly --}}
+                                <form action="{{ route('customer.credits.purchase') }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <input type="hidden" name="payment_method" value="stripe">
+                                    @if(!$isFirstPurchase)
+                                        <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
+                                    @endif
+                                    <button type="submit"
+                                            class="w-full py-3 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors">
+                                        Pay Now
+                                    </button>
+                                </form>
+                                {{-- Generate QR: posts same route with prefer_qr flag, flashes URL back --}}
+                                <form action="{{ route('customer.credits.purchase') }}" method="POST" class="flex-1">
+                                    @csrf
+                                    <input type="hidden" name="payment_method" value="stripe">
+                                    <input type="hidden" name="prefer_qr" value="1">
+                                    @if(!$isFirstPurchase)
+                                        <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
+                                    @endif
+                                    <button type="submit"
+                                            class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors">
+                                        Show QR
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
 
                         {{-- VENMO --}}
                         <div x-data="{ showQr: false }" class="p-8 bg-[#3d95ce] rounded-[2.5rem] text-white shadow-xl shadow-sky-200/50 flex flex-col min-h-[260px]">
@@ -171,17 +190,19 @@
                                 </div>
                             </div>
 
-                            {{-- QR VIEW --}}
-                            <div x-show="showQr" class="flex flex-col items-center text-center">
-                                <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent('venmo://paycharge?txn=pay&recipients={{ ltrim($paymentMethods['venmo']['username'], '@') }}&note={{ rawurlencode($paymentMethods['venmo']['note']) }}&amount=' + (selectedPack * {{ (float)($ratePerCredit ?? 0) }}).toFixed(2))"
-                                     alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
-                                <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
-                                <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
-                                <button type="button" @click="showQr = false"
-                                        class="mt-4 text-[9px] font-black uppercase tracking-widest text-sky-100/60 hover:text-white transition-colors">
-                                    &larr; Back
-                                </button>
-                            </div>
+                            {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an empty-data fetch --}}
+                            <template x-if="showQr">
+                                <div class="flex flex-col items-center text-center">
+                                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent('venmo://paycharge?txn=pay&recipients={{ ltrim($paymentMethods['venmo']['username'], '@') }}&note={{ rawurlencode($paymentMethods['venmo']['note']) }}&amount=' + (selectedPack * {{ (float)($ratePerCredit ?? 0) }}).toFixed(2))"
+                                         alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
+                                    <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
+                                    <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
+                                    <button type="button" @click="showQr = false"
+                                            class="mt-4 text-[9px] font-black uppercase tracking-widest text-sky-100/60 hover:text-white transition-colors">
+                                        &larr; Back
+                                    </button>
+                                </div>
+                            </template>
 
                         </div>
 
@@ -214,17 +235,19 @@
                                 </div>
                             </div>
 
-                            {{-- QR VIEW --}}
-                            <div x-show="showQr" class="flex flex-col items-center text-center">
-                                <img src="{{ $paymentMethods['zelle']['qr_url'] }}"
-                                     alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
-                                <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
-                                <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
-                                <button type="button" @click="showQr = false"
-                                        class="mt-4 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
-                                    &larr; Back
-                                </button>
-                            </div>
+                            {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an early fetch --}}
+                            <template x-if="showQr">
+                                <div class="flex flex-col items-center text-center">
+                                    <img src="{{ $paymentMethods['zelle']['qr_url'] }}"
+                                         alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
+                                    <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
+                                    <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
+                                    <button type="button" @click="showQr = false"
+                                            class="mt-4 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
+                                        &larr; Back
+                                    </button>
+                                </div>
+                            </template>
 
                         </div>
 
