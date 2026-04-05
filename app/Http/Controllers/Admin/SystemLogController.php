@@ -8,15 +8,14 @@ use Illuminate\Notifications\DatabaseNotification;
 
 class SystemLogController extends Controller
 {
-    /** Map short filter key → partial class name */
+    /** Map short filter key → partial class name(s) */
     private const TYPE_MAP = [
         'registration'      => 'NewClientRegistered',
         'welcome'           => 'WelcomeCustomerRegistered',
         'session_new'       => 'SessionScheduled',
         'session_update'    => 'SessionUpdated',
         'session_completed' => 'SessionCompleted',
-        'payment'           => 'CreditBalanceChanged',
-        'manual_payment'    => 'ManualPaymentConfirmed',
+        'payment'           => ['CreditBalanceChanged', 'ManualPaymentConfirmed'],
     ];
 
     public function index(Request $request)
@@ -29,7 +28,12 @@ class SystemLogController extends Controller
             ->orderBy('created_at', 'desc');
 
         if ($typeFilter !== 'all' && isset(self::TYPE_MAP[$typeFilter])) {
-            $query->where('type', 'like', '%' . self::TYPE_MAP[$typeFilter] . '%');
+            $classes = (array) self::TYPE_MAP[$typeFilter];
+            $query->where(function ($q) use ($classes) {
+                foreach ($classes as $class) {
+                    $q->orWhere('type', 'like', '%' . $class . '%');
+                }
+            });
         }
 
         if ($readFilter === 'unread') {
@@ -68,8 +72,7 @@ class SystemLogController extends Controller
             'session_new'       => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%SessionScheduled%')->count(),
             'session_update'    => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%SessionUpdated%')->count(),
             'session_completed' => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%SessionCompleted%')->count(),
-            'payment'           => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%CreditBalanceChanged%')->count(),
-            'manual_payment'    => DatabaseNotification::whereNull('read_at')->where('type', 'like', '%ManualPaymentConfirmed%')->count(),
+            'payment'           => DatabaseNotification::whereNull('read_at')->where(function ($q) { $q->where('type', 'like', '%CreditBalanceChanged%')->orWhere('type', 'like', '%ManualPaymentConfirmed%'); })->count(),
         ];
 
         return view('admin.system-logs.index', compact('logs', 'typeFilter', 'counts', 'readFilter', 'search'));
@@ -94,7 +97,12 @@ class SystemLogController extends Controller
         $query = DatabaseNotification::whereNull('read_at');
 
         if ($typeFilter !== 'all' && isset(self::TYPE_MAP[$typeFilter])) {
-            $query->where('type', 'like', '%' . self::TYPE_MAP[$typeFilter] . '%');
+            $classes = (array) self::TYPE_MAP[$typeFilter];
+            $query->where(function ($q) use ($classes) {
+                foreach ($classes as $class) {
+                    $q->orWhere('type', 'like', '%' . $class . '%');
+                }
+            });
         }
 
         if ($search !== '') {
