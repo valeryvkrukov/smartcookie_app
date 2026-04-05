@@ -163,6 +163,7 @@
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
                                     <img :src="qrUrl" alt="Stripe QR" class="w-52 h-52 rounded-2xl border border-slate-100 p-2" />
+                                    <p class="text-sm font-black mt-4">&nbsp;</p>
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-2">Scan on your phone</p>
                                     <button type="button" @click="showQr = false; qrUrl = ''; checkoutUrl = '';"
                                             class="mt-3 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
