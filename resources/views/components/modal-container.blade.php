@@ -341,6 +341,111 @@
                     </form>
                 </div>
             </template>
+            <template x-if="type === 'session-adhoc-log'">
+                <div x-data="{ students: window.assignedStudents || [] }">
+                    <div x-show="errorMessage"
+                         x-transition
+                         class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"
+                         style="display: none;">
+                        <i class="ti-alert text-lg"></i>
+                        <span class="text-[10px] font-black uppercase tracking-widest" x-text="errorMessage"></span>
+                    </div>
+
+                    <form action="{{ route('tutor.timesheets.adhoc') }}" method="POST" class="space-y-5">
+                        @csrf
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Student</label>
+                            <select name="student_id" required
+                                    class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800">
+                                <option value="">— Select student —</option>
+                                <template x-for="s in students" :key="s.id">
+                                    <option :value="s.id" x-text="s.first_name + ' ' + s.last_name"></option>
+                                </template>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Subject</label>
+                            <input type="text" name="subject" required maxlength="255"
+                                   placeholder="e.g. SAT Math"
+                                   class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Date</label>
+                                <input type="date" name="date" required
+                                       max="{{ now()->format('Y-m-d') }}"
+                                       class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Start Time</label>
+                                <input type="time" name="start_time" required
+                                       class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duration</label>
+                            <select name="duration" required
+                                    class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800">
+                                <option value="0:30">30 min (0.5 credit)</option>
+                                <option value="1:00" selected>1 hour (1 credit)</option>
+                                <option value="1:30">1.5 hours (1.5 credits)</option>
+                                <option value="2:00">2 hours (2 credits)</option>
+                                <option value="2:30">2.5 hours (2.5 credits)</option>
+                                <option value="3:00">3 hours (3 credits)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Session Report</label>
+                            <textarea name="tutor_notes" rows="5" required minlength="10"
+                                placeholder="Describe what was covered, student progress, homework assigned..."
+                                class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800 resize-none"></textarea>
+                            <p class="text-[9px] text-slate-300 mt-1 ml-1 italic">Minimum 10 characters.</p>
+                        </div>
+
+                        <button type="button"
+                            @click="
+                                $el.disabled = true;
+                                const origHtml = $el.innerHTML;
+                                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\' style=\'display:inline-block;line-height:1\'></i> SAVING...</span>';
+
+                                const form = $el.closest('form');
+                                const formData = new FormData(form);
+                                fetch(form.action, {
+                                    method: 'POST',
+                                    body: formData,
+                                    headers: {
+                                        'X-Requested-With': 'XMLHttpRequest',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                .then(r => r.json().then(d => ({ status: r.status, body: d })))
+                                .then(res => {
+                                    if (res.status === 200 && res.body.success) {
+                                        open = false;
+                                        window.location.reload();
+                                    } else {
+                                        $dispatch('set-error', { message: res.body.message || 'Error occurred' });
+                                        $el.disabled = false;
+                                        $el.innerHTML = origHtml;
+                                    }
+                                })
+                                .catch(() => {
+                                    $dispatch('set-error', { message: 'Connection error' });
+                                    $el.disabled = false;
+                                    $el.innerHTML = origHtml;
+                                })
+                            "
+                            class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-black active:scale-[0.98] transition-all">
+                            Log &amp; Bill Session
+                        </button>
+                    </form>
+                </div>
+            </template>
             <template x-if="type === 'session-log'">
                 <div>
                     <div x-show="errorMessage"

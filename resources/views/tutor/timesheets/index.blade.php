@@ -3,6 +3,15 @@
 
     <div class="max-w-6xl mx-auto space-y-10">
         
+        <!-- HEADER: title + log unscheduled button -->
+        <div class="flex items-center justify-between">
+            <div></div>
+            <button onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { type: 'session-adhoc-log', title: 'Log Unscheduled Session' } }))"
+                    class="px-6 py-3 bg-[#212120] text-white rounded-2xl text-[9px] font-black uppercase tracking-widest shadow-lg hover:bg-black transition-all">
+                <i class="ti-plus mr-2"></i> Log Unscheduled Session
+            </button>
+        </div>
+
         <!-- ALERT: Pending Logs (Modern Design) -->
         @if($pendingSessions->count() > 0)
         <div class="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 flex items-center justify-between">
@@ -71,4 +80,10 @@
             </table>
         </div>
     </div>
+
+    @push('scripts')
+    <script>
+        window.assignedStudents = @json($assignedStudents);
+    </script>
+    @endpush
 </x-app-layout>

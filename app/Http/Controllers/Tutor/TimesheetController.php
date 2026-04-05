@@ -31,7 +31,12 @@ class TimesheetController extends Controller
             ->where('status', '!=', 'completed')
             ->get();
 
-        return view('tutor.timesheets.index', compact('sessions', 'pendingSessions'));
+        // ── Assigned students: available for ad-hoc session logging
+        $assignedStudents = auth()->user()->assignedStudents()
+            ->orderBy('first_name')
+            ->get(['users.id', 'users.first_name', 'users.last_name']);
+
+        return view('tutor.timesheets.index', compact('sessions', 'pendingSessions', 'assignedStudents'));
     }
 
     public function store(Request $request)
@@ -169,6 +174,103 @@ class TimesheetController extends Controller
             ));
 
             // ── Low balance: notify client when balance drops to 0.5 credits or below
+            $balanceAfter = (float) $parent->credit->credit_balance;
+            if ($balanceAfter <= 0.5 && ($balanceAfter + $creditsNeeded) >= 0.5) {
+                $parent->notify(new LowCreditBalance($balanceAfter));
+            }
+
+            $admins = User::where('is_admin', true)->get();
+            Notification::send($admins, new SessionCompleted($session));
+
+            return response()->json(['success' => true]);
+        });
+    }
+
+    public function logAdHoc(Request $request)
+    {
+        $tutorId = auth()->id();
+
+        $validated = $request->validate([
+            'student_id'  => 'required|integer|exists:users,id',
+            'subject'     => 'required|string|max:255',
+            'date'        => 'required|date|before_or_equal:today',
+            'start_time'  => 'required|date_format:H:i',
+            'duration'    => 'required|in:0:30,1:00,1:30,2:00,2:30,3:00',
+            'tutor_notes' => 'required|string|min:10|max:3000',
+        ]);
+
+        // ── Authorization: student must be assigned to this tutor
+        $assignment = DB::table('tutor_student_assignments')
+            ->where('tutor_id', $tutorId)
+            ->where('student_id', $validated['student_id'])
+            ->first();
+
+        if (! $assignment) {
+            return response()->json(['success' => false, 'message' => 'This student is not assigned to you.'], 403);
+        }
+
+        // ── Guard: session end must already be in the past
+        $tutorTz = auth()->user()->time_zone ?? 'UTC';
+        [$dh, $dm] = explode(':', $validated['duration']);
+        $sessionEnd = Carbon::createFromFormat(
+            'Y-m-d H:i:s',
+            $validated['date'] . ' ' . $validated['start_time'] . ':00',
+            $tutorTz
+        )->addHours((int) $dh)->addMinutes((int) $dm);
+
+        if ($sessionEnd->isFuture()) {
+            $endsIn = $sessionEnd->diffForHumans(Carbon::now($tutorTz), ['parts' => 1]);
+            return response()->json([
+                'success' => false,
+                'message' => "That session hasn't ended yet — it finishes {$endsIn}.",
+            ], 422);
+        }
+
+        $student = User::with(['parent.credit', 'credit'])->findOrFail($validated['student_id']);
+        $parent  = $student->parent ?? $student;
+
+        $creditsNeeded = Timesheet::calculateCredits($validated['duration']);
+
+        if ($parent->credit->credit_balance < $creditsNeeded) {
+            return response()->json([
+                'success' => false,
+                'message' => "Insufficient credits. Customer has {$parent->credit->credit_balance} credit(s), {$creditsNeeded} required.",
+            ], 422);
+        }
+
+        $payout = $creditsNeeded * ($assignment->hourly_payout ?? 25.00);
+
+        return DB::transaction(function () use ($tutorId, $validated, $parent, $creditsNeeded, $payout) {
+            $session = TutoringSession::create([
+                'tutor_id'    => $tutorId,
+                'student_id'  => $validated['student_id'],
+                'subject'     => $validated['subject'],
+                'date'        => $validated['date'],
+                'start_time'  => $validated['start_time'] . ':00',
+                'duration'    => $validated['duration'],
+                'status'      => 'Completed',
+                'tutor_notes' => $validated['tutor_notes'],
+            ]);
+
+            $parent->credit->decrement('credit_balance', $creditsNeeded);
+            $parent->credit->refresh();
+
+            Timesheet::create([
+                'tutoring_session_id' => $session->id,
+                'tutor_id'            => $tutorId,
+                'parent_id'           => $parent->id,
+                'credits_spent'       => $creditsNeeded,
+                'tutor_payout'        => $payout,
+                'period'              => now()->day <= 15 ? '1-15' : '16-end',
+            ]);
+
+            $parent->notify(new CreditBalanceChanged(
+                amount: (float) $creditsNeeded,
+                direction: 'debit',
+                balanceAfter: (float) $parent->credit->credit_balance,
+                reason: 'Session completed: ' . $validated['subject'] . ' on ' . $validated['date'],
+            ));
+
             $balanceAfter = (float) $parent->credit->credit_balance;
             if ($balanceAfter <= 0.5 && ($balanceAfter + $creditsNeeded) >= 0.5) {
                 $parent->notify(new LowCreditBalance($balanceAfter));
