@@ -3,6 +3,25 @@
 
     <div class="max-w-5xl mx-auto space-y-12">
 
+        @if(session('stripe_checkout_url'))
+            <div class="p-8 rounded-[2.5rem] bg-indigo-50 border border-indigo-100 shadow-sm">
+                <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em] mb-1">Stripe Checkout Ready</p>
+                <p class="text-sm font-black text-slate-900">{{ session('stripe_checkout_credits') }} credit(s) &mdash; ${{ session('stripe_checkout_amount') }}</p>
+                <div class="mt-6 flex flex-col sm:flex-row items-center gap-8">
+                    <a href="{{ session('stripe_checkout_url') }}"
+                       class="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors text-center">
+                        <i class="ti-credit-card mr-2"></i> Go to Checkout
+                    </a>
+                    <div class="flex flex-col items-center">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode(session('stripe_checkout_url')) }}"
+                             alt="Stripe Checkout QR" class="w-32 h-32 rounded-2xl border border-indigo-100 p-1 bg-white" />
+                        <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Scan on your phone</p>
+                    </div>
+                </div>
+                <p class="mt-4 text-[10px] uppercase tracking-[0.3em] text-slate-400">This link expires after checkout is completed or abandoned.</p>
+            </div>
+        @endif
+
         @if(session('payment_instructions'))
             <div class="p-8 rounded-[2.5rem] bg-emerald-50 border border-emerald-100 shadow-sm">
                 <p class="text-sm font-black text-emerald-900">Payment instructions for {{ session('payment_instructions.method') }}:</p>
