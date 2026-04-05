@@ -170,7 +170,7 @@ class TimesheetController extends Controller
 
             // ── Low balance: notify client when balance drops to 0.5 credits or below
             $balanceAfter = (float) $parent->credit->credit_balance;
-            if ($balanceAfter <= 0.5 && ($balanceAfter + $creditsNeeded) > 0.5) {
+            if ($balanceAfter <= 0.5 && ($balanceAfter + $creditsNeeded) >= 0.5) {
                 $parent->notify(new LowCreditBalance($balanceAfter));
             }
 

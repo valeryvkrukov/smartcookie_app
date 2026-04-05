@@ -150,7 +150,7 @@ class CalendarController extends Controller
             $session->update(['status' => 'Cancelled']);
         }
 
-        if ($session->tutor?->is_subscribed) {
+        if ($session->tutor) {
             $session->tutor->notify(new SessionCancelledByClient($session, $user, $reason));
         }
 

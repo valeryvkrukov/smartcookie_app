@@ -36,6 +36,7 @@
                          data-student="{{ $ns->student?->full_name ?? '' }}"
                          data-location="{{ $ns->location ?? '' }}"
                          data-start="{{ \Carbon\Carbon::parse($ns->start_time)->format('g:i A') }} · {{ $ns->date->format('D, M j, Y') }}"
+                         data-iso="{{ $ns->date->format('Y-m-d') }}T{{ \Carbon\Carbon::parse($ns->start_time)->format('H:i:s') }}"
                          data-duration="{{ $ns->duration }}"
                          data-status="{{ $ns->status }}"
                          data-recurring="{{ $ns->recurring_id ? '1' : '0' }}">
@@ -75,7 +76,7 @@
                         startTime: d.start,
                         duration: d.duration,
                         sessionStatus: d.status,
-                        canCancel: false,
+                        canCancel: d.status === 'Scheduled' && ((new Date(d.iso) - Date.now()) / (1000 * 60 * 60)) > 24,
                         isRecurring: d.recurring === '1',
                         insufficientCredits: false,
                     }}));
