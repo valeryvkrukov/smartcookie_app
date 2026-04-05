@@ -210,17 +210,18 @@
                                 <p class="label-premium mb-1">Method</p>
                                 <p class="text-2xl font-black text-slate-800 capitalize">{{ $pendingMethod }}</p>
                             </div>
-                            <div class="space-y-2">
-                                <label class="label-premium">Note (optional)</label>
-                                <input type="text" name="note" maxlength="255" class="input-premium bg-white"
-                                    placeholder="e.g. transaction ref or memo">
-                            </div>
                         </div>
 
                         <input type="hidden" name="total_paid"     value="{{ $pendingAmount }}">
                         <input type="hidden" name="credits"        value="{{ $pendingCredits ?? 0 }}">
                         <input type="hidden" name="payment_method" value="{{ $pendingMethod }}">
 
+                        <div class="space-y-2">
+                            <label class="label-premium">Note (optional)</label>
+                            <input type="text" name="note" maxlength="255" class="input-premium"
+                                   placeholder="e.g. transaction ref or memo">
+                        </div>
+                        
                         <button type="submit"
                                 class="w-full py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
                             Confirm Payment &amp; Apply Credits
