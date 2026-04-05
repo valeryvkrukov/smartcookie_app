@@ -202,7 +202,7 @@
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
                                     <img :src="venmoQrUrl"
-                                         alt="Venmo QR" class="w-40 h-40 rounded-2xl bg-white p-2" />
+                                         alt="Venmo QR" class="w-52 h-52 rounded-2xl bg-white p-2" />
                                     <p class="text-sm font-black mt-4">{{ $paymentMethods['venmo']['username'] }}</p>
                                     <p class="text-[9px] text-sky-100/60 uppercase tracking-widest mt-1">Scan with Venmo app</p>
                                     <button type="button" @click="showQr = false"
@@ -248,7 +248,7 @@
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
                                     <img src="{{ $paymentMethods['zelle']['qr_url'] }}"
-                                         alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
+                                         alt="Zelle QR" class="w-52 h-52 rounded-2xl border border-slate-100 p-2" />
                                     <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
                                     <button type="button" @click="showQr = false"

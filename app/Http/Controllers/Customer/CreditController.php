@@ -41,7 +41,7 @@ class CreditController extends Controller
             'zelle' => [
                 'phone'  => $zellePhone,
                 'note'   => config('payments.zelle.note'),
-                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&charset-source=UTF-8&data=' . urlencode($zellePhone),
+                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=L&charset-source=UTF-8&data=' . urlencode($zellePhone),
             ],
         ];
 
@@ -54,7 +54,7 @@ class CreditController extends Controller
                     . '&recipients=' . rawurlencode($venmoUser)
                     . '&note='       . rawurlencode($venmoNote)
                     . '&amount='     . number_format($pack * $ratePerCredit, 2, '.', '');
-                $venmoQrUrls[$pack] = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&charset-source=UTF-8&data=' . urlencode($deepLink);
+                $venmoQrUrls[$pack] = 'https://api.qrserver.com/v1/create-qr-code/?size=400x400&ecc=L&charset-source=UTF-8&data=' . urlencode($deepLink);
             }
         }
 
@@ -218,7 +218,14 @@ class CreditController extends Controller
             return redirect()->route('customer.credits.index')->with('success', 'Credits have already been applied.');
         }
 
-        $user = auth()->user();
+        // Resolve user from metadata so this works even when the success URL is
+        // opened on a different device (e.g. phone after scanning a QR code).
+        $metaUserId = $checkoutSession->metadata->user_id ?? null;
+        $user = $metaUserId ? User::find($metaUserId) : auth()->user();
+
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Session expired. Please log in to confirm your credits.');
+        }
 
         // ── Stripe metadata: credit count and purchase type stored when checkout was created
         $creditsPurchased = (float) ($checkoutSession->metadata->credits_purchased ?? 1);
