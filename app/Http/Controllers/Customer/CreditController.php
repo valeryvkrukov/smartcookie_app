@@ -106,13 +106,6 @@ class CreditController extends Controller
                 ],
             ]);
 
-            if ($request->boolean('prefer_qr')) {
-                return redirect()->route('customer.credits.index')
-                    ->with('stripe_checkout_url', $checkout_session->url)
-                    ->with('stripe_checkout_amount', number_format($creditsRequested * $ratePerCredit, 2))
-                    ->with('stripe_checkout_credits', $creditsRequested);
-            }
-
             return redirect($checkout_session->url);
         }
 
@@ -131,6 +124,60 @@ class CreditController extends Controller
                 'amount'  => number_format($creditsRequested * $ratePerCredit, 2),
                 'credits' => $creditsRequested,
             ]);
+    }
+
+    public function stripeCheckoutUrl(Request $request)
+    {
+        $user          = auth()->user();
+        $credit        = $user->credit;
+        $ratePerCredit = $credit?->dollar_cost_per_credit;
+
+        if (!$ratePerCredit) {
+            return response()->json(['error' => 'Rate not set'], 422);
+        }
+
+        $isFirstPurchase = !CreditPurchase::where('user_id', $user->id)->exists();
+
+        if ($isFirstPurchase) {
+            $creditsRequested = 1;
+        } else {
+            $data = $request->validate([
+                'credits' => ['required', Rule::in(self::REPEAT_PACKS)],
+            ]);
+            $creditsRequested = (int) $data['credits'];
+        }
+
+        Stripe::setApiKey(config('services.stripe.secret'));
+
+        $totalCents  = (int) round($creditsRequested * $ratePerCredit * 100);
+        $description = $creditsRequested === 1 ? '1 Tutoring Credit' : "{$creditsRequested} Tutoring Credits";
+
+        $checkout_session = Session::create([
+            'payment_method_types' => ['card'],
+            'line_items' => [[
+                'price_data' => [
+                    'currency'     => config('payments.stripe.currency', 'usd'),
+                    'product_data' => ['name' => $description],
+                    'unit_amount'  => $totalCents,
+                ],
+                'quantity' => 1,
+            ]],
+            'mode'           => 'payment',
+            'success_url'    => route('customer.credits.success') . '?session_id={CHECKOUT_SESSION_ID}',
+            'cancel_url'     => route('customer.credits.index'),
+            'customer_email' => $user->email,
+            'metadata' => [
+                'user_id'           => $user->id,
+                'credits_purchased' => $creditsRequested,
+                'is_first_purchase' => $isFirstPurchase ? '1' : '0',
+            ],
+        ]);
+
+        return response()->json([
+            'url'     => $checkout_session->url,
+            'credits' => $creditsRequested,
+            'amount'  => number_format($creditsRequested * $ratePerCredit, 2),
+        ]);
     }
 
     public function success(Request $request)

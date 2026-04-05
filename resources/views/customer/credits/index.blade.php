@@ -114,39 +114,67 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 
                         {{-- STRIPE --}}
-                        <div class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col min-h-[260px]">
-                            <div class="w-12 h-12 bg-indigo-600 text-white rounded-[1.2rem] flex items-center justify-center text-2xl mb-6 shadow-lg shadow-indigo-200">
-                                <i class="ti-credit-card"></i>
-                            </div>
-                            <h4 class="text-lg font-black text-slate-900 tracking-tight">Card / Apple Pay</h4>
-                            <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">via Stripe</p>
-                            <div class="flex gap-3 mt-auto pt-6">
-                                {{-- Go to checkout directly --}}
-                                <form action="{{ route('customer.credits.purchase') }}" method="POST" class="flex-1">
-                                    @csrf
-                                    <input type="hidden" name="payment_method" value="stripe">
-                                    @if(!$isFirstPurchase)
-                                        <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
-                                    @endif
-                                    <button type="submit"
-                                            class="w-full py-3 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors">
-                                        Pay Now
+                        <div x-data="{ showQr: false, checkoutUrl: '', qrUrl: '', loading: false }" class="p-8 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50 flex flex-col min-h-[260px]">
+
+                            {{-- DEFAULT VIEW --}}
+                            <div x-show="!showQr" class="flex flex-col h-full">
+                                <div class="w-12 h-12 bg-indigo-600 text-white rounded-[1.2rem] flex items-center justify-center text-2xl mb-6 shadow-lg shadow-indigo-200">
+                                    <i class="ti-credit-card"></i>
+                                </div>
+                                <h4 class="text-lg font-black text-slate-900 tracking-tight">Card / Apple Pay</h4>
+                                <p class="text-[10px] text-slate-400 uppercase tracking-widest mt-1">via Stripe</p>
+                                <div class="flex gap-3 mt-auto pt-6">
+                                    <form action="{{ route('customer.credits.purchase') }}" method="POST" class="flex-1">
+                                        @csrf
+                                        <input type="hidden" name="payment_method" value="stripe">
+                                        @if(!$isFirstPurchase)
+                                            <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
+                                        @endif
+                                        <button type="submit"
+                                                class="w-full py-3 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-indigo-700 transition-colors">
+                                            Pay Now
+                                        </button>
+                                    </form>
+                                    <button type="button" :disabled="loading"
+                                            @click="
+                                                loading = true;
+                                                fetch('{{ route('customer.credits.stripe-url') }}', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
+                                                    body: JSON.stringify({ credits: {{ $isFirstPurchase ? 1 : 'null' }} ?? selectedPack })
+                                                })
+                                                .then(r => r.json())
+                                                .then(data => {
+                                                    checkoutUrl = data.url;
+                                                    qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent(data.url);
+                                                    showQr = true;
+                                                    loading = false;
+                                                })
+                                                .catch(() => { loading = false; });
+                                            "
+                                            class="flex-1 py-3 bg-slate-100 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors disabled:opacity-50">
+                                        <span x-show="!loading">Show QR</span>
+                                        <span x-show="loading">...</span>
                                     </button>
-                                </form>
-                                {{-- Generate QR: posts same route with prefer_qr flag, flashes URL back --}}
-                                <form action="{{ route('customer.credits.purchase') }}" method="POST" class="flex-1">
-                                    @csrf
-                                    <input type="hidden" name="payment_method" value="stripe">
-                                    <input type="hidden" name="prefer_qr" value="1">
-                                    @if(!$isFirstPurchase)
-                                        <input type="hidden" name="credits" :value="selectedPack" x-bind:value="selectedPack">
-                                    @endif
-                                    <button type="submit"
-                                            class="w-full py-3 bg-slate-100 text-slate-600 rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-slate-200 transition-colors">
-                                        Show QR
-                                    </button>
-                                </form>
+                                </div>
                             </div>
+
+                            {{-- QR VIEW --}}
+                            <template x-if="showQr">
+                                <div class="flex flex-col items-center text-center">
+                                    <img :src="qrUrl" alt="Stripe QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
+                                    <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-2">Scan on your phone</p>
+                                    <a :href="checkoutUrl"
+                                       class="mt-3 w-full py-3 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest text-center hover:bg-indigo-700 transition-colors">
+                                        <i class="ti-credit-card mr-1"></i> Go to Checkout
+                                    </a>
+                                    <button type="button" @click="showQr = false; qrUrl = ''; checkoutUrl = '';"
+                                            class="mt-3 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">
+                                        &larr; Back
+                                    </button>
+                                </div>
+                            </template>
+
                         </div>
 
                         {{-- VENMO --}}
@@ -219,7 +247,7 @@
                             {{-- QR VIEW: x-if removes the img from DOM until needed, preventing an early fetch --}}
                             <template x-if="showQr">
                                 <div class="flex flex-col items-center text-center">
-                                    <img src="{{ $paymentMethods['zelle']['qr_url'] }}"
+                                    <img :src="'https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=' + encodeURIComponent('{{ $paymentMethods['zelle']['phone'] }}')"
                                          alt="Zelle QR" class="w-40 h-40 rounded-2xl border border-slate-100 p-2" />
                                     <p class="text-sm font-black text-slate-900 mt-4">{{ $paymentMethods['zelle']['phone'] }}</p>
                                     <p class="text-[9px] text-slate-400 uppercase tracking-widest mt-1">Scan to get contact</p>
@@ -234,33 +262,6 @@
 
                     </div>
                 </div>
-
-                {{-- STRIPE QR: shown inline below cards after form submit with prefer_qr flag --}}
-                @if(session('stripe_checkout_url'))
-                <div id="stripe-qr" class="p-8 rounded-[2.5rem] bg-indigo-50 border border-indigo-100">
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-10 h-10 bg-indigo-600 text-white rounded-2xl flex items-center justify-center text-lg shadow-lg shadow-indigo-200">
-                            <i class="ti-credit-card"></i>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">Stripe Checkout Ready</p>
-                            <p class="text-sm font-black text-slate-900">{{ session('stripe_checkout_credits') }} credit(s) &mdash; ${{ session('stripe_checkout_amount') }}</p>
-                        </div>
-                    </div>
-                    <div class="flex flex-col sm:flex-row items-center gap-8">
-                        <a href="{{ session('stripe_checkout_url') }}"
-                           class="w-full sm:w-auto px-8 py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-indigo-200 hover:bg-indigo-700 transition-colors text-center">
-                            <i class="ti-credit-card mr-2"></i> Go to Checkout
-                        </a>
-                        <div class="flex flex-col items-center">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data={{ urlencode(session('stripe_checkout_url')) }}"
-                                 alt="Stripe Checkout QR" class="w-32 h-32 rounded-2xl border border-indigo-100 p-1 bg-white" />
-                            <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-2">Scan on your phone</p>
-                        </div>
-                    </div>
-                    <p class="mt-4 text-[10px] uppercase tracking-[0.3em] text-slate-400">This link expires after checkout is completed or abandoned.</p>
-                </div>
-                @endif
 
                 {{-- HOW CREDITS WORK --}}
                 <div class="bg-slate-50 border border-slate-100 rounded-[2.5rem] p-8 space-y-4">
@@ -285,12 +286,4 @@
         @endif
 
     </div>
-
-    @if(session('stripe_checkout_url'))
-    @push('scripts')
-    <script>
-        document.getElementById('stripe-qr')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    </script>
-    @endpush
-    @endif
 </x-app-layout>

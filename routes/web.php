@@ -56,6 +56,7 @@ Route::middleware(['auth', 'role:customer', 'check.agreements'])->prefix('custom
     // ── Financials: credit purchase and balance routes
     Route::get('/credits', [CustomerCreditController::class, 'index'])->name('credits.index');
     Route::post('/credits/purchase', [CustomerCreditController::class, 'purchase'])->name('credits.purchase');
+    Route::post('/credits/stripe-url', [CustomerCreditController::class, 'stripeCheckoutUrl'])->name('credits.stripe-url');
     Route::get('/credits/success', [CustomerCreditController::class, 'success'])->name('credits.success');
 
     // ── Cancellation: client-initiated session cancel
