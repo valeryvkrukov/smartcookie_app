@@ -236,9 +236,21 @@
             <div class="space-y-8">
                 
                 <!-- Rate/Financial (Admin Only) -->
-                @if($user->role === 'tutor' || $user->role === 'student')
-                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40">
+                @if($user->role === 'customer')
+                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40 mt-4">
                     <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Financial Settings</h3>
+                    <div class="space-y-2">
+                        <label class="label-premium">Rate per Credit ($)</label>
+                        <input type="number" name="dollar_cost_per_credit" step="0.01" min="0"
+                               value="{{ old('dollar_cost_per_credit', $user->credit?->dollar_cost_per_credit) }}"
+                               class="input-premium" placeholder="e.g. 15.00">
+                        <p class="text-[8px] text-slate-400 ml-1">Set to unlock credit purchasing for this client.</p>
+                    </div>
+                </div>
+                @endif
+
+                @if($user->role === 'tutor' || $user->role === 'student')
+                <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl shadow-slate-200/40">                    <h3 class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Financial Settings</h3>
                     
                     @if($user->role === 'tutor')
                         @php $assignments = $user->assignedStudents()->get(); @endphp
