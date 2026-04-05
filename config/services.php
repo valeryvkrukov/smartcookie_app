@@ -40,7 +40,7 @@ return [
     ],
 
     'stripe' => [
-        'key' => env('STRIPE_KEY'),
-        'secret' => env('STRIPE_SECRET'),
+        'key' => env('PAYMENTS_STRIPE_KEY'),
+        'secret' => env('PAYMENTS_STRIPE_SECRET'),
     ],
 ];
