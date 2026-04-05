@@ -216,12 +216,12 @@
                         <input type="hidden" name="credits"        value="{{ $pendingCredits ?? 0 }}">
                         <input type="hidden" name="payment_method" value="{{ $pendingMethod }}">
 
-                        <div class="space-y-2">
+                        <div class="space-y-2 p-5">
                             <label class="label-premium">Note (optional)</label>
                             <input type="text" name="note" maxlength="255" class="input-premium"
                                    placeholder="e.g. transaction ref or memo">
                         </div>
-                        
+
                         <button type="submit"
                                 class="w-full py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
                             Confirm Payment &amp; Apply Credits
