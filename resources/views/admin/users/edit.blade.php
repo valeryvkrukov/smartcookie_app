@@ -100,23 +100,31 @@
 
                     <div class="space-y-4">
                         @forelse($user->subjectRates as $sr)
-                            <div class="flex items-center gap-3 p-4 sm:p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-xl hover:shadow-slate-100 transition-all duration-500">
-                                <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-sm group-hover:text-indigo-600 transition-colors shrink-0">
-                                    <i class="ti-bookmark-alt"></i>
+                            <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 p-4 sm:p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-xl hover:shadow-slate-100 transition-all duration-500">
+                                {{-- Top row: icon + subject name + delete button --}}
+                                <div class="flex items-center gap-3 flex-1 min-w-0">
+                                    <div class="w-9 h-9 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-sm group-hover:text-indigo-600 transition-colors shrink-0">
+                                        <i class="ti-bookmark-alt"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-xs font-black uppercase text-slate-900 tracking-tight truncate">{{ $sr->subject }}</p>
+                                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Fixed hourly rate</p>
+                                    </div>
+                                    {{-- Delete button: always in top row --}}
+                                    <button type="button"
+                                        onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { detail: {
+                                            name: '{{ $sr->subject }} rate',
+                                            formId: 'delete-rate-{{ $sr->id }}'
+                                        }}))"
+                                        class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+                                        <i class="ti-trash"></i>
+                                    </button>
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <p class="text-xs font-black uppercase text-slate-900 tracking-tight truncate">{{ $sr->subject }}</p>
-                                    <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Fixed hourly rate</p>
-                                </div>
-                                <span class="text-sm font-black text-emerald-600 shrink-0">${{ number_format($sr->rate, 2) }}</span>
-                                <button type="button"
-                                    onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { detail: {
-                                        name: '{{ $sr->subject }} rate',
-                                        formId: 'delete-rate-{{ $sr->id }}'
-                                    }}))"
-                                    class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors">
-                                    <i class="ti-trash"></i>
-                                </button>
+                                {{-- Rate value: full-width pill on mobile, inline on sm+ --}}
+                                <span class="sm:shrink-0 flex items-center justify-between sm:justify-end gap-2 px-4 py-2 sm:px-0 sm:py-0 bg-emerald-50 sm:bg-transparent rounded-2xl sm:rounded-none">
+                                    <span class="text-[9px] font-black uppercase tracking-widest text-emerald-700 sm:hidden">Rate</span>
+                                    <span class="text-sm font-black text-emerald-600">${{ number_format($sr->rate, 2) }}</span>
+                                </span>
                                 <form id="delete-rate-{{ $sr->id }}" action="{{ route('admin.subject-rates.destroy', $sr->id) }}" method="POST" class="hidden">
                                     @csrf @method('DELETE')
                                 </form>
