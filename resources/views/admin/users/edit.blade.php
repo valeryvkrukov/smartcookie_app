@@ -77,10 +77,12 @@
                 @if($user->role === 'student')
                 <!--input type="hidden" name="student_id" :value="studentId"-->
                 <div class="bg-white p-5 sm:p-10 rounded-[3rem] border border-slate-100 shadow-xl mt-10">
-                    <div class="flex items-center justify-between gap-3 mb-6 sm:mb-10">
-                        <div>
-                            <h3 class="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em]">Subject Rates</h3>
-                            <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Individual pricing for this student</p>
+                    <div class="mb-6 sm:mb-10">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em]">Subject Rates</h3>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Individual pricing for this student</p>
+                            </div>
                         </div>
                         <button type="button"
                             @click="
@@ -90,9 +92,9 @@
                                     title: 'Add New Subject Rate'
                                 })
                             "
-                            class="shrink-0 flex items-center gap-1.5 px-4 py-2.5 sm:px-6 sm:py-3 bg-[#212120] text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-200">
+                            class="mt-4 flex items-center gap-1.5 px-5 py-2.5 bg-[#212120] text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-black transition-all active:scale-95 shadow-lg shadow-slate-200">
                             <i class="ti-plus text-[10px]"></i>
-                            <span>Add Subject</span>
+                            Add Subject
                         </button>
                     </div>
 
