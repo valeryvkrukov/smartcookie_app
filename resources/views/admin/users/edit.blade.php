@@ -76,8 +76,8 @@
                 </div>
                 @if($user->role === 'student')
                 <!--input type="hidden" name="student_id" :value="studentId"-->
-                <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-xl mt-10">
-                    <div class="flex justify-between items-center mb-10">
+                <div class="bg-white p-5 sm:p-10 rounded-[3rem] border border-slate-100 shadow-xl mt-10">
+                    <div class="flex flex-wrap justify-between items-center gap-3 mb-6 sm:mb-10">
                         <div>
                             <h3 class="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em]">Subject Rates</h3>
                             <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">Individual pricing for this student</p>
@@ -98,31 +98,26 @@
 
                     <div class="space-y-4">
                         @forelse($user->subjectRates as $sr)
-                            <div class="flex items-center justify-between p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-xl hover:shadow-slate-100 transition-all duration-500">
-                                <div class="flex items-center space-x-4">
-                                    <div class="w-10 h-10 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-sm group-hover:text-indigo-600 transition-colors">
-                                        <i class="ti-bookmark-alt"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-xs font-black uppercase text-slate-900 tracking-tight">{{ $sr->subject }}</p>
-                                        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Fixed hourly rate</p>
-                                    </div>
+                            <div class="flex items-center gap-3 p-4 sm:p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-xl hover:shadow-slate-100 transition-all duration-500">
+                                <div class="w-9 h-9 sm:w-10 sm:h-10 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-sm group-hover:text-indigo-600 transition-colors shrink-0">
+                                    <i class="ti-bookmark-alt"></i>
                                 </div>
-                                <div class="flex items-center space-x-6">
-                                    <span class="text-sm font-black text-emerald-600">${{ number_format($sr->rate, 2) }}</span>
-                                    <!-- Button for deleting the subject rate (using our global delete modal) -->
-                                    <button type="button" 
-                                        onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { detail: {
-                                            name: '{{ $sr->subject }} rate', 
-                                            formId: 'delete-rate-{{ $sr->id }}'
-                                        }}))"
-                                        class="text-slate-300 hover:text-rose-500 transition-colors">
-                                        <i class="ti-trash"></i>
-                                    </button>
-                                    <form id="delete-rate-{{ $sr->id }}" action="{{ route('admin.subject-rates.destroy', $sr->id) }}" method="POST" class="hidden">
-                                        @csrf @method('DELETE')
-                                    </form>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-black uppercase text-slate-900 tracking-tight truncate">{{ $sr->subject }}</p>
+                                    <p class="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Fixed hourly rate</p>
                                 </div>
+                                <span class="text-sm font-black text-emerald-600 shrink-0">${{ number_format($sr->rate, 2) }}</span>
+                                <button type="button"
+                                    onclick="window.dispatchEvent(new CustomEvent('confirm-delete', { detail: {
+                                        name: '{{ $sr->subject }} rate',
+                                        formId: 'delete-rate-{{ $sr->id }}'
+                                    }}))"
+                                    class="shrink-0 w-8 h-8 flex items-center justify-center rounded-xl text-slate-300 hover:text-rose-500 hover:bg-rose-50 transition-colors">
+                                    <i class="ti-trash"></i>
+                                </button>
+                                <form id="delete-rate-{{ $sr->id }}" action="{{ route('admin.subject-rates.destroy', $sr->id) }}" method="POST" class="hidden">
+                                    @csrf @method('DELETE')
+                                </form>
                             </div>
                         @empty
                             <div class="text-center py-12 border-2 border-dashed border-slate-100 rounded-[2.5rem]">
