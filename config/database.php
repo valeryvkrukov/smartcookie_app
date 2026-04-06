@@ -64,6 +64,21 @@ return [
             ]) : [],
         ],
 
+        // ── Legacy database connection — used by app:import for data migration
+        // ── Configure via LEGACY_DB_* variables in .env
+        'legacy_mysql' => [
+            'driver'    => 'mysql',
+            'host'      => env('LEGACY_DB_HOST', '127.0.0.1'),
+            'port'      => env('LEGACY_DB_PORT', '3306'),
+            'database'  => env('LEGACY_DB_DATABASE', 'vgutkovs_sct_portal'),
+            'username'  => env('LEGACY_DB_USERNAME', 'root'),
+            'password'  => env('LEGACY_DB_PASSWORD', ''),
+            'charset'   => 'utf8mb4',
+            'collation' => 'utf8mb4_unicode_ci',
+            'prefix'    => '',
+            'strict'    => false,
+        ],
+
         'mariadb' => [
             'driver' => 'mariadb',
             'url' => env('DB_URL'),
