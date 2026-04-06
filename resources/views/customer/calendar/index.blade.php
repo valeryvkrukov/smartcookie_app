@@ -55,6 +55,7 @@
     <!-- Calendar container -->
     <div class="bg-white rounded-[3rem] border border-slate-100 shadow-2xl p-8 overflow-hidden">
         <x-calendar-legend />
+        <div id="cal-date-title" class="text-center font-bold text-slate-800 mb-2 sm:hidden" style="font-size:1.05rem;"></div>
         <div id="calendar"></div>
     </div>
 
@@ -114,18 +115,19 @@
                 slotMinTime: '06:00:00',
                 slotMaxTime: '22:00:00',
                 initialView: window.innerWidth < 640 ? 'timeGridDay' : 'timeGridWeek',
-                headerToolbar: window.innerWidth < 640 ? {
-                    left: 'prev,next',
-                    center: 'title',
-                    right: 'today'
-                } : {
+                headerToolbar: window.innerWidth < 640 ? false : {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek'
                 },
                 footerToolbar: window.innerWidth < 640 ? {
-                    center: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    left: 'prev,next',
+                    right: 'today'
                 } : false,
+                datesSet: function(info) {
+                    var el = document.getElementById('cal-date-title');
+                    if (el) el.textContent = info.view.title;
+                },
                 events: {
                     url: "{{ route('customer.calendar.events') }}",
                     extraParams: function() {

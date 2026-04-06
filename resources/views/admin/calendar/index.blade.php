@@ -6,7 +6,7 @@
     <div class="bg-white p-6 shadow-sm border border-slate-200 rounded-2xl">
         <!-- Filter in Glassmorphism style -->
         <div class="mb-8 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center justify-between">
-            <div class="flex items-center space-x-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 gap-2 sm:gap-0">
                 <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Filter by Tutor</label>
                 <select id="tutor-filter" class="border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-2 font-bold text-slate-800 transition-colors min-w-[200px]">
                     <option value="">All Tutors</option>
@@ -18,6 +18,7 @@
         </div>
 
         <x-calendar-legend :show-no-credits="true" />
+        <div id="cal-date-title" class="text-center font-bold text-slate-800 mb-2 sm:hidden" style="font-size:1.05rem;"></div>
         <div id="calendar" style="min-height: 700px;"></div>
     </div>
 
@@ -170,18 +171,19 @@
                 allDaySlot: false,
                 firstDay: 0,
                 initialView: window.innerWidth < 640 ? 'timeGridDay' : 'timeGridWeek',
-                headerToolbar: window.innerWidth < 640 ? {
-                    left: 'prev,next',
-                    center: 'title',
-                    right: 'today'
-                } : {
+                headerToolbar: window.innerWidth < 640 ? false : {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
                 footerToolbar: window.innerWidth < 640 ? {
-                    center: 'dayGridMonth,timeGridWeek,timeGridDay'
-                } : false
+                    left: 'prev,next',
+                    right: 'today'
+                } : false,
+                datesSet: function(info) {
+                    var el = document.getElementById('cal-date-title');
+                    if (el) el.textContent = info.view.title;
+                },
             });
             calendar.render();
 
