@@ -11,6 +11,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && echo 'upload_max_filesize=10M\npost_max_size=12M' > /usr/local/etc/php/conf.d/uploads.ini \
     && rm -rf /var/lib/apt/lists/*
 
+ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
+RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
+        /etc/apache2/sites-available/*.conf \
+        /etc/apache2/apache2.conf \
+        /etc/apache2/conf-available/*.conf \
+    && a2enmod rewrite
+
 # ── Cron: run Laravel scheduler every minute
 RUN echo '* * * * * www-data cd /var/www/html && php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1' \
     > /etc/cron.d/laravel-scheduler \
