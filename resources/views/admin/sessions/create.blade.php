@@ -13,7 +13,7 @@
         <form action="{{ route('admin.sessions.store') }}" method="POST" class="space-y-6">
             @csrf
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- TUTOR -->
                 <div>
                     <x-input-label value="Assign Tutor" class="text-[10px] font-bold uppercase" />
@@ -43,7 +43,7 @@
                 <x-text-input name="subject" class="w-full text-sm" placeholder="Math, English, etc." required />
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <!-- DATE -->
                 <div>
                     <x-input-label value="Date" class="text-[10px] font-bold uppercase" />

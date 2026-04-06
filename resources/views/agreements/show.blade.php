@@ -20,7 +20,7 @@
                         </label>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <x-input-label for="full_name" value="Type in your full name *" />
                             <x-text-input name="full_name" class="block mt-1 w-full" required />

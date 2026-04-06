@@ -157,8 +157,8 @@
         @else
         <div class="bg-white rounded-[3rem] border border-slate-100 shadow-xl overflow-hidden">
 
-            {{-- Table header --}}
-            <div class="grid grid-cols-12 gap-4 px-10 py-5 bg-slate-50/60 border-b border-slate-100 items-center">
+            {{-- Table header — desktop only --}}
+            <div class="hidden sm:grid grid-cols-12 gap-4 px-4 sm:px-10 py-5 bg-slate-50/60 border-b border-slate-100 items-center">
 
                 {{-- Select-all checkbox OR bulk action bar --}}
                 <div class="col-span-1 flex items-center">
@@ -181,7 +181,7 @@
 
                 {{-- Bulk action bar (shown when rows are selected) --}}
                 <template x-if="selectedIds.length > 0">
-                    <div class="col-span-11 flex items-center gap-4">
+                    <div class="col-span-11 flex flex-wrap items-center gap-3">
                         <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">
                             <span x-text="selectedIds.length"></span> selected
                         </span>
@@ -215,11 +215,11 @@
                     ];
                     $pal = $palettes[$colour] ?? $palettes['slate'];
                 @endphp
-                <div class="grid grid-cols-12 gap-4 px-10 py-6 hover:bg-slate-50/40 transition-colors items-start
+                <div class="flex flex-col gap-3 px-4 py-4 sm:grid sm:grid-cols-12 sm:gap-4 sm:px-10 sm:py-6 hover:bg-slate-50/40 transition-colors
                             {{ $readFilter === 'all' && !$isUnread ? 'opacity-50' : '' }}">
 
-                    {{-- Row checkbox --}}
-                    <div class="col-span-1 flex items-center pt-0.5">
+                    {{-- Row checkbox — desktop only --}}
+                    <div class="col-span-1 hidden sm:flex items-center pt-0.5">
                         <input type="checkbox"
                                value="{{ $log->id }}"
                                x-model="selectedIds"
@@ -307,7 +307,7 @@
                     </div>
 
                     {{-- Timestamp --}}
-                    <div class="col-span-2 text-right pt-0.5">
+                    <div class="col-span-2 sm:text-right pt-0.5">
                         <p class="text-[10px] font-bold text-slate-400 uppercase">{{ $log->created_at->format('M d') }}</p>
                         <p class="text-[10px] font-bold text-slate-300">{{ $log->created_at->format('H:i') }}</p>
                         <p class="text-[8px] text-slate-200 mt-0.5">{{ $log->created_at->diffForHumans() }}</p>
@@ -319,7 +319,7 @@
 
             {{-- Pagination --}}
             @if ($logs->hasPages())
-            <div class="px-10 py-6 bg-slate-50/40 border-t border-slate-100">
+            <div class="px-4 sm:px-10 py-6 bg-slate-50/40 border-t border-slate-100">
                 {{ $logs->links() }}
             </div>
             @endif

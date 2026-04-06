@@ -14,7 +14,7 @@
             <input type="hidden" name="_method" value="PUT">
         </template>
 
-        <div class="grid grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="space-y-1">
                 <label class="label-premium">Tutor</label>
                 <select x-model="tutorId" name="tutor_id" class="input-premium text-sm" required>

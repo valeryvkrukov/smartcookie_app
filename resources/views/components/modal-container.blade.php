@@ -136,7 +136,7 @@
             <template x-if="type === 'add-student'">
                 <form action="{{ route('customer.students.store') }}" method="POST" class="space-y-6">
                     @csrf
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1">
                             <label class="label-premium">First Name</label>
                             <input type="text" name="first_name" class="input-premium" required>
@@ -158,7 +158,7 @@
                         <label class="label-premium">Home Address <span class="text-rose-400">*</span></label>
                         <input type="text" name="address" class="input-premium" placeholder="123 Street, City, State" required>
                     </div>
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1">
                             <label class="label-premium">Phone <span class="text-rose-400">*</span></label>
                             <input type="text" name="phone" class="input-premium" placeholder="555-0123" required>
@@ -176,7 +176,7 @@
                 <form :action="'/customer/students/' + studentId" method="POST" class="space-y-6">
                     @csrf
                     @method('PUT')
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div class="space-y-1">
                             <label class="label-premium">First Name</label>
                             <input type="text" name="first_name" x-model="firstName" class="input-premium" required>
@@ -372,7 +372,7 @@
                                    class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800">
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Date</label>
                                 <input type="date" name="date" required

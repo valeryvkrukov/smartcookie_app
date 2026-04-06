@@ -199,7 +199,7 @@
 
                     <div class="space-y-4">
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="space-y-2">
                                 <p class="label-premium">Amount Paid</p>
                                 <p class="input-premium bg-slate-50 font-black text-slate-800">${{ number_format($pendingAmount, 2) }}</p>

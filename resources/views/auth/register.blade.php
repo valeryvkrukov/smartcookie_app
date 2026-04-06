@@ -48,7 +48,7 @@
                 <x-text-input name="parent_name" :value="old('parent_name')" class="input-premium" required />
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="space-y-1">
                     <x-input-label value="Email" class="label-premium" />
                     <x-text-input name="parent_email" type="email" :value="old('parent_email')" class="input-premium" required />
@@ -90,7 +90,7 @@
                 <x-text-input name="student_school" :value="old('student_school')" class="input-premium" />
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="space-y-1">
                     <x-input-label value="Student Phone" class="label-premium" />
                     <span class="text-slate-300 text-[8px] font-black uppercase tracking-widest ml-1">optional</span>

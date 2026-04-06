@@ -37,7 +37,7 @@
 
                     {{-- ── Name & bio column: first name, last name, tagline --}}
                     <div class="flex-1 space-y-8">
-                        <div class="grid grid-cols-2 gap-6">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div class="space-y-2">
                                 <x-input-label value="First Name" class="label-premium" />
                                 <input name="first_name" type="text" class="input-premium" value="{{ old('first_name', $user->first_name) }}" required>

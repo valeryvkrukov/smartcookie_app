@@ -5,7 +5,7 @@
         
         {{-- ── Period selector: pill-style filter for time range --}}
         <div class="flex justify-center">
-            <div class="inline-flex bg-white p-1.5 rounded-[2rem] border border-slate-100 shadow-xl">
+            <div class="inline-flex bg-white p-1.5 rounded-[2rem] border border-slate-100 shadow-xl overflow-x-auto max-w-full">
                 @foreach(['all' => 'All Time', 'month' => 'This Month', 'quarter' => 'Quarter', 'year' => 'Year'] as $key => $label)
                     <a href="{{ route('admin.financials.index', ['period' => $key]) }}" 
                        class="px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest transition-all {{ $period === $key ? 'bg-[#212120] text-white shadow-lg' : 'text-slate-400 hover:text-slate-600' }}">
@@ -57,7 +57,8 @@
                 </form>
             </div>
 
-            <table class="w-full text-left border-collapse">
+            <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[560px]">
                 <thead>
                     <tr class="bg-slate-50/50">
                         <th class="p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Date & Client</th>
@@ -94,6 +95,7 @@
                     @endforeach
                 </tbody>
             </table>
+            </div>{{-- end overflow-x-auto --}}
             
             <div class="p-8 bg-slate-50/50">
                 {{ $transactions->links() }}

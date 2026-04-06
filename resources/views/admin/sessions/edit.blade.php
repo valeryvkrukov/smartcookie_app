@@ -30,7 +30,7 @@
                 <x-input-error :messages="$errors->get('subject')" class="mt-2" />
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <x-input-label value="Tutor" class="text-[10px] font-bold uppercase" />
                     <select name="tutor_id" class="w-full border-slate-200 rounded-lg text-sm">
@@ -49,7 +49,7 @@
                 </div>
             </div>
 
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <x-input-label value="Date" class="text-[10px] font-bold uppercase" />
                     <x-text-input type="date" name="date" value="{{ $session->date->format('Y-m-d') }}" class="w-full text-sm" />
