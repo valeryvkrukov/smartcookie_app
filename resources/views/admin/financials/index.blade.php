@@ -47,39 +47,66 @@
         <div class="bg-white rounded-[3.5rem] border border-slate-100 shadow-xl overflow-hidden">
             <div class="p-5 sm:p-10 border-b border-slate-50 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
                 <h3 class="text-xl font-black text-slate-900 tracking-tight">Recent Transactions</h3>
-                
+
+                {{-- ── Mobile legend: explains color coding (hidden on sm+) --}}
+                <div class="sm:hidden flex items-center gap-4 self-start">
+                    <span class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-600">
+                        <span class="w-5 h-5 rounded-lg bg-emerald-50 flex items-center justify-center"><i class="ti-arrow-up text-[10px]"></i></span>
+                        Deposit
+                    </span>
+                    <span class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-rose-500">
+                        <span class="w-5 h-5 rounded-lg bg-rose-50 flex items-center justify-center"><i class="ti-arrow-down text-[10px]"></i></span>
+                        Withdrawal
+                    </span>
+                    <span class="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-slate-400">
+                        <span class="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center"><i class="ti-check text-[10px] text-emerald-500"></i></span>
+                        Verified
+                    </span>
+                </div>
+
                 {{-- ── Search: filters transaction log by client name --}}
                 <form action="{{ route('admin.financials.index') }}" method="GET" class="relative w-full md:w-80">
-                    <input type="text" name="search" value="{{ request('search') }}" 
-                           class="w-full pl-6 pr-12 py-4 bg-slate-50 border-none rounded-2xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-500 transition-all" 
+                    <input type="text" name="search" value="{{ request('search') }}"
+                           class="w-full pl-6 pr-12 py-4 bg-slate-50 border-none rounded-2xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-500 transition-all"
                            placeholder="SEARCH CLIENT...">
                     <button class="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400"><i class="ti-search"></i></button>
                 </form>
             </div>
 
-            <div class="overflow-x-auto">
-            <table class="w-full text-left border-collapse min-w-[560px]">
+            <table class="w-full text-left border-collapse">
                 <thead>
                     <tr class="bg-slate-50/50">
                         <th class="px-4 py-5 sm:p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Date & Client</th>
-                        <th class="px-4 py-5 sm:p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Type</th>
-                        <th class="px-4 py-5 sm:p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Status</th>
+                        <th class="hidden sm:table-cell px-4 py-5 sm:p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Type</th>
+                        <th class="hidden sm:table-cell px-4 py-5 sm:p-8 text-[9px] font-black uppercase tracking-widest text-slate-400">Status</th>
                         <th class="px-4 py-5 sm:p-8 text-[9px] font-black uppercase tracking-widest text-slate-400 text-right">Credits / USD</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-slate-50">
                     @foreach($transactions as $t)
-                    <tr class="group hover:bg-slate-50/30 transition-all">
+                    @php $isDeposit = $t->type === 'deposit'; @endphp
+                    <tr class="group hover:bg-slate-50/30 transition-all
+                               border-l-4 sm:border-l-0 {{ $isDeposit ? 'border-emerald-400' : 'border-rose-400' }}">
                         <td class="px-4 py-4 sm:p-8">
+                            {{-- Type icon: mobile only --}}
+                            <div class="flex items-center gap-2 mb-1 sm:hidden">
+                                <span class="w-5 h-5 rounded-lg {{ $isDeposit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-500' }} flex items-center justify-center shrink-0">
+                                    <i class="{{ $isDeposit ? 'ti-arrow-up' : 'ti-arrow-down' }} text-[10px]"></i>
+                                </span>
+                                <span class="text-[9px] font-black uppercase tracking-widest {{ $isDeposit ? 'text-emerald-600' : 'text-rose-500' }}">
+                                    {{ $t->type ?? 'Deposit' }}
+                                </span>
+                                <span class="ml-1 w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block" title="Verified"></span>
+                            </div>
                             <p class="text-sm font-black text-slate-900">{{ $t->user->full_name }}</p>
-                            <p class="text-[10px] font-bold text-slate-400 mt-1 uppercase">{{ $t->created_at->format('M d, Y • H:i') }}</p>
+                            <p class="text-[10px] font-bold text-slate-400 mt-0.5 uppercase">{{ $t->created_at->format('M d, Y • H:i') }}</p>
                         </td>
-                        <td class="px-4 py-4 sm:p-8">
-                            <span class="px-3 py-1.5 {{ $t->type === 'deposit' ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }} rounded-xl text-[9px] font-black uppercase tracking-widest">
+                        <td class="hidden sm:table-cell px-4 py-4 sm:p-8">
+                            <span class="px-3 py-1.5 {{ $isDeposit ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600' }} rounded-xl text-[9px] font-black uppercase tracking-widest">
                                 {{ $t->type ?? 'Deposit' }}
                             </span>
                         </td>
-                        <td class="px-4 py-4 sm:p-8">
+                        <td class="hidden sm:table-cell px-4 py-4 sm:p-8">
                             <div class="flex items-center space-x-2">
                                 <div class="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
                                 <span class="text-[10px] font-black text-slate-700 uppercase tracking-widest">Verified</span>
@@ -87,7 +114,7 @@
                         </td>
                         <td class="px-4 py-4 sm:p-8 text-right">
                             @if($t->credits_purchased)
-                                <p class="font-black text-indigo-600 text-lg tracking-tighter">{{ $t->type === 'deposit' ? '+' : '-' }}{{ number_format($t->credits_purchased, 2) }} <span class="text-sm">credits</span></p>
+                                <p class="font-black text-indigo-600 text-lg tracking-tighter">{{ $isDeposit ? '+' : '-' }}{{ number_format($t->credits_purchased, 2) }} <span class="text-sm">cr</span></p>
                             @endif
                             <p class="text-sm font-bold text-slate-400">${{ number_format($t->total_paid, 2) }}</p>
                         </td>
@@ -95,8 +122,7 @@
                     @endforeach
                 </tbody>
             </table>
-            </div>{{-- end overflow-x-auto --}}
-            
+
             <div class="p-8 bg-slate-50/50">
                 {{ $transactions->links() }}
             </div>
