@@ -61,24 +61,28 @@
         <x-modal-container />
         <x-delete-modal />
 
+        {{-- ── Session expired banner ──────────────────────────────────────────── --}}
+        <div id="session-expired-banner"
+             class="hidden fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/70 backdrop-blur-sm">
+            <div class="bg-white rounded-3xl shadow-2xl px-8 py-7 max-w-sm w-full mx-4 text-center space-y-4">
+                <div class="w-14 h-14 rounded-full bg-amber-100 flex items-center justify-center mx-auto">
+                    <svg class="w-7 h-7 text-amber-500" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v4m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                    </svg>
+                </div>
+                <h2 class="text-lg font-black text-slate-900">Session Expired</h2>
+                <p class="text-sm text-slate-500">Your session has expired due to inactivity. Please log in again to continue.</p>
+                <a href="/login"
+                   class="block w-full py-3 rounded-2xl bg-[#212120] text-white font-bold text-sm hover:bg-slate-700 transition-colors">
+                    Log In Again
+                </a>
+            </div>
+        </div>
+
         <script>
         // ── Session guard ──────────────────────────────────────────────────────────
-        // 1. Global fetch interceptor: any 419 (expired CSRF) → redirect to login
-        (function () {
-            var _orig = window.fetch;
-            window.fetch = function () {
-                return _orig.apply(this, arguments).then(function (response) {
-                    if (response.status === 419) {
-                        window.location.href = '/login';
-                    }
-                    return response;
-                });
-            };
-        })();
 
-        // 2. Heartbeat every 30 min — keeps the session alive while the tab is open
-        //    Also refreshes the CSRF meta tag so modal fetch calls always use a valid token
-        setInterval(function () {
+        function _pingSession() {
             fetch('/ping', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(function (r) { return r.ok ? r.json() : null; })
                 .then(function (data) {
@@ -88,7 +92,28 @@
                     }
                 })
                 .catch(function () {});
-        }, 30 * 60 * 1000); // every 30 minutes
+        }
+
+        // 1. Global fetch interceptor: any 419 → show session-expired banner
+        (function () {
+            var _orig = window.fetch;
+            window.fetch = function () {
+                return _orig.apply(this, arguments).then(function (response) {
+                    if (response.status === 419) {
+                        document.getElementById('session-expired-banner').classList.remove('hidden');
+                    }
+                    return response;
+                });
+            };
+        })();
+
+        // 2. Heartbeat every 10 min while tab is active
+        setInterval(_pingSession, 10 * 60 * 1000);
+
+        // 3. Ping immediately when user returns to the tab (fixes browser timer freeze)
+        document.addEventListener('visibilitychange', function () {
+            if (document.visibilityState === 'visible') _pingSession();
+        });
         // ──────────────────────────────────────────────────────────────────────────
         </script>
 
