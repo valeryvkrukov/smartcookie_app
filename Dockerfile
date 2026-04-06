@@ -16,7 +16,9 @@ RUN sed -ri 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' \
         /etc/apache2/sites-available/*.conf \
         /etc/apache2/apache2.conf \
         /etc/apache2/conf-available/*.conf \
-    && a2enmod rewrite
+    && a2enmod rewrite \
+    && printf '<Directory "${APACHE_DOCUMENT_ROOT}">\n\tOptions +FollowSymLinks\n\tAllowOverride All\n\tRequire all granted\n</Directory>\n' \
+       >> /etc/apache2/sites-available/000-default.conf
 
 # ── Cron: run Laravel scheduler every minute
 RUN echo '* * * * * www-data cd /var/www/html && php artisan schedule:run >> /var/log/laravel-scheduler.log 2>&1' \

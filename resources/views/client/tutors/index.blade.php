@@ -13,7 +13,7 @@
                         @forelse($student->assignedTutors as $tutor)
                             <div class="flex items-start space-x-4 mb-6 last:mb-0">
                                 <!-- Tutor photo -->
-                                <img src="{{ $tutor->photo ? asset('storage/'.$tutor->photo) : asset('images/generic-avatar.png') }}" 
+                                <img src="{{ $tutor->photo_url }}" 
                                      class="w-16 h-16 rounded-full object-cover border">
                                 
                                 <div>

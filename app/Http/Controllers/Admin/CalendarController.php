@@ -27,7 +27,7 @@ class CalendarController extends Controller
 
             list($hours, $minutes) = explode(':', $session->duration);
             $end = $start->copy()->addHours((int)$hours)->addMinutes((int)$minutes);
-            $hasCredits = $session->student->parent->credit->credit_balance > 0;
+            $hasCredits = ($session->student?->parent?->credit?->credit_balance ?? 0) > 0;
 
             $tutorName = $session->tutor?->last_name ?? 'N/A';
             $studentName = $session->student?->last_name ?? 'Guest';

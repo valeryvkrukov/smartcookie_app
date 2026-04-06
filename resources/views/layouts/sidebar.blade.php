@@ -53,7 +53,7 @@
         <!-- Profile Link -->
         <a href="{{ route('profile.edit') }}" @click="sidebarOpen = false" class="flex items-center p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
             <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-700 shrink-0 border border-white/10">
-                <img src="{{ auth()->user()->photo_url ?? asset('images/generic-avatar.png') }}" class="w-full h-full object-cover">
+                <img src="{{ auth()->user()->photo_url }}" class="w-full h-full object-cover">
             </div>
             <div class="ml-3 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
                  :class="sidebarOpen ? 'opacity-100' : ''">

@@ -17,7 +17,7 @@ use Carbon\Carbon;
 
 class ImportData extends Command
 {
-    protected $signature = 'app:import
+    protected $signature = 'app:import-db-data
                             {--fresh              : Truncate all app data tables before importing}
                             {--fake               : Generate fake data instead of migrating legacy DB}
                             {--admins=1           : [fake] Number of admin accounts}
@@ -121,7 +121,7 @@ class ImportData extends Command
         } catch (\Exception $e) {
             $this->error('Cannot connect to legacy DB. Add the following to .env:');
             $this->line('  LEGACY_DB_HOST=127.0.0.1');
-            $this->line('  LEGACY_DB_DATABASE=vgutkovs_sct_portal');
+            $this->line('  LEGACY_DB_DATABASE=old_database_name');
             $this->line('  LEGACY_DB_USERNAME=root');
             $this->line('  LEGACY_DB_PASSWORD=secret');
             return 1;
@@ -182,7 +182,7 @@ class ImportData extends Command
                 'time_zone'         => $tz,
                 'blurb'             => $old->description,
                 'photo'             => $old->image,
-                'stripe_id'         => $old->stripe_id,
+                //'stripe_id'         => $old->stripe_id,
                 'is_subscribed'     => ($old->automated_email === 'Subscribe'),
                 'is_admin'          => ($old->role === 'admin'),
                 'can_tutor'         => ($old->role === 'tutor'),
@@ -407,7 +407,7 @@ class ImportData extends Command
                     [
                         'status'           => $status,
                         'signed_full_name' => $old->user_name ?? null,
-                        'signed_at'        => $old->date ?? null,
+                        'signed_at'        => $this->parseDate($old->date),
                         'created_at'       => $old->created_at ?? now(),
                         'updated_at'       => $old->updated_at ?? now(),
                     ]
@@ -518,7 +518,7 @@ class ImportData extends Command
                 $existing = DB::table('tutoring_sessions')
                     ->where('tutor_id', $newTutorId)
                     ->where('student_id', $newStudentId)
-                    ->where('date', $old->date)
+                    ->where('date', $this->parseDate($old->date))
                     ->where('start_time', $startTime)
                     ->where('subject', $old->subject)
                     ->first();
@@ -530,7 +530,7 @@ class ImportData extends Command
                         'tutor_id'       => $newTutorId,
                         'student_id'     => $newStudentId,
                         'subject'        => $old->subject,
-                        'date'           => $old->date,
+                        'date'           => $this->parseDate($old->date),
                         'start_time'     => $startTime,
                         'duration'       => $old->duration,
                         'location'       => $old->location ?: null,
@@ -583,7 +583,7 @@ class ImportData extends Command
             $session = DB::table('tutoring_sessions')
                 ->where('tutor_id', $newTutorId)
                 ->where('student_id', $newStudentId)
-                ->where('date', $old->date)
+                ->where('date', $this->parseDate($old->date))
                 ->where('duration', $old->duration)
                 ->where('status', 'Completed')
                 ->first();
@@ -1067,5 +1067,29 @@ class ImportData extends Command
         }
 
         return implode(', ', $parts);
+    }
+
+    private function parseDate(?string $date): ?string
+    {
+        if (! $date) {
+            return null;
+        }
+
+        try {
+            // MM/DD/YY — 2-digit year (e.g. 11/21/21)
+            if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{2}$/', $date)) {
+                return Carbon::createFromFormat('m/d/y', $date)->toDateString();
+            }
+
+            // MM/DD/YYYY — 4-digit year (e.g. 12/02/2020)
+            if (preg_match('/^\d{1,2}\/\d{1,2}\/\d{4}$/', $date)) {
+                return Carbon::createFromFormat('m/d/Y', $date)->toDateString();
+            }
+
+            // Fallback: YYYY-MM-DD or anything Carbon can parse
+            return Carbon::parse($date)->toDateString();
+        } catch (\Exception) {
+            return null;
+        }
     }
 }

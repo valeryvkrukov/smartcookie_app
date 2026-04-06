@@ -103,10 +103,19 @@ class User extends Authenticatable
 
     /**
      * Accessor for the resolved profile photo URL.
+     * Falls back to a ui-avatars.com generated avatar when no photo is set or the file is missing.
      */
-    public function getPhotoUrlAttribute(): ?string
+    public function getPhotoUrlAttribute(): string
     {
-        return PhotoPathResolver::resolve($this->photo);
+        $resolved = PhotoPathResolver::resolve($this->photo);
+
+        if ($resolved) {
+            return $resolved;
+        }
+
+        $name = urlencode(trim("{$this->first_name} {$this->last_name}") ?: 'User');
+
+        return "https://ui-avatars.com/api/?name={$name}&background=212120&color=fff";
     }
 
     /**
