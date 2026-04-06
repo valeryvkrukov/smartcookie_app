@@ -24,7 +24,7 @@ class SessionController extends Controller
     
     public function create(Request $request)
     {
-        $tutors = User::where('role', 'tutor')->orderBy('last_name')->get();
+        $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
         $students = User::where('role', 'student')
             ->orWhere(fn($q) => $q->where('role', 'customer')->where('is_self_student', true))
             ->orderBy('last_name')->get();
@@ -36,7 +36,7 @@ class SessionController extends Controller
 
     public function edit(TutoringSession $session)
     {
-        $tutors = User::where('role', 'tutor')->orderBy('last_name')->get();
+        $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
         $students = User::where('role', 'student')
             ->orWhere(fn($q) => $q->where('role', 'customer')->where('is_self_student', true))
             ->orderBy('last_name')->get();

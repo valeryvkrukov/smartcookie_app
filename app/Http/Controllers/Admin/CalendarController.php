@@ -12,7 +12,7 @@ class CalendarController extends Controller
 {
     public function index(Request $request)
     {
-        $tutors = User::where('role', 'tutor')->orderBy('last_name')->get();
+        $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
 
         // 1. Get ALL sessions
         $query = TutoringSession::with(['tutor', 'student']);
@@ -22,15 +22,15 @@ class CalendarController extends Controller
             $query->where('tutor_id', $request->tutor_id);
         }
 
-        $events = TutoringSession::with(['tutor', 'student'])->get()->map(function ($session) {
+        $events = $query->get()->map(function ($session) {
             $start = Carbon::parse($session->date->format('Y-m-d') . ' ' . $session->start_time);
 
             list($hours, $minutes) = explode(':', $session->duration);
             $end = $start->copy()->addHours((int)$hours)->addMinutes((int)$minutes);
             $hasCredits = ($session->student?->parent?->credit?->credit_balance ?? 0) > 0;
 
-            $tutorName = $session->tutor?->last_name ?? 'N/A';
-            $studentName = $session->student?->last_name ?? 'Guest';
+            $tutorName = $session->tutor?->full_name ?? 'N/A';
+            $studentName = $session->student?->full_name ?? 'Guest';
 
             $title = "{$tutorName}-{$session->duration} {$studentName}";
             
@@ -89,7 +89,7 @@ class CalendarController extends Controller
 
             return [
                 'id'                => $session->id,
-                'title'             => $recurringPrefix . ($session->tutor?->last_name ?? 'No Tutor') . ' | ' . ($session->subject ?? 'No Subject'),
+                'title'             => $recurringPrefix . ($session->tutor?->full_name ?? 'No Tutor') . ' | ' . ($session->subject ?? 'No Subject'),
                 'start'             => $startIso,
                 'end'               => $endIso,
                 'backgroundColor'   => $colors['bg'],

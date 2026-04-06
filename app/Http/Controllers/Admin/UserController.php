@@ -49,7 +49,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $tutors = User::where('role', 'tutor')->orderBy('last_name')->get();
+        $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
         $parents = User::where('role', 'customer')->orderBy('last_name')->get();
 
         return view('admin.users.edit', compact('user', 'tutors', 'parents'));

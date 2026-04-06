@@ -446,6 +446,9 @@ class ImportData extends Command
             }
 
             if (! $dry) {
+                // Ensure the tutor is flagged can_tutor regardless of their primary role
+                DB::table('users')->where('id', $newTutorId)->update(['can_tutor' => true]);
+
                 // Check for existing assignment (unique constraint tutor_id + student_id)
                 $exists = DB::table('tutor_student_assignments')
                     ->where('tutor_id', $newTutorId)
@@ -720,6 +723,8 @@ class ImportData extends Command
         $seededCustomers = $this->seedCustomers($customers, $studentsPerCustomer, $hashedPw);
         $this->seedAgreements();
         $this->seedSessionsAndTimesheets($seededCustomers, $seededTutors, $sessionsPerStudent);
+        $this->seedCreditPurchases($seededCustomers);
+        $this->seedNotifications($seededCustomers);
 
         $this->newLine();
         $this->line('<fg=green>✓ Fake data seeded.</>');
@@ -1009,6 +1014,145 @@ class ImportData extends Command
         $bar->finish();
         $this->newLine();
         $this->line("  <fg=green>✓ {$totalSessions} sessions, {$totalTimesheets} timesheets</>");
+    }
+
+    // ── Seed credit purchases (financials) ──────────────────────
+
+    private function seedCreditPurchases(array $customerStudentMap): void
+    {
+        $this->line('<fg=yellow>→ Seeding credit purchases…</>');
+
+        $faker = \Faker\Factory::create();
+        $total = 0;
+
+        foreach (array_keys($customerStudentMap) as $customerId) {
+            $credit = DB::table('credits')->where('user_id', $customerId)->first();
+            $rate   = (float)($credit?->dollar_cost_per_credit ?? 65);
+
+            // 2–5 historical purchases per customer
+            $count = rand(2, 5);
+            for ($i = 0; $i < $count; $i++) {
+                $creditsBought = $faker->randomElement([5, 10, 15, 20]);
+                $daysAgo       = rand(10, 540);
+
+                DB::table('credit_purchases')->insert([
+                    'user_id'           => $customerId,
+                    'amount'            => $creditsBought,
+                    'credits_purchased' => $creditsBought,
+                    'total_paid'        => round($creditsBought * $rate, 2),
+                    'stripe_session_id' => 'fake_' . \Illuminate\Support\Str::random(24),
+                    'type'              => 'stripe',
+                    'created_at'        => now()->subDays($daysAgo),
+                    'updated_at'        => now()->subDays($daysAgo),
+                ]);
+
+                $total++;
+            }
+        }
+
+        $this->line("  <fg=green>✓ {$total} credit purchases</>");
+    }
+
+    // ── Seed notifications (system logs) ─────────────────────────
+
+    private function seedNotifications(array $customerStudentMap): void
+    {
+        $this->line('<fg=yellow>→ Seeding notifications (system logs)…</>');
+
+        $faker   = \Faker\Factory::create();
+        $adminId = DB::table('users')->where('is_admin', true)->value('id');
+
+        if (! $adminId) {
+            $this->warn('  ⚠ No admin found — notifications skipped.');
+            return;
+        }
+
+        $total = 0;
+
+        foreach (array_keys($customerStudentMap) as $customerId) {
+            $customer = DB::table('users')->where('id', $customerId)->first();
+            if (! $customer) {
+                continue;
+            }
+
+            $students = DB::table('users')->where('parent_id', $customerId)->get();
+
+            // NewClientRegistered
+            DB::table('notifications')->insert([
+                'id'              => \Illuminate\Support\Str::uuid(),
+                'type'            => \App\Notifications\NewClientRegistered::class,
+                'notifiable_type' => \App\Models\User::class,
+                'notifiable_id'   => $adminId,
+                'data'            => json_encode([
+                    'type'          => 'new_client_registered',
+                    'parent_id'     => $customer->id,
+                    'parent_name'   => trim($customer->first_name . ' ' . $customer->last_name),
+                    'student_name'  => $students->first()?->first_name . ' ' . $students->first()?->last_name,
+                    'student_grade' => $students->first()?->student_grade ?? null,
+                    'student_school'=> $students->first()?->student_school ?? null,
+                    'message'       => 'A new client registered on the portal.',
+                ]),
+                'read_at'         => $faker->boolean(60) ? now()->subDays(rand(1, 30)) : null,
+                'created_at'      => now()->subDays(rand(30, 365)),
+                'updated_at'      => now()->subDays(rand(1, 29)),
+            ]);
+            $total++;
+
+            // CreditsPurchased — one notification per customer
+            $tutorId = DB::table('tutor_student_assignments')
+                ->join('users', 'tutor_student_assignments.student_id', '=', 'users.id')
+                ->where('users.parent_id', $customerId)
+                ->value('tutor_student_assignments.tutor_id');
+
+            if ($tutorId) {
+                DB::table('notifications')->insert([
+                    'id'              => \Illuminate\Support\Str::uuid(),
+                    'type'            => \App\Notifications\CreditsPurchased::class,
+                    'notifiable_type' => \App\Models\User::class,
+                    'notifiable_id'   => $tutorId,
+                    'data'            => json_encode([
+                        'type'              => 'credits_purchased',
+                        'client_id'         => $customer->id,
+                        'client_name'       => trim($customer->first_name . ' ' . $customer->last_name),
+                        'credits_purchased' => $faker->randomElement([5, 10, 15, 20]),
+                        'message'           => 'Client purchased credits.',
+                    ]),
+                    'read_at'         => $faker->boolean(50) ? now()->subDays(rand(1, 20)) : null,
+                    'created_at'      => now()->subDays(rand(1, 180)),
+                    'updated_at'      => now()->subDays(rand(0, 10)),
+                ]);
+                $total++;
+            }
+
+            // SessionScheduled — one per customer's first student
+            $session = DB::table('tutoring_sessions')
+                ->join('users', 'tutoring_sessions.student_id', '=', 'users.id')
+                ->where('users.parent_id', $customerId)
+                ->select('tutoring_sessions.*')
+                ->first();
+
+            if ($session) {
+                DB::table('notifications')->insert([
+                    'id'              => \Illuminate\Support\Str::uuid(),
+                    'type'            => \App\Notifications\SessionScheduled::class,
+                    'notifiable_type' => \App\Models\User::class,
+                    'notifiable_id'   => $customerId,
+                    'data'            => json_encode([
+                        'type'       => 'session_scheduled',
+                        'session_id' => $session->id,
+                        'subject'    => $session->subject,
+                        'date'       => $session->date,
+                        'message'    => 'A session has been scheduled.',
+                    ]),
+                    'read_at'         => $faker->boolean(70) ? now()->subDays(rand(1, 30)) : null,
+                    'created_at'      => now()->subDays(rand(1, 90)),
+                    'updated_at'      => now()->subDays(rand(0, 5)),
+                ]);
+                $total++;
+            }
+        }
+
+        $this->line("  <fg=green>✓ {$total} notifications</>");
     }
 
     // ── ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
