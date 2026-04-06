@@ -8,6 +8,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         cron \
         supervisor \
     && docker-php-ext-install pdo_mysql \
+    && echo 'upload_max_filesize=10M\npost_max_size=12M' > /usr/local/etc/php/conf.d/uploads.ini \
     && rm -rf /var/lib/apt/lists/*
 
 # ── Cron: run Laravel scheduler every minute
