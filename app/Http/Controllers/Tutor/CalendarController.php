@@ -58,6 +58,8 @@ class CalendarController extends Controller
                     'duration'      => $session->duration,
                     'location'      => $session->location,
                     'status'        => $session->status,
+                    'tutorName'     => auth()->user()->full_name,
+                    'studentName'   => $session->student?->full_name ?? '?',
                     'isRecurring'       => !empty($session->recurring_id),
                     'isInitial'         => (bool) $session->is_initial,
                     'isRecurringWeekly' => (bool) $session->recurs_weekly,
