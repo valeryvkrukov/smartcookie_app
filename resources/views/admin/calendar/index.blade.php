@@ -92,11 +92,19 @@
                 lazyFetching: false,
                 allDaySlot: false,
                 firstDay: 0,
-                headerToolbar: {
+                initialView: window.innerWidth < 640 ? 'timeGridDay' : 'timeGridWeek',
+                headerToolbar: window.innerWidth < 640 ? {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                } : {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                }
+                },
+                footerToolbar: window.innerWidth < 640 ? {
+                    center: 'dayGridMonth,timeGridWeek,timeGridDay'
+                } : false
             });
             calendar.render();
 

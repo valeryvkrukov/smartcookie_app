@@ -14,14 +14,15 @@
          x-transition:enter="ease-out duration-300"
          x-transition:enter-start="opacity-0 scale-95"
          x-transition:enter-end="opacity-100 scale-100"
-         class="relative w-full max-w-lg bg-white p-10 rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
-        
-        <button @click="open = false" class="absolute top-8 right-8 text-slate-300 hover:text-slate-900 transition-colors">
+         class="relative w-full max-w-lg bg-white rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden
+                flex flex-col max-h-[90dvh] sm:max-h-[85vh]">
+
+        <button @click="open = false" class="absolute top-5 right-5 sm:top-8 sm:right-8 z-10 text-slate-300 hover:text-slate-900 transition-colors">
             <i class="ti-close text-lg"></i>
         </button>
 
-        <div class="text-center mb-10">
-            <h2 class="text-2xl font-black text-slate-900 tracking-tight" x-text="title"></h2>
+        <div class="text-center pt-8 px-8 pb-4 sm:pt-10 sm:px-10 sm:pb-6 shrink-0">
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" x-text="title"></h2>
             <template x-if="date">
                 <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mt-1" 
                     x-text="new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })">
@@ -29,8 +30,8 @@
             </template>
         </div>
 
-        <!-- Content is loaded dynamically -->
-        <div class="space-y-6">
+        <!-- Scrollable content area -->
+        <div class="overflow-y-auto overscroll-contain px-8 pb-8 sm:px-10 sm:pb-10 space-y-6">
             <template x-if="type === 'tutor'">
                 @include('tutor.sessions.partials.quick-form')
             </template>

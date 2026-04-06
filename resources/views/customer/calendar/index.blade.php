@@ -106,11 +106,19 @@
                 allDaySlot: false,
                 slotMinTime: '06:00:00',
                 slotMaxTime: '22:00:00',
-                headerToolbar: {
+                initialView: window.innerWidth < 640 ? 'timeGridDay' : 'timeGridWeek',
+                headerToolbar: window.innerWidth < 640 ? {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                } : {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek'
                 },
+                footerToolbar: window.innerWidth < 640 ? {
+                    center: 'dayGridMonth,timeGridWeek,timeGridDay'
+                } : false,
                 events: {
                     url: "{{ route('customer.calendar.events') }}",
                     extraParams: function() {

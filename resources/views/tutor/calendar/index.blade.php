@@ -37,12 +37,20 @@
                 allDaySlot: false,
                 slotMinTime: '06:00:00', // Beginning of workday
                 slotMaxTime: '22:00:00', // End of workday
-                
-                headerToolbar: {
+
+                initialView: window.innerWidth < 640 ? 'timeGridDay' : 'timeGridWeek',
+                headerToolbar: window.innerWidth < 640 ? {
+                    left: 'prev,next',
+                    center: 'title',
+                    right: 'today'
+                } : {
                     left: 'prev,next today',
                     center: 'title',
                     right: 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
+                footerToolbar: window.innerWidth < 640 ? {
+                    center: 'dayGridMonth,timeGridWeek,timeGridDay'
+                } : false,
 
                 // Data source for events (Controller method that returns JSON)
                 events: "{{ route('tutor.calendar.events') }}",

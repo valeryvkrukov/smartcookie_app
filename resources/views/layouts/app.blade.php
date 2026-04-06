@@ -15,7 +15,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     </head>
-    <body class="font-sans antialiased bg-[#F9FAFB]">
+    <body class="font-sans antialiased bg-[#F9FAFB] overflow-x-hidden">
         <div class="min-h-screen flex" x-data="{ sidebarOpen: false }">
             @include('layouts.sidebar')
 
@@ -32,7 +32,7 @@
                  style="display: none;"></div>
 
             <!-- Main Content Area -->
-            <main class="flex-1 ml-0 sm:ml-20 transition-all duration-500 p-5 sm:p-8 lg:p-12">
+            <main class="flex-1 min-w-0 ml-0 sm:ml-20 transition-all duration-500 p-5 sm:p-8 lg:p-12">
 
                 {{-- Mobile top bar with hamburger --}}
                 <div class="sm:hidden flex items-center justify-between mb-6 -mx-5 -mt-5 px-5 py-4 bg-white border-b border-slate-100 shadow-sm">
@@ -49,7 +49,7 @@
                 <div class="mb-8 sm:mb-12 flex justify-between items-end">
                     <div>
                         <p class="text-[10px] font-black text-indigo-600 uppercase tracking-[0.3em] mb-2">{{ date('l, M d') }}</p>
-                        <h1 class="text-4xl font-black text-slate-900 tracking-tight">{{ $header_title ?? 'Dashboard' }}</h1>
+                        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight">{{ $header_title ?? 'Dashboard' }}</h1>
                     </div>
                     <!-- Here can be some Quick Action buttons -->
                 </div>
