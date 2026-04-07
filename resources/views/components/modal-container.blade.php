@@ -634,7 +634,7 @@
             studentNameDisplay: '',
             insufficientCredits: false,
             cancellationReason: '',
-            updateSeries: false,,
+            updateSeries: false,
 
             openModal(event) {
                 const detail = event?.detail || {};
