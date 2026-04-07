@@ -1,4 +1,4 @@
-<div @set-error.window="errorMessage = $event.detail.message; setTimeout(() => errorMessage = '', 5000)">
+<div>
     <div x-show="errorMessage" 
         x-transition
         class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"
@@ -138,45 +138,8 @@
             </template>
         </div>
 
-        <!-- SEND BUTTON (Fetch API) — disabled on submit to prevent double-click -->
-        <button type="button" 
-            @click="
-                $el.disabled = true;
-                const origHtml = $el.innerHTML;
-                $el.innerHTML = '<span class=\'inline-flex items-center justify-center\'><i class=\'ti-reload animate-spin mr-2 text-sm\' style=\'display:inline-block;line-height:1\'></i> SAVING...</span>';
-
-                const form = $el.closest('form');
-                const formData = new FormData(form);
-                
-                fetch(form.action, {
-                    method: 'POST', 
-                    body: formData,
-                    headers: { 
-                        'X-Requested-With': 'XMLHttpRequest',
-                        'Accept': 'application/json'
-                    }
-                })
-                .then(response => response.json().then(data => ({ status: response.status, body: data })))
-                .then(res => {
-                    if (res.status === 200 && res.body.success) {
-                        $el.disabled = false;
-                        $el.innerHTML = origHtml;
-                        open = false;
-                        if (window.calendar) window.calendar.refetchEvents();
-                        errorMessage = '';
-                    } else {
-                        $dispatch('set-error', { message: res.body.message || 'Error occurred' });
-                        $el.disabled = false;
-                        $el.innerHTML = origHtml;
-                    }
-                })
-                .catch(() => {
-                    $dispatch('set-error', { message: 'Connection error' });
-                    $el.disabled = false;
-                    $el.innerHTML = origHtml;
-                })
-            "
-            class="btn-primary mt-6">
+        <!-- SEND BUTTON -->
+        <button type="button" @click="submitModalForm($el)" class="btn-primary mt-6">
              <span x-text="isEdit ? 'Update Session' : 'Create Session'"></span>
         </button>
 
