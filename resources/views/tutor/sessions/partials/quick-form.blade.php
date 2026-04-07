@@ -1,4 +1,4 @@
-<div @set-error.window="errorMessage = $event.detail.message; setTimeout(() => errorMessage = '', 5000)">
+<div x-data="{ delSeries: false }" @set-error.window="errorMessage = $event.detail.message; setTimeout(() => errorMessage = '', 5000)">
     <div x-show="errorMessage" 
         x-transition
         class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"
@@ -180,51 +180,43 @@
              <span x-text="isEdit ? 'Update Session' : 'Create Session'"></span>
         </button>
 
-        <template x-if="isEdit">
-            <div x-data="{ confirmDelete: false }">
-                <button type="button"
-                    @click="isRecurring
-                        ? (confirmDelete = !confirmDelete)
-                        : $dispatch('confirm-delete', { name: 'this tutoring session', formId: 'delete-session-form', isRecurring: false, useAjax: true })"
-                    :class="confirmDelete ? 'bg-rose-100 border-rose-300 text-rose-700' : 'bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-600 hover:text-rose-700'"
-                    class="w-full py-3.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-colors">
-                    <i class="ti-trash mr-1.5"></i> Delete Session
-                </button>
-
-                <div x-show="confirmDelete" x-transition class="mt-2 bg-rose-50 border border-rose-100 rounded-2xl px-4 py-3 space-y-2">
-                    <p class="text-[9px] font-black uppercase tracking-widest text-rose-500 mb-2">Which sessions to delete?</p>
-                    <div class="flex gap-2">
-                        <button type="button"
-                            @click="
-                                const f = document.getElementById('delete-session-form');
-                                fetch(f.action, { method: 'POST', body: new FormData(f), headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
-                                .then(r => r.json()).then(() => { window.dispatchEvent(new CustomEvent('close-modal')); if (window.calendar) window.calendar.refetchEvents(); });
-                            "
-                            class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-white border border-rose-200 text-rose-600 hover:bg-rose-50 transition">
-                            Only This Session
-                        </button>
-                        <button type="button"
-                            @click="
-                                const f = document.getElementById('delete-session-form');
-                                const fd = new FormData(f); fd.append('delete_series', '1');
-                                fetch(f.action, { method: 'POST', body: fd, headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' } })
-                                .then(r => r.json()).then(() => { window.dispatchEvent(new CustomEvent('close-modal')); if (window.calendar) window.calendar.refetchEvents(); });
-                            "
-                            class="flex-1 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-widest bg-rose-600 text-white hover:bg-rose-700 transition">
-                            Delete All Future
-                        </button>
-                    </div>
-                    <button type="button" @click="confirmDelete = false"
-                        class="w-full pt-1 text-[9px] font-black uppercase tracking-widest text-slate-400 hover:text-slate-600 transition">
-                        Cancel
-                    </button>
+        {{-- ── Delete scope: shown when editing a recurring session ──────────── --}}
+        <template x-if="isEdit && isRecurring">
+            <div class="bg-rose-50 border border-rose-100 rounded-2xl px-4 py-3 space-y-3">
+                <p class="text-[9px] font-black uppercase tracking-widest text-rose-400">
+                    <i class="ti-trash mr-1"></i> Delete scope
+                </p>
+                <div class="flex gap-2">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" :checked="!delSeries" @change="delSeries = false" class="sr-only">
+                        <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                             :class="!delSeries ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'">
+                            Only this session
+                        </div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" :checked="delSeries" @change="delSeries = true" class="sr-only">
+                        <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                             :class="delSeries ? 'bg-rose-500 text-white shadow' : 'text-slate-400 hover:text-slate-600'">
+                            All future sessions
+                        </div>
+                    </label>
                 </div>
             </div>
+        </template>
+
+        <template x-if="isEdit">
+            <button type="button"
+                @click="$dispatch('confirm-delete', { name: 'this tutoring session', formId: 'delete-session-form', isRecurring: false, useAjax: true })"
+                class="w-full py-3.5 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 text-[10px] font-black uppercase tracking-widest transition-colors">
+                <i class="ti-trash mr-1.5"></i> Delete Session
+            </button>
         </template>
     </form>
 
     <form id="delete-session-form" :action="'/tutor/sessions/' + sessionId" method="POST" class="hidden">
         @csrf
         @method('DELETE')
+        <input type="hidden" name="delete_series" :value="delSeries ? '1' : ''">
     </form>
 </div>
