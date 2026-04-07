@@ -77,7 +77,7 @@
                     <button type="button"
                         onclick="window.dispatchEvent(new CustomEvent('open-modal', {
                             detail: {
-                                type: 'tutor-schedule-session', 
+                                type: 'tutor', 
                                 studentId: '{{ $student->id }}',
                                 tutorId: '{{ auth()->id() }}',
                                 studentTimezone: '{{ $student->time_zone ?? 'UTC' }}',
