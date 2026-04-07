@@ -144,6 +144,10 @@ class SessionController extends Controller
         $data['tutor_id'] = auth()->id();
         $data['recurs_weekly'] = $request->has('recurs_weekly');
 
+        if ($request->boolean('is_initial') && $data['recurs_weekly']) {
+            return response()->json(['success' => false, 'message' => 'A session cannot be both Initial and Recurring.'], 422);
+        }
+
         try {
             $this->sessionService->schedule($data);
             

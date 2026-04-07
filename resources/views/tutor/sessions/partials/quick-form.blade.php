@@ -118,19 +118,21 @@
 
         <!-- FLAGS -->
         <div class="flex items-center gap-6">
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2" :class="recurringWeekly ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'">
                 <input type="checkbox" name="is_initial" value="1"
                        :checked="isInitial"
-                       @change="isInitial = $event.target.checked"
-                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                       :disabled="recurringWeekly"
+                       @change="isInitial = $event.target.checked; if (isInitial) recurringWeekly = false"
+                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-40">
                 <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Initial Session</span>
             </label>
             <template x-if="!isEdit">
-                <label class="flex items-center gap-2 cursor-pointer">
+                <label class="flex items-center gap-2" :class="isInitial ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'">
                     <input type="checkbox" name="recurs_weekly" value="1"
                            :checked="recurringWeekly"
-                           @change="recurringWeekly = $event.target.checked"
-                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                           :disabled="isInitial"
+                           @change="recurringWeekly = $event.target.checked; if (recurringWeekly) isInitial = false"
+                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-40">
                     <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Recurring (weekly ×12)</span>
                 </label>
             </template>

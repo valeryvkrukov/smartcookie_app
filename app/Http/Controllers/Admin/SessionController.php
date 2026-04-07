@@ -68,6 +68,10 @@ class SessionController extends Controller
         $timeString = $request->time_h . ':' . $request->time_m . ' ' . $request->time_ampm;
         $startTime = Carbon::parse($timeString)->format('H:i:s');
 
+        if ($request->boolean('is_initial') && $request->boolean('recurs_weekly')) {
+            return response()->json(['success' => false, 'message' => 'A session cannot be both Initial and Recurring.'], 422);
+        }
+
         $updateSeries = $request->input('update_series') === '1';
 
         if ($updateSeries && $session->recurring_id) {
@@ -155,6 +159,10 @@ class SessionController extends Controller
 
         $data['is_initial']    = $request->boolean('is_initial');
         $data['recurs_weekly'] = $request->boolean('recurs_weekly');
+
+        if ($data['is_initial'] && $data['recurs_weekly']) {
+            return response()->json(['success' => false, 'message' => 'A session cannot be both Initial and Recurring.'], 422);
+        }
 
         try {
             $this->sessionService->schedule($data);
