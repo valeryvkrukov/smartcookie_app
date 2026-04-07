@@ -271,7 +271,7 @@ class SessionController extends Controller
             return back()->withErrors(['error' => 'Permission Denied: You can only cancel your own sessions.']);
         }
 
-        if ($request->has('delete_series') && $session->recurring_id) {
+        if ($request->boolean('delete_series') && $session->recurring_id) {
             TutoringSession::where('recurring_id', $session->recurring_id)
                 ->where('date', '>=', $session->date)
                 ->where('status', 'Scheduled')
