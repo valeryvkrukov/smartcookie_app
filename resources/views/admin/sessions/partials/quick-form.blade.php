@@ -1,4 +1,4 @@
-<div x-data="{ delSeries: false }">
+<div x-data="{ updateSeries: false }">
     <div x-show="errorMessage" 
         x-transition
         class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"
@@ -129,7 +129,7 @@
 
         <!-- Recurring series edit option — only shown when editing a recurring session -->
         <template x-if="isEdit && isRecurring">
-            <div x-data="{ updateSeries: false }">
+            <div>
                 <input type="hidden" name="update_series" :value="updateSeries ? '1' : ''">
                 <div class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 space-y-3">
                     <p class="text-[9px] font-black uppercase tracking-widest text-amber-700">
@@ -162,31 +162,6 @@
             <span x-text="isEdit ? 'Update Session' : 'Create Session'"></span>
         </button>
 
-        {{-- ── Delete scope: shown when editing a recurring session ──────────── --}}
-        <template x-if="isEdit && isRecurring">
-            <div class="bg-rose-50 border border-rose-100 rounded-2xl px-4 py-3 space-y-3">
-                <p class="text-[9px] font-black uppercase tracking-widest text-rose-400">
-                    <i class="ti-trash mr-1"></i> Delete scope
-                </p>
-                <div class="flex gap-2">
-                    <label class="flex-1 cursor-pointer">
-                        <input type="radio" :checked="!delSeries" @change="delSeries = false" class="sr-only">
-                        <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                             :class="!delSeries ? 'bg-white shadow text-slate-900' : 'text-slate-400 hover:text-slate-600'">
-                            Only this session
-                        </div>
-                    </label>
-                    <label class="flex-1 cursor-pointer">
-                        <input type="radio" :checked="delSeries" @change="delSeries = true" class="sr-only">
-                        <div class="text-center py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                             :class="delSeries ? 'bg-rose-500 text-white shadow' : 'text-slate-400 hover:text-slate-600'">
-                            All future sessions
-                        </div>
-                    </label>
-                </div>
-            </div>
-        </template>
-
         <template x-if="isEdit">
             <button type="button"
                 @click="$dispatch('confirm-delete', { name: subject + ' with ' + ($el.closest('form').querySelector('[name=student_id]').selectedOptions[0]?.text || 'student'), formId: 'delete-session-form', isRecurring: false, useAjax: true })"
@@ -199,6 +174,6 @@
     <form id="delete-session-form" :action="'/admin/sessions/' + sessionId" method="POST" class="hidden">
         @csrf
         @method('DELETE')
-        <input type="hidden" name="delete_series" :value="delSeries ? '1' : ''">
+        <input type="hidden" name="delete_series" :value="updateSeries ? '1' : ''">
     </form>
 </div>
