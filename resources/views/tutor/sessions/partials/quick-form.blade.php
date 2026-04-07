@@ -1,4 +1,4 @@
-<div x-data="{ updateSeries: false }" @set-error.window="errorMessage = $event.detail.message; setTimeout(() => errorMessage = '', 5000)">
+<div @set-error.window="errorMessage = $event.detail.message; setTimeout(() => errorMessage = '', 5000)">
     <div x-show="errorMessage" 
         x-transition
         class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600 shadow-sm"

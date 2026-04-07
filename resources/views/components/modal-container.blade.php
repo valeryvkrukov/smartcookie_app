@@ -634,6 +634,7 @@
             studentNameDisplay: '',
             insufficientCredits: false,
             cancellationReason: '',
+            updateSeries: false,,
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -674,6 +675,7 @@
                 this.studentNameDisplay = detail.studentName || '';
                 this.insufficientCredits = detail.insufficientCredits || false;
                 this.cancellationReason = '';
+                this.updateSeries = false;
             },
 
             doCancelSession(series, el) {
