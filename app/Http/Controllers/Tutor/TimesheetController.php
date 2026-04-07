@@ -18,10 +18,10 @@ class TimesheetController extends Controller
     {
         $tutorId = auth()->id();
 
-        // ── Sessions: all sessions for this tutor ordered by date descending
+        // ── Sessions: all sessions for this tutor ordered by date ascending
         $sessions = \App\Models\TutoringSession::where('tutor_id', $tutorId)
             ->with('student')
-            ->orderBy('date', 'desc')
+            ->orderBy('date', 'asc')
             ->paginate(config('app.pagination_num', 12));
 
         // ── Pending sessions: past sessions not yet logged or completed
