@@ -63,10 +63,6 @@
                         'Cancelled':  'text-slate-400',
                     }[p.status] ?? 'text-slate-600';
 
-                    const creditBadge = p.hasCredits
-                        ? '<span class="inline-block rounded-full bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-0.5">Credits OK</span>'
-                        : '<span class="inline-block rounded-full bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5">No Credits</span>';
-
                     inner.innerHTML = `
                         <div class="flex items-center justify-between gap-3 pb-2 border-b border-slate-100">
                             <span class="font-bold text-slate-800 truncate">${p.subject}</span>
@@ -81,7 +77,6 @@
                             <span class="text-xs">${p.time_h}:${p.time_m} ${p.time_ampm} &bull; ${p.duration}h</span>
                             ${p.location ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Location</span><span class="text-xs">${p.location}</span>` : ''}
                         </div>
-                        <div class="pt-1 flex items-center gap-2">${creditBadge}<span class="text-xs text-slate-400">${p.creditBalance} credits</span></div>
                     `;
 
                     tip.classList.remove('hidden');
