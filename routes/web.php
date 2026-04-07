@@ -71,6 +71,7 @@ Route::middleware(['auth', 'role:customer', 'check.agreements'])->prefix('custom
     Route::post('/agreements/sign', [CustomerAgreementController::class, 'sign'])->name('agreements.sign');
 
     Route::resource('/students', CustomerStudentController::class)->except(['show']);
+    Route::post('/students/toggle-self-student', [CustomerStudentController::class, 'toggleSelfStudent'])->name('students.toggle-self-student');
 });
 
 // ── Tutor: routes scoped to tutor role

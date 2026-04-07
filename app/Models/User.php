@@ -35,7 +35,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'blurb',
     'can_tutor',
     'time_zone',
-    'is_self_student'
+    'is_self_student',
+    'is_inactive'
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -58,6 +59,7 @@ class User extends Authenticatable
             'is_admin' => 'boolean',
             'is_subscribed' => 'boolean',
             'is_self_student' => 'boolean',
+            'is_inactive' => 'boolean',
         ];
     }
 

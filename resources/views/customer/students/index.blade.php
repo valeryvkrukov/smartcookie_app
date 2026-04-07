@@ -2,26 +2,58 @@
     <x-slot name="header_title">My Students</x-slot>
 
     <div class="max-w-6xl mx-auto pb-20">
-        
-        <!-- Header Actions -->
-        <div class="flex justify-between items-center mb-12">
-            <div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight">Family Profiles</h2>
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">Manage your children's tutoring profiles</p>
+
+        @if(session('success'))
+            <div class="mb-6 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl flex items-center space-x-3 text-emerald-700">
+                <i class="ti-check mr-2"></i> {{ session('success') }}
             </div>
-            <!-- According to the requirements, parents can add students -->
-            <button type="button" 
-                onclick="window.dispatchEvent(new CustomEvent('open-modal', { 
-                    detail: { 
-                        type: 'add-student',
-                        isEdit: false,
-                        date: '',
-                        title: 'Register New Student' 
-                    } 
-                }))"
-                class="px-8 py-4 bg-[#212120] text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-black shadow-xl shadow-slate-200 transition-all active:scale-95">
-                + Add Student
-            </button>
+        @endif
+        @if(session('error'))
+            <div class="mb-6 p-4 bg-rose-50 border border-rose-100 rounded-2xl flex items-center space-x-3 text-rose-600">
+                <i class="ti-alert mr-2"></i> {{ session('error') }}
+            </div>
+        @endif
+
+        <!-- Header Actions -->
+        <div class="flex justify-between items-start mb-12 gap-4 flex-wrap">
+            <div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">
+                    {{ auth()->user()->is_self_student ? 'My Profile' : 'Family Profiles' }}
+                </h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">
+                    {{ auth()->user()->is_self_student ? 'You are registered as a self-student' : 'Manage your children\'s tutoring profiles' }}
+                </p>
+            </div>
+
+            <div class="flex items-center gap-3 flex-wrap">
+                {{-- Self-student toggle --}}
+                <form method="POST" action="{{ route('customer.students.toggle-self-student') }}">
+                    @csrf
+                    <button type="submit"
+                        onclick="return confirm('{{ auth()->user()->is_self_student ? 'Switch back to parent mode? Your children\'s profiles will be reactivated.' : 'Switch to self-student mode? Your children\'s profiles will be marked as inactive.' }}')"
+                        class="px-6 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border
+                            {{ auth()->user()->is_self_student
+                                ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100' }}">
+                        {{ auth()->user()->is_self_student ? '↩ Switch to Parent Mode' : '⇄ I am the Student' }}
+                    </button>
+                </form>
+
+                @if(!auth()->user()->is_self_student)
+                <button type="button"
+                    onclick="window.dispatchEvent(new CustomEvent('open-modal', {
+                        detail: {
+                            type: 'add-student',
+                            isEdit: false,
+                            date: '',
+                            title: 'Register New Student'
+                        }
+                    }))"
+                    class="px-8 py-4 bg-[#212120] text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-black shadow-xl shadow-slate-200 transition-all active:scale-95">
+                    + Add Student
+                </button>
+                @endif
+            </div>
         </div>
 
         <!-- Students Grid -->
@@ -41,9 +73,11 @@
                             </div>
                             <div>
                                 <div class="flex items-center gap-2">
-                                    <h3 class="text-xl font-black text-slate-900 tracking-tight">{{ $student->full_name }}</h3>
+                                    <h3 class="text-xl font-black {{ $student->is_inactive ? 'text-slate-400' : 'text-slate-900' }} tracking-tight">{{ $student->full_name }}</h3>
                                     @if($isSelf)
                                         <span class="text-[8px] font-black uppercase tracking-widest bg-emerald-100 text-emerald-600 px-2 py-0.5 rounded-full">You</span>
+                                    @elseif($student->is_inactive)
+                                        <span class="text-[8px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full">Inactive</span>
                                     @endif
                                 </div>
                                 <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{{ $student->student_grade ?? 'No Grade Set' }}</p>
