@@ -163,10 +163,10 @@
         </button>
 
         <template x-if="isEdit">
-            <button type="button" 
+            <button type="button"
                 @click="$dispatch('confirm-delete', { name: subject + ' with ' + ($el.closest('form').querySelector('[name=student_id]').selectedOptions[0]?.text || 'student'), formId: 'delete-session-form', isRecurring: isRecurring, useAjax: true })"
-                class="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 transition-colors">
-                Cancel Session
+                class="w-full py-3.5 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 text-[10px] font-black uppercase tracking-widest transition-colors">
+                <i class="ti-trash mr-1.5"></i> Delete Session
             </button>
         </template>
     </form>
