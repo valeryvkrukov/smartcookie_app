@@ -83,6 +83,28 @@
             <input type="text" name="location" x-model="sessionLocation" placeholder="Online" class="input-premium">
         </div>
 
+        <!-- Status (edit only) -->
+        <template x-if="isEdit">
+            <div class="space-y-1">
+                <label class="label-premium">Status</label>
+                <div class="grid grid-cols-4 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                    @foreach(['Scheduled' => 'indigo', 'Completed' => 'emerald', 'Billed' => 'teal', 'Cancelled' => 'slate'] as $st => $color)
+                        <label class="flex-1">
+                            <input type="radio" name="status" value="{{ $st }}" x-model="sessionStatus" class="peer hidden">
+                            <div class="cursor-pointer text-center py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all
+                                        peer-checked:shadow-sm
+                                        @if($color === 'indigo') peer-checked:bg-indigo-600 peer-checked:text-white text-indigo-400
+                                        @elseif($color === 'emerald') peer-checked:bg-emerald-500 peer-checked:text-white text-emerald-400
+                                        @elseif($color === 'teal') peer-checked:bg-teal-500 peer-checked:text-white text-teal-400
+                                        @else peer-checked:bg-slate-400 peer-checked:text-white text-slate-400 @endif">
+                                {{ $st }}
+                            </div>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+        </template>
+
         <!-- FLAGS -->
         <div class="flex items-center gap-6">
             <label class="flex items-center gap-2 cursor-pointer">

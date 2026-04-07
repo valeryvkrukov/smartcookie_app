@@ -62,6 +62,7 @@ class SessionController extends Controller
             'time_ampm'  => 'required',
             'duration'   => 'required|in:0:30,1:00,1:30,2:00',
             'location'   => 'nullable|string',
+            'status'     => 'nullable|in:Scheduled,Completed,Billed,Cancelled',
         ]);
 
         $timeString = $request->time_h . ':' . $request->time_m . ' ' . $request->time_ampm;
@@ -114,6 +115,7 @@ class SessionController extends Controller
                 'is_initial'   => $request->boolean('is_initial'),
                 'recurs_weekly'=> $request->boolean('recurs_weekly'),
                 'recurring_id' => null,
+                ...($request->filled('status') ? ['status' => $request->status] : []),
             ]);
         }
 

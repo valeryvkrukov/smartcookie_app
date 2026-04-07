@@ -154,6 +154,7 @@
                             time_h: props.time_h,
                             time_m: props.time_m,
                             time_ampm: props.time_ampm,
+                            sessionStatus: props.status,
                             studentTimezone: (window.studentTimezoneMap || {})[props.studentId] || ''
                         }
                     }));
