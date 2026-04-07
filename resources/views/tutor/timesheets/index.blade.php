@@ -79,6 +79,12 @@
                 </tbody>
             </table>
         </div>
+
+        @if($sessions->hasPages())
+        <div class="mt-8 p-4 bg-slate-50/50 rounded-lg flex justify-center">
+            {{ $sessions->links() }}
+        </div>
+        @endif
     </div>
 
     @push('scripts')
