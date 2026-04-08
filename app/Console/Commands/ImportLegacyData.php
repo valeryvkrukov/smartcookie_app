@@ -488,7 +488,11 @@ class ImportLegacyData extends Command
             $status          = self::STATUS_MAP[$old->status] ?? 'Scheduled';
             $isInitial       = ($old->session_type === 'First Session');
             $recurringWeekly = in_array(strtolower($old->recurs_weekly ?? ''), ['yes', '1', 'true', 'on'], true);
-            $tutorNotes      = ($status === 'Cancelled' && $old->reason) ? $old->reason : null;
+            $tutorNotes = match(true) {
+                $old->status === 'Insufficient Credit' => 'Cancelled due to insufficient credits',
+                ($status === 'Cancelled' && !empty($old->reason)) => $old->reason,
+                default => null,
+            };
 
             if (! $dry) {
                 $existing = DB::table('tutoring_sessions')
