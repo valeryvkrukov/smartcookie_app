@@ -96,6 +96,8 @@ class SessionServiceTest extends TestCase
 
         $tutor = User::factory()->tutor()->create();
 
+        $this->expectExceptionMessage('Financial record missing for:');
+
         $service = new SessionService();
         $service->schedule([
             'student_id' => $student->id,
@@ -117,7 +119,7 @@ class SessionServiceTest extends TestCase
         $student = User::factory()->student()->create(['parent_id' => $parent->id]);
         $tutor = User::factory()->tutor()->create();
 
-        $this->expectExceptionMessage('Financial record missing for parent:');
+        $this->expectExceptionMessage('Financial record missing for:');
 
         $service = new SessionService();
         $service->schedule([
