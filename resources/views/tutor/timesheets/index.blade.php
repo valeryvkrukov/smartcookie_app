@@ -69,10 +69,17 @@
                             @endif
                         </td>
                         <td class="p-6 text-right">
-                            <button onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { type: 'session-log', sessionId: '{{ $s->id }}', tutorNotes: {{ json_encode($s->tutor_notes ?? '') }} } }))"
+                            @if($s->status === 'Completed')
+                            <button onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { type: 'session-log-view', tutorNotes: {{ json_encode($s->tutor_notes ?? '') }}, studentName: {{ json_encode($s->student->full_name) }}, sessionDate: '{{ $s->date->format('M d, Y') }}', subject: {{ json_encode($s->subject) }} } }))"
                                     class="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
-                                {{ $s->status === 'Completed' ? 'Edit Log' : 'Write Report' }}
+                                View Report
                             </button>
+                            @else
+                            <button onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { type: 'session-log', sessionId: '{{ $s->id }}', tutorNotes: {{ json_encode($s->tutor_notes ?? '') }} } }))"
+                                    class="text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-rose-600 transition-colors">
+                                Write Report
+                            </button>
+                            @endif
                         </td>
                     </tr>
                     @endforeach

@@ -447,6 +447,26 @@
                     </form>
                 </div>
             </template>
+            <template x-if="type === 'session-log-view'">
+                <div class="space-y-5">
+                    <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Student</p>
+                        <p class="text-sm font-black text-slate-900" x-text="studentNameDisplay"></p>
+                    </div>
+                    <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Date</p>
+                        <p class="text-sm font-black text-slate-900" x-text="sessionDate"></p>
+                    </div>
+                    <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Subject</p>
+                        <p class="text-sm font-black text-slate-900" x-text="subject"></p>
+                    </div>
+                    <div class="px-5 py-4 bg-slate-50 rounded-2xl border border-slate-100 space-y-2">
+                        <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Session Report</p>
+                        <p class="text-sm text-slate-700 leading-relaxed whitespace-pre-wrap" x-text="tutorNotes || '—'"></p>
+                    </div>
+                </div>
+            </template>
             <template x-if="type === 'session-log'">
                 <div>
                     <div x-show="errorMessage"
@@ -632,6 +652,7 @@
             isSelfProfile: false,
             sessionLocation: '',
             studentNameDisplay: '',
+            sessionDate: '',
             insufficientCredits: false,
             cancellationReason: '',
             updateSeries: false,
@@ -673,6 +694,7 @@
                 this.isSelfProfile    = detail.isSelfProfile  || false;
                 this.sessionLocation  = detail.location || '';
                 this.studentNameDisplay = detail.studentName || '';
+                this.sessionDate = detail.sessionDate || '';
                 this.insufficientCredits = detail.insufficientCredits || false;
                 this.cancellationReason = '';
                 this.updateSeries = false;

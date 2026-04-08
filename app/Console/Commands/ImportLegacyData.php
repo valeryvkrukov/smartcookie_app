@@ -595,6 +595,13 @@ class ImportLegacyData extends Command
                     'created_at'          => $old->created_at ?? now(),
                     'updated_at'          => now(),
                 ]);
+
+                // Save tutor's session notes (timesheet description) onto the session
+                if (!empty($old->description) && empty($session->tutor_notes)) {
+                    DB::table('tutoring_sessions')
+                        ->where('id', $session->id)
+                        ->update(['tutor_notes' => $old->description]);
+                }
             }
 
             $migrated++;
