@@ -165,6 +165,9 @@
                     }
                 },
                 lazyFetching: false,
+                views: {
+                    dayGridMonth: { eventDisplay: 'list-item' }
+                },
                 allDaySlot: false,
                 firstDay: 0,
                 initialView: window.innerWidth < 640 ? 'timeGridDay' : 'timeGridWeek',
