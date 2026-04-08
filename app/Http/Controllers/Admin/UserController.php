@@ -64,7 +64,6 @@ class UserController extends Controller
             'role'            => 'required|in:admin,tutor,customer,student',
             'parent_id'       => 'nullable|exists:users,id',
             'tutor_id'        => 'nullable|exists:users,id',
-            'can_tutor'       => 'sometimes|boolean',
             'hourly_payout'   => 'sometimes|array',
             'hourly_payout.*' => 'nullable|numeric|min:0',
         ]);
@@ -75,6 +74,7 @@ class UserController extends Controller
         $user->update([
             'is_subscribed'   => $request->has('is_subscribed'),
             'is_self_student' => $request->boolean('is_self_student'),
+            'can_tutor'       => $request->boolean('can_tutor'),
         ]);
 
         if ($request->filled('hourly_payout') && 
