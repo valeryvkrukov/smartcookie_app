@@ -117,7 +117,7 @@ class SessionService
         $end = (clone $start)->addMinutes((int)$duration);
 
         return TutoringSession::where('tutor_id', $tutorId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->where('status', 'Scheduled')   // only future scheduled sessions block a slot
             ->when($excludeSessionId,   fn($q) => $q->where('id', '!=', $excludeSessionId))
             ->when($excludeRecurringId, fn($q) => $q->where(function ($q) use ($excludeRecurringId) {

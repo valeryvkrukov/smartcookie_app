@@ -158,7 +158,7 @@ class SessionController extends Controller
         ]);
         $data['recurs_weekly'] = $request->boolean('recurs_weekly');
 
-        if ($data['is_initial'] && $data['recurs_weekly']) {
+        if (($data['is_initial'] ?? false) && $data['recurs_weekly']) {
             return response()->json(['success' => false, 'message' => 'A session cannot be both Initial and Recurring.'], 422);
         }
 

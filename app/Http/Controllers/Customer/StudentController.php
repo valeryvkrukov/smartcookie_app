@@ -46,8 +46,8 @@ class StudentController extends Controller
         User::create([
             'first_name'    => $data['first_name'],
             'last_name'     => $data['last_name'],
-            'student_grade' => $data['student_grade'],
-            'blurb'         => $data['blurb'],
+            'student_grade' => $data['student_grade'] ?? null,
+            'blurb'         => $data['blurb'] ?? null,
             'address'       => $data['address'],
             'phone'         => $data['phone'],
             'role'          => 'student',

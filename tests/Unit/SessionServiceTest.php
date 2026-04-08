@@ -187,6 +187,96 @@ class SessionServiceTest extends TestCase
         ]);
     }
 
+    // ── hasConflict ───────────────────────────────────────────────────────────
+
+    public function test_has_conflict_returns_true_for_overlapping_session(): void
+    {
+        $tutor   = User::factory()->tutor()->create();
+        $student = User::factory()->student()->create();
+
+        TutoringSession::create([
+            'tutor_id'   => $tutor->id,
+            'student_id' => $student->id,
+            'subject'    => 'Math',
+            'date'       => '2030-06-01',
+            'start_time' => '10:00:00',
+            'duration'   => 60,
+            'status'     => 'Scheduled',
+        ]);
+
+        $service = new SessionService();
+
+        // Starts 30 min into the existing session → overlaps
+        $this->assertTrue($service->hasConflict($tutor->id, '2030-06-01', '10:30:00', 60));
+    }
+
+    public function test_has_conflict_returns_false_for_non_overlapping_session(): void
+    {
+        $tutor   = User::factory()->tutor()->create();
+        $student = User::factory()->student()->create();
+
+        TutoringSession::create([
+            'tutor_id'   => $tutor->id,
+            'student_id' => $student->id,
+            'subject'    => 'Math',
+            'date'       => '2030-06-01',
+            'start_time' => '10:00:00',
+            'duration'   => 60,
+            'status'     => 'Scheduled',
+        ]);
+
+        $service = new SessionService();
+
+        // Starts exactly when existing session ends → no overlap
+        $this->assertFalse($service->hasConflict($tutor->id, '2030-06-01', '11:00:00', 60));
+    }
+
+    public function test_has_conflict_excludes_session_by_id(): void
+    {
+        $tutor   = User::factory()->tutor()->create();
+        $student = User::factory()->student()->create();
+
+        $session = TutoringSession::create([
+            'tutor_id'   => $tutor->id,
+            'student_id' => $student->id,
+            'subject'    => 'Math',
+            'date'       => '2030-06-01',
+            'start_time' => '10:00:00',
+            'duration'   => 60,
+            'status'     => 'Scheduled',
+        ]);
+
+        $service = new SessionService();
+
+        // Would conflict, but the session itself is excluded (update scenario)
+        $this->assertFalse($service->hasConflict($tutor->id, '2030-06-01', '10:00:00', 60, $session->id));
+    }
+
+    public function test_has_conflict_excludes_sessions_by_recurring_id(): void
+    {
+        $tutor   = User::factory()->tutor()->create();
+        $student = User::factory()->student()->create();
+        $recurringId = 'series-abc-123';
+
+        TutoringSession::create([
+            'tutor_id'     => $tutor->id,
+            'student_id'   => $student->id,
+            'subject'      => 'Math',
+            'date'         => '2030-06-01',
+            'start_time'   => '10:00:00',
+            'duration'     => 60,
+            'status'       => 'Scheduled',
+            'recurring_id' => $recurringId,
+        ]);
+
+        $service = new SessionService();
+
+        // Would conflict, but all sessions in the series are excluded
+        $this->assertFalse($service->hasConflict($tutor->id, '2030-06-01', '10:00:00', 60, null, $recurringId));
+    }
+
+    // ── billSession ───────────────────────────────────────────────────────────
+
     public function test_bill_session_uses_subject_rate_and_completes_session(): void
     {
         $parent = User::factory()->customer()->create();
