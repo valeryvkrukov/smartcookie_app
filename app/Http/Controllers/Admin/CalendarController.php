@@ -40,8 +40,8 @@ class CalendarController extends Controller
                 'start' => $start->toIso8601String(),
                 'end' => $end->toIso8601String(),
                 'allDay' => false,
-                'backgroundColor' => $hasCredits ? '#4f46e5' : '#ef4444',
-                'borderColor' => $hasCredits ? '#4338ca' : '#dc2626',
+                'backgroundColor' => (!$hasCredits && !$isAdminTutor) ? '#ef4444' : '#4f46e5',
+                'borderColor'     => (!$hasCredits && !$isAdminTutor) ? '#dc2626' : '#4338ca',
             ];
         });
 
@@ -80,7 +80,7 @@ class CalendarController extends Controller
             $colors = match(true) {
                 $session->status === 'Cancelled'                  => ['bg' => '#94a3b8', 'border' => '#64748b'],
                 in_array($session->status, ['Billed','Completed']) => ['bg' => '#10b981', 'border' => '#059669'],
-                !$hasCredits                                      => ['bg' => '#ef4444', 'border' => '#dc2626'],
+                (!$hasCredits && !$isAdminTutor)                   => ['bg' => '#ef4444', 'border' => '#dc2626'],
                 (bool)$session->is_initial                        => ['bg' => '#f59e0b', 'border' => '#d97706'],
                 $session->series_id !== null                      => ['bg' => '#6366f1', 'border' => '#4f46e5'],
                 default                                           => ['bg' => '#4f46e5', 'border' => '#4338ca'],
