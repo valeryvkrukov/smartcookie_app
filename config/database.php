@@ -72,7 +72,7 @@ return [
             'port'      => env('LEGACY_DB_PORT', '3306'),
             'database'  => env('LEGACY_DB_DATABASE', 'old_database_name'),
             'username'  => env('LEGACY_DB_USERNAME', 'root'),
-            'password'  => env('LEGACY_DB_PASSWORD', 'password'),
+            'password'  => env('LEGACY_DB_PASSWORD', ''),
             'charset'   => 'utf8mb4',
             'collation' => 'utf8mb4_unicode_ci',
             'prefix'    => '',
