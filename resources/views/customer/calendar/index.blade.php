@@ -168,6 +168,7 @@
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Time</span>
                             <span class="text-xs">${timeStr} &bull; ${p.duration < 60 ? p.duration+'m' : p.duration/60+'h'}</span>
                             ${p.location ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Location</span><span class="text-xs">${p.location}</span>` : ''}
+                            ${p.status === 'Cancelled' && p.cancelReason ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Reason</span><span class="text-xs italic text-slate-500">${p.cancelReason}</span>` : ''}
                         </div>
                         ${creditBadge ? `<div class="pt-1">${creditBadge}</div>` : ''}
                     `;

@@ -110,6 +110,7 @@ class CalendarController extends Controller
                     'isInitial'          => (bool) $session->is_initial,
                     'isRecurringWeekly'  => (bool) $session->recurs_weekly,
                     'isAdminTutor'       => $isAdminTutor,
+                    'cancelReason'       => $session->tutor_notes,
                     // ── Time props: pre-computed in tutor timezone to avoid client-side TZ bugs
                     'time_h'    => $start->format('h'),
                     'time_m'    => $start->format('i'),

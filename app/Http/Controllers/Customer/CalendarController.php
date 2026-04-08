@@ -100,6 +100,7 @@ class CalendarController extends Controller
                     'location'            => $s->location ?? '',
                     'recurringId'         => $s->series_id,
                     'insufficientCredits' => $noCredits,
+                    'cancelReason'        => $s->tutor_notes,
                 ],
             ];
         });
