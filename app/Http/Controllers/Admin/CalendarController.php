@@ -66,6 +66,11 @@ class CalendarController extends Controller
             $query->where('tutor_id', $request->tutor_id);
         }
 
+        // ── Filter: narrow to the visible date range sent by FullCalendar
+        $start = substr($request->input('start', now()->subMonth()->toDateString()), 0, 10);
+        $end   = substr($request->input('end',   now()->addMonth()->toDateString()),  0, 10);
+        $query->whereBetween('date', [$start, $end]);
+
         $events = $query->get()->map(function ($session) {
             $tutorTz = $session->tutor->time_zone ?? 'UTC';
             $start = Carbon::createFromFormat('Y-m-d H:i:s', $session->date->format('Y-m-d') . ' ' . $session->start_time, $tutorTz);
@@ -93,8 +98,10 @@ class CalendarController extends Controller
                 'title'             => $recurringPrefix . ($session->tutor?->full_name ?? 'No Tutor') . ($isAdminTutor ? ' ★' : '') . ' | ' . ($session->subject ?? 'No Subject'),
                 'start'             => $startIso,
                 'end'               => $endIso,
+                'display'           => 'list-item',
                 'backgroundColor'   => $colors['bg'],
                 'borderColor'       => $colors['border'],
+                'textColor'         => '#1e293b',
                 'extendedProps' => [
                     'studentId'     => (string)$session->student_id,
                     'tutorId'       => (string)$session->tutor_id,

@@ -110,7 +110,6 @@
                 initialView: 'timeGridWeek',
                 timeZone: '{{ auth()->user()->time_zone ?? "local" }}',
                 lazyFetching: false,
-                eventDisplay: 'list-item',
                 firstDay: 0,
                 allDaySlot: false,
                 slotMinTime: '06:00:00',
