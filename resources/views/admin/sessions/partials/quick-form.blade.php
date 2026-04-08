@@ -69,12 +69,12 @@
 
         <!-- Duration -->
         <div class="flex p-1 bg-slate-100 rounded-2xl">
-            <template x-for="val in ['0:30', '1:00', '1:30', '2:00']">
+            @foreach([30 => '30m', 60 => '1h', 90 => '1.5h', 120 => '2h'] as $val => $lbl)
                 <label class="flex-1">
-                    <input type="radio" name="duration" :value="val" x-model="duration" class="peer hidden">
-                    <div class="cursor-pointer text-center py-2 text-[10px] font-black text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all uppercase tracking-widest" x-text="val"></div>
+                    <input type="radio" name="duration" value="{{ $val }}" x-model="duration" class="peer hidden">
+                    <div class="cursor-pointer text-center py-2 text-[10px] font-black text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all uppercase tracking-widest">{{ $lbl }}</div>
                 </label>
-            </template>
+            @endforeach
         </div>
 
         <!-- Location -->

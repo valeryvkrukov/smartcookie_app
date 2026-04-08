@@ -199,7 +199,7 @@ class MigrateLegacyData extends Command
                     'subject' => $oldSession->subject,
                 ],
                 [
-                    'duration' => $oldSession->duration,
+                    'duration' => $this->parseDuration($oldSession->duration),
                     'location' => $oldSession->location ?: null,
                     'status' => $statusMap[$oldSession->status] ?? $oldSession->status,
                     'recurs_weekly' => in_array(strtolower($oldSession->recurs_weekly), ['yes', '1', 'true', 'on'], true),
@@ -216,5 +216,17 @@ class MigrateLegacyData extends Command
 
 
         $this->info('Migration complete!');
+    }
+
+    /**
+     * Convert legacy HH:MM duration strings to integer minutes.
+     */
+    private function parseDuration(mixed $raw): int
+    {
+        $map = ['0:30' => 30, '1:00' => 60, '1:30' => 90, '2:00' => 120, '2:30' => 150, '3:00' => 180];
+        if (is_numeric($raw)) {
+            return (int) $raw;
+        }
+        return $map[(string) $raw] ?? 60;
     }
 }

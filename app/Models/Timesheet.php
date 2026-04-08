@@ -24,12 +24,11 @@ class Timesheet extends Model
     }
 
     /**
-     * Static method for conversion of duration into credits
-     * "0:30" -> 0.5, "1:00" -> 1.0
+     * Calculate credits from duration stored as integer minutes.
+     * 30 → 0.5, 60 → 1.0, 90 → 1.5, 120 → 2.0
      */
-    public static function calculateCredits($duration): float
+    public static function calculateCredits(int $duration): float
     {
-        list($hours, $minutes) = explode(':', $duration);
-        return (int)$hours + ((int)$minutes / 60);
+        return $duration / 60;
     }
 }

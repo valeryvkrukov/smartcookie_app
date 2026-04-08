@@ -69,7 +69,7 @@
 
         <!-- Duration (Segmented Control) — x-model keeps selection in sync when editing -->
         <div class="grid grid-cols-4 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-            @foreach(['0:30' => '30m', '1:00' => '1h', '1:30' => '1.5h', '2:00' => '2h'] as $val => $lbl)
+            @foreach([30 => '30m', 60 => '1h', 90 => '1.5h', 120 => '2h'] as $val => $lbl)
                 <label class="flex-1">
                     <input type="radio" name="duration" value="{{ $val }}" x-model="duration" class="peer hidden">
                     <div class="cursor-pointer text-center py-2 text-[10px] font-black uppercase text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all">

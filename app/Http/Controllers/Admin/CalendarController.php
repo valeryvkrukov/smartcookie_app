@@ -25,14 +25,13 @@ class CalendarController extends Controller
         $events = $query->get()->map(function ($session) {
             $start = Carbon::parse($session->date->format('Y-m-d') . ' ' . $session->start_time);
 
-            list($hours, $minutes) = explode(':', $session->duration);
-            $end = $start->copy()->addHours((int)$hours)->addMinutes((int)$minutes);
+            $end = $start->copy()->addMinutes($session->duration);
             $hasCredits = ($session->student?->parent?->credit?->credit_balance ?? 0) > 0;
 
             $tutorName = $session->tutor?->full_name ?? 'N/A';
             $studentName = $session->student?->full_name ?? 'Guest';
 
-            $title = "{$tutorName}-{$session->duration} {$studentName}";
+            $title = "{$tutorName}-{$session->duration_label} {$studentName}";
             
             return [
                 'id' => $session->id,
@@ -69,8 +68,7 @@ class CalendarController extends Controller
         $events = $query->get()->map(function ($session) {
             $tutorTz = $session->tutor->time_zone ?? 'UTC';
             $start = Carbon::createFromFormat('Y-m-d H:i:s', $session->date->format('Y-m-d') . ' ' . $session->start_time, $tutorTz);
-            list($h, $m) = explode(':', $session->duration);
-            $end = $start->copy()->addHours((int)$h)->addMinutes((int)$m);
+            $end = $start->copy()->addMinutes($session->duration);
             $startIso = $start->toIso8601String();
             $endIso = $end->toIso8601String();
 

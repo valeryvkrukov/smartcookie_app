@@ -42,7 +42,7 @@ class SessionService
 
         // ?? Initial Session logic
         if (!empty($data['is_initial'])) {
-            $data['duration'] = '1:00';
+            $data['duration'] = 60; // 1 hour in minutes
             $data['recurs_weekly'] = false;
         }
 
@@ -53,8 +53,6 @@ class SessionService
 
         $baseDate = Carbon::parse($data['date']);
         $startTime = Carbon::parse($data['start_time']);
-
-        list($hours, $minutes) = explode(':', $data['duration']);
 
         $createdSessions = [];
 
@@ -116,8 +114,7 @@ class SessionService
     {
         $start = Carbon::parse("$date $startTime");
 
-        list($hours, $minutes) = explode(':', $duration);
-        $end = (clone $start)->addHours((int)$hours)->addMinutes((int)$minutes);
+        $end = (clone $start)->addMinutes((int)$duration);
 
         return TutoringSession::where('tutor_id', $tutorId)
             ->where('date', $date)
@@ -129,9 +126,7 @@ class SessionService
             ->get()
             ->filter(function ($session) use ($start, $end) {
                 $sStart = Carbon::parse($session->date->format('Y-m-d') . ' ' . $session->start_time);
-
-                list($h, $m) = explode(':', $session->duration);
-                $sEnd = (clone $sStart)->addHours((int)$h)->addMinutes((int)$m);
+                $sEnd   = (clone $sStart)->addMinutes($session->duration);
 
                 return $start->lt($sEnd) && $end->gt($sStart);
             })->isNotEmpty();

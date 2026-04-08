@@ -74,7 +74,7 @@
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Student</span>
                             <span class="text-xs font-medium">${p.studentName}</span>
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Time</span>
-                            <span class="text-xs">${p.time_h}:${p.time_m} ${p.time_ampm} &bull; ${p.duration}h</span>
+                            <span class="text-xs">${p.time_h}:${p.time_m} ${p.time_ampm} &bull; ${p.duration < 60 ? p.duration+'m' : p.duration/60+'h'}</span>
                             ${p.location ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Location</span><span class="text-xs">${p.location}</span>` : ''}
                         </div>
                     `;

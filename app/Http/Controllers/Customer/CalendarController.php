@@ -60,9 +60,7 @@ class CalendarController extends Controller
         $events = $query->with('tutor', 'student.parent.credit', 'student.credit')->get()->map(function($s) {
             $tutorTz = $s->tutor->time_zone ?? 'UTC';
             $start = Carbon::createFromFormat('Y-m-d H:i:s', $s->date->format('Y-m-d') . ' ' . $s->start_time, $tutorTz);
-            $end = $start->copy()
-                ->addHours((int)explode(':', $s->duration)[0])
-                ->addMinutes((int)explode(':', $s->duration)[1]);
+            $end = $start->copy()->addMinutes($s->duration);
 
             // ── Credit state: computed only for future Scheduled sessions
             $isFutureScheduled = $s->status === 'Scheduled' && $s->date->gte(now()->startOfDay());

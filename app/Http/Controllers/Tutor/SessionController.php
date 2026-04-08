@@ -42,11 +42,7 @@ class SessionController extends Controller
             ->get()
             ->map(function ($session) {
                 $start = \Carbon\Carbon::parse($session->date->format('Y-m-d') . ' ' . $session->start_time);
-                $parts = explode(':', $session->duration);
-                $hours = (int) ($parts[0] ?? 0);
-                $minutes = (int) ($parts[1] ?? 0);
-
-                $end = (clone $start)->addHours($hours)->addMinutes($minutes);
+                $end   = (clone $start)->addMinutes($session->duration);
 
                 return [
                     'id' => $session->id,
@@ -121,7 +117,7 @@ class SessionController extends Controller
             'subject'       => 'required|string|max:255',
             'date'          => 'required|date',
             'start_time'    => 'required',
-            'duration'      => 'required|in:0:30,1:00,1:30,2:00',
+            'duration'      => 'required|in:30,60,90,120',
             'location'      => 'nullable|string|max:255',
             'is_initial'    => 'nullable|boolean',
             'recurs_weekly' => 'nullable|boolean',
@@ -188,7 +184,7 @@ class SessionController extends Controller
             'subject'    => 'required|string|max:255',
             'date'       => 'required|date',
             'start_time' => 'required',
-            'duration'   => 'required|in:0:30,1:00,1:30,2:00',
+            'duration'   => 'required|in:30,60,90,120',
             'location'   => 'nullable|string|max:255',
             'is_initial' => 'nullable|boolean',
         ]);

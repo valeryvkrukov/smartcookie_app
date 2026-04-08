@@ -16,10 +16,30 @@ class TutoringSession extends Model
     protected function casts(): array
     {
         return [
-            'date' => 'date',
-            'is_initial' => 'boolean',
+            'date'         => 'date',
+            'is_initial'   => 'boolean',
             'recurs_weekly' => 'boolean',
+            'duration'     => 'integer',
         ];
+    }
+
+    /**
+     * Human-readable duration label for display purposes.
+     * 30 → '30m', 60 → '1h', 90 → '1.5h', 120 → '2h', etc.
+     */
+    public function getDurationLabelAttribute(): string
+    {
+        $hours   = intdiv($this->duration, 60);
+        $minutes = $this->duration % 60;
+
+        if ($hours === 0) {
+            return "{$minutes}m";
+        }
+        if ($minutes === 0) {
+            return "{$hours}h";
+        }
+        $decimal = $hours + ($minutes / 60);
+        return rtrim(rtrim(number_format($decimal, 1), '0'), '.') . 'h';
     }
 
     public function student(): BelongsTo

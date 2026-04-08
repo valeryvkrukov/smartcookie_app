@@ -156,7 +156,7 @@ class DatabaseSeeder extends Seeder
         // 5. TUTORING SESSIONS + TIMESHEETS
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         $statuses = ['Scheduled', 'Completed', 'Canceled'];
-        $durations = ['0:30', '1:00', '1:30', '2:00'];
+        $durations = [30, 60, 90, 120];
 
         $sessions = collect();
 

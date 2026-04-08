@@ -60,7 +60,7 @@ class SessionController extends Controller
             'time_h'     => 'required',
             'time_m'     => 'required',
             'time_ampm'  => 'required',
-            'duration'   => 'required|in:0:30,1:00,1:30,2:00',
+            'duration'   => 'required|in:30,60,90,120',
             'location'   => 'nullable|string',
             'status'     => 'nullable|in:Scheduled,Completed,Billed,Cancelled',
         ]);
@@ -151,13 +151,11 @@ class SessionController extends Controller
             'subject'       => 'required|string|max:255',
             'date'          => 'required|date',
             'start_time'    => 'required',
-            'duration'      => 'required|in:0:30,1:00,1:30,2:00',
+            'duration'      => 'required|in:30,60,90,120',
             'location'      => 'nullable|string',
             'is_initial'    => 'nullable|boolean',
             'recurs_weekly' => 'nullable|boolean',
         ]);
-
-        $data['is_initial']    = $request->boolean('is_initial');
         $data['recurs_weekly'] = $request->boolean('recurs_weekly');
 
         if ($data['is_initial'] && $data['recurs_weekly']) {

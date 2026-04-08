@@ -535,7 +535,7 @@ class ImportData extends Command
                         'subject'        => $old->subject,
                         'date'           => $this->parseDate($old->date),
                         'start_time'     => $startTime,
-                        'duration'       => $old->duration,
+                        'duration'       => $this->parseDuration($old->duration),
                         'location'       => $old->location ?: null,
                         'is_initial'     => $isInitial,
                         'recurs_weekly'  => $recurringWeekly,
@@ -587,7 +587,7 @@ class ImportData extends Command
                 ->where('tutor_id', $newTutorId)
                 ->where('student_id', $newStudentId)
                 ->where('date', $this->parseDate($old->date))
-                ->where('duration', $old->duration)
+                ->where('duration', $this->parseDuration($old->duration))
                 ->where('status', 'Completed')
                 ->first();
 
@@ -612,7 +612,7 @@ class ImportData extends Command
             $billedUserId = $student->parent_id ?? $newStudentId;
 
             // Calculate credits spent from duration (e.g. "1:00" → 1.0, "0:30" → 0.5)
-            $creditsSpent = Timesheet::calculateCredits($old->duration);
+            $creditsSpent = Timesheet::calculateCredits($this->parseDuration($old->duration));
             $tutorPayout  = $creditsSpent * (float)($old->hourly_pay_rate ?? 0);
             $period       = Carbon::parse($old->date)->format('F Y');
 
@@ -951,7 +951,7 @@ class ImportData extends Command
 
                 for ($s = 0; $s < $sessionsPerStudent; $s++) {
                     $subject     = $subjects ? $subjects[array_rand($subjects)] : $faker->randomElement(self::SUBJECTS);
-                    $duration    = $faker->randomElement(['0:30', '1:00', '1:30', '2:00']);
+                    $duration    = $faker->randomElement([30, 60, 90, 120]);
                     $daysOffset  = rand(-180, 30);                  // spread over -6 months to +1 month
                     $date        = now()->addDays($daysOffset)->format('Y-m-d');
                     $hour        = rand(9, 19);
@@ -1235,5 +1235,18 @@ class ImportData extends Command
         } catch (\Exception) {
             return null;
         }
+    }
+
+    /**
+     * Convert legacy HH:MM duration strings to integer minutes.
+     * '0:30' → 30, '1:00' → 60, '1:30' → 90, '2:00' → 120, etc.
+     */
+    private function parseDuration(mixed $raw): int
+    {
+        $map = ['0:30' => 30, '1:00' => 60, '1:30' => 90, '2:00' => 120, '2:30' => 150, '3:00' => 180];
+        if (is_numeric($raw)) {
+            return (int) $raw;
+        }
+        return $map[(string) $raw] ?? 60;
     }
 }

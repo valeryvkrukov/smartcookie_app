@@ -115,12 +115,11 @@ class TimesheetController extends Controller
 
         // ── Guard: reject if session end time is still in the future
         $tutorTz = $session->tutor->time_zone ?? 'UTC';
-        [$dh, $dm] = explode(':', $session->duration);
         $sessionEnd = Carbon::createFromFormat(
             'Y-m-d H:i:s',
             $session->date->format('Y-m-d') . ' ' . $session->start_time,
             $tutorTz
-        )->addHours((int) $dh)->addMinutes((int) $dm);
+        )->addMinutes($session->duration);
 
         if ($sessionEnd->isFuture()) {
             $endsIn = $sessionEnd->diffForHumans(Carbon::now($tutorTz), ['parts' => 1]);
@@ -195,7 +194,7 @@ class TimesheetController extends Controller
             'subject'     => 'required|string|max:255',
             'date'        => 'required|date|before_or_equal:today',
             'start_time'  => 'required|date_format:H:i',
-            'duration'    => 'required|in:0:30,1:00,1:30,2:00,2:30,3:00',
+            'duration'    => 'required|in:30,60,90,120,150,180',
             'tutor_notes' => 'required|string|min:10|max:3000',
         ]);
 
@@ -211,12 +210,11 @@ class TimesheetController extends Controller
 
         // ── Guard: session end must already be in the past
         $tutorTz = auth()->user()->time_zone ?? 'UTC';
-        [$dh, $dm] = explode(':', $validated['duration']);
         $sessionEnd = Carbon::createFromFormat(
             'Y-m-d H:i:s',
             $validated['date'] . ' ' . $validated['start_time'] . ':00',
             $tutorTz
-        )->addHours((int) $dh)->addMinutes((int) $dm);
+        )->addMinutes((int) $validated['duration']);
 
         if ($sessionEnd->isFuture()) {
             $endsIn = $sessionEnd->diffForHumans(Carbon::now($tutorTz), ['parts' => 1]);
