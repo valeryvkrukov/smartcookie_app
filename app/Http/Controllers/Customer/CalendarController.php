@@ -64,11 +64,12 @@ class CalendarController extends Controller
 
             // ── Credit state: computed only for future Scheduled sessions
             $isFutureScheduled = $s->status === 'Scheduled' && $s->date->gte(now()->startOfDay());
+            $isAdminTutor = $s->tutor?->role === 'admin';
             $creditBalance = $s->student?->parent
                 ? ($s->student->parent->credit?->credit_balance ?? 0)
                 : ($s->student?->credit?->credit_balance ?? 0);
-            $noCredits  = $isFutureScheduled && $creditBalance <= 0;
-            $halfCredit = $isFutureScheduled && !$noCredits && $creditBalance <= 0.5;
+            $noCredits  = $isFutureScheduled && !$isAdminTutor && $creditBalance <= 0;
+            $halfCredit = $isFutureScheduled && !$isAdminTutor && !$noCredits && $creditBalance <= 0.5;
 
             $colors = match(true) {
                 $s->status === 'Cancelled'                   => ['bg' => '#94a3b8', 'border' => '#64748b'],
