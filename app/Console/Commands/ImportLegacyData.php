@@ -115,6 +115,7 @@ class ImportLegacyData extends Command
         $this->migrateAgreementRequests($dry);
         $this->migrateTutorAssignments($dry);
         $this->migrateSessions($dry);
+        $this->detectSessionSeries($dry);
         $this->migrateTimesheets($dry);
         $this->migrateSubjectRates($dry);
 
@@ -643,6 +644,76 @@ class ImportLegacyData extends Command
         }
 
         $this->line(" <fg=green>✓ {$migrated} subject rates</>");
+    }
+
+    // ── 7b. Detect session_series from recurs_weekly sessions ─────
+
+    private function detectSessionSeries(bool $dry): void
+    {
+        $this->line('<fg=yellow>→ [7b] Detecting session series (recurs_weekly, ≥3 sessions)…</>');
+
+        // Group by (tutor, student, subject, duration, start_time, day-of-week).
+        // location is intentionally excluded from key — same pair can meet in different places.
+        $groups = DB::table('tutoring_sessions')
+            ->where('recurs_weekly', true)
+            ->whereNull('series_id')
+            ->select('tutor_id', 'student_id', 'subject', 'duration', 'start_time')
+            ->selectRaw('DAYOFWEEK(date) as dow')
+            ->selectRaw('MIN(date)       as first_date')
+            ->selectRaw('COUNT(*)        as cnt')
+            ->groupBy('tutor_id', 'student_id', 'subject', 'duration', 'start_time',
+                      DB::raw('DAYOFWEEK(date)'))
+            ->having('cnt', '>=', 3)
+            ->get();
+
+        $this->line("  Found {$groups->count()} group(s) qualifying for a series.");
+
+        $created = 0;
+
+        foreach ($groups as $g) {
+            if ($dry) {
+                $this->line("  [dry] Series: tutor={$g->tutor_id} student={$g->student_id} subj={$g->subject} time={$g->start_time} dow={$g->dow} ({$g->cnt} sessions)");
+                continue;
+            }
+
+            // Pick location from the first session of the group (best approximation)
+            $firstSession = DB::table('tutoring_sessions')
+                ->where('tutor_id',   $g->tutor_id)
+                ->where('student_id', $g->student_id)
+                ->where('subject',    $g->subject)
+                ->where('duration',   $g->duration)
+                ->where('start_time', $g->start_time)
+                ->whereRaw('DAYOFWEEK(date) = ?', [$g->dow])
+                ->where('recurs_weekly', true)
+                ->orderBy('date')
+                ->first();
+
+            $seriesId = DB::table('session_series')->insertGetId([
+                'tutor_id'   => $g->tutor_id,
+                'student_id' => $g->student_id,
+                'subject'    => $g->subject,
+                'location'   => $firstSession?->location ?? null,
+                'duration'   => $g->duration,
+                'created_at' => $firstSession?->created_at ?? now(),
+                'updated_at' => now(),
+            ]);
+
+            DB::table('tutoring_sessions')
+                ->where('tutor_id',   $g->tutor_id)
+                ->where('student_id', $g->student_id)
+                ->where('subject',    $g->subject)
+                ->where('duration',   $g->duration)
+                ->where('start_time', $g->start_time)
+                ->whereRaw('DAYOFWEEK(date) = ?', [$g->dow])
+                ->where('recurs_weekly', true)
+                ->whereNull('series_id')
+                ->update(['series_id' => $seriesId]);
+
+            $created++;
+        }
+
+        $suffix = $dry ? " <fg=yellow>✓ Dry-run: {$groups->count()} series would be created.</>" : " <fg=green>✓ {$created} series created.</>";
+        $this->line($suffix);
     }
 
     // ── ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
