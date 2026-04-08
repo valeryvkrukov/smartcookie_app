@@ -117,6 +117,7 @@ class ImportLegacyData extends Command
         $this->migrateSessions($dry);
         $this->detectSessionSeries($dry);
         $this->migrateTimesheets($dry);
+        $this->migrateCreditPurchases($dry);
         $this->migrateSubjectRates($dry);
 
         Model::reguard();
@@ -626,11 +627,71 @@ class ImportLegacyData extends Command
         $this->line(" <fg=green>✓ {$migrated} timesheets (skipped/unmatched: {$skipped})</>");
     }
 
-    // ── 9. Subject rates ─────────────────────────────────────────
+    // ── 9. Credit purchases (reconstructed from timesheets) ──────
+    // Legacy DB has no payment transaction log — we synthesise one
+    // credit_purchase record per timesheet so financials are populated.
+
+    private function migrateCreditPurchases(bool $dry): void
+    {
+        $this->line('<fg=yellow>→ [9/9] Credit purchases (reconstructed from timesheets)…</>');
+
+        $rows = DB::table('timesheets as t')
+            ->join('credits as c', 'c.user_id', '=', 't.billed_user_id')
+            ->select(
+                't.id as timesheet_id',
+                't.billed_user_id',
+                't.credits_spent',
+                DB::raw('t.credits_spent * COALESCE(c.dollar_cost_per_credit, 0) as total_paid'),
+                't.created_at'
+            )
+            ->get();
+
+        $bar = $this->output->createProgressBar($rows->count());
+        $bar->start();
+
+        $migrated = $skipped = 0;
+
+        foreach ($rows as $row) {
+            if ((float) $row->total_paid <= 0) {
+                $skipped++;
+                $bar->advance();
+                continue;
+            }
+
+            if (! $dry) {
+                $already = DB::table('credit_purchases')
+                    ->where('user_id', $row->billed_user_id)
+                    ->where('credits_purchased', $row->credits_spent)
+                    ->where('created_at', $row->created_at)
+                    ->where('stripe_session_id', 'legacy-ts-' . $row->timesheet_id)
+                    ->exists();
+
+                if (! $already) {
+                    DB::table('credit_purchases')->insert([
+                        'user_id'           => $row->billed_user_id,
+                        'credits_purchased' => $row->credits_spent,
+                        'total_paid'        => round((float) $row->total_paid, 2),
+                        'type'              => 'deposit',
+                        'stripe_session_id' => 'legacy-ts-' . $row->timesheet_id,
+                        'created_at'        => $row->created_at,
+                        'updated_at'        => $row->created_at,
+                    ]);
+                }
+            }
+
+            $migrated++;
+            $bar->advance();
+        }
+
+        $bar->finish();
+        $this->line(" <fg=green>✓ {$migrated} credit purchases reconstructed (skipped: {$skipped})</>");
+    }
+
+    // ── 10. Subject rates ────────────────────────────────────────
 
     private function migrateSubjectRates(bool $dry): void
     {
-        $this->line('<fg=yellow>→ [9/9] Subject rates…</>');
+        $this->line('<fg=yellow>→ [10/10] Subject rates…</>');
 
         $pairs = DB::table('tutoring_sessions')
             ->select('student_id', 'subject')

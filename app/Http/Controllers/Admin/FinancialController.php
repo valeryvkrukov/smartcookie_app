@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Credit;
+use App\Models\Timesheet;
 use App\Models\TutoringSession;
 use App\Models\CreditPurchase;
 
@@ -26,9 +27,27 @@ class FinancialController extends Controller
         }
 
         // ── Stats: compute key financial KPIs
+        $timesheetQuery = Timesheet::query();
+        if ($period === 'month') {
+            $timesheetQuery->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year);
+        } elseif ($period === 'quarter') {
+            $timesheetQuery->whereBetween('created_at', [now()->startOfQuarter(), now()->endOfQuarter()]);
+        } elseif ($period === 'year') {
+            $timesheetQuery->whereYear('created_at', now()->year);
+        }
+
+        $tutorPayouts  = (clone $timesheetQuery)->sum('tutor_payout');
+        $totalRevenue  = (clone $query)->sum('total_paid')
+            ?: DB::table('timesheets as t')
+                ->join('credits as c', 'c.user_id', '=', 't.billed_user_id')
+                ->when($period === 'month',   fn($q) => $q->whereMonth('t.created_at', now()->month)->whereYear('t.created_at', now()->year))
+                ->when($period === 'quarter', fn($q) => $q->whereBetween('t.created_at', [now()->startOfQuarter(), now()->endOfQuarter()]))
+                ->when($period === 'year',    fn($q) => $q->whereYear('t.created_at', now()->year))
+                ->sum(DB::raw('t.credits_spent * c.dollar_cost_per_credit'));
+
         $stats = [
-            'total_revenue' => (clone $query)->sum('total_paid'),
-            'tutor_payouts' => TutoringSession::where('status', 'completed')->sum('tutor_rate'),
+            'total_revenue'  => $totalRevenue,
+            'tutor_payouts'  => $tutorPayouts,
             'client_balances' => Credit::sum('credit_balance'),
         ];
 
