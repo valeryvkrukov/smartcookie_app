@@ -650,69 +650,87 @@ class ImportLegacyData extends Command
 
     private function detectSessionSeries(bool $dry): void
     {
-        $this->line('<fg=yellow>→ [7b] Detecting session series (recurs_weekly, ≥3 sessions)…</>');
+        $this->line('<fg=yellow>→ [7b] Detecting session series (recurs_weekly, ≥3 consecutive sessions)…</>');
 
-        // Group by (tutor, student, subject, duration, start_time, day-of-week).
-        // location is intentionally excluded from key — same pair can meet in different places.
-        $groups = DB::table('tutoring_sessions')
+        // Fetch all recurs_weekly sessions that have no series yet, ordered so that
+        // consecutive sessions in the same "stream" are adjacent in the result set.
+        // location is intentionally excluded from the grouping key.
+        $rows = DB::table('tutoring_sessions')
             ->where('recurs_weekly', true)
             ->whereNull('series_id')
-            ->select('tutor_id', 'student_id', 'subject', 'duration', 'start_time')
-            ->selectRaw('DAYOFWEEK(date) as dow')
-            ->selectRaw('MIN(date)       as first_date')
-            ->selectRaw('COUNT(*)        as cnt')
-            ->groupBy('tutor_id', 'student_id', 'subject', 'duration', 'start_time',
-                      DB::raw('DAYOFWEEK(date)'))
-            ->having('cnt', '>=', 3)
+            ->select('id', 'tutor_id', 'student_id', 'subject', 'duration', 'start_time',
+                     'date', 'location', 'created_at')
+            ->orderBy('tutor_id')
+            ->orderBy('student_id')
+            ->orderBy('subject')
+            ->orderBy('duration')
+            ->orderBy('start_time')
+            ->orderBy('date')
             ->get();
 
-        $this->line("  Found {$groups->count()} group(s) qualifying for a series.");
+        // Split the flat list into "runs": continuous weekly sequences.
+        // A new run starts when the key (tutor/student/subject/duration/time) changes
+        // OR the gap between consecutive session dates exceeds 14 days (one missed week allowed).
+        $runs       = [];
+        $currentKey = null;
+        $currentRun = [];
+        $lastDate   = null;
+
+        foreach ($rows as $row) {
+            $key  = "{$row->tutor_id}|{$row->student_id}|{$row->subject}|{$row->duration}|{$row->start_time}";
+            $date = Carbon::parse($row->date);
+
+            $gapBroken = $lastDate && $date->diffInDays($lastDate) > 14;
+
+            if ($key !== $currentKey || $gapBroken) {
+                if (count($currentRun) >= 3) {
+                    $runs[] = $currentRun;
+                }
+                $currentRun = [];
+                $currentKey = $key;
+            }
+
+            $currentRun[] = $row;
+            $lastDate = $date;
+        }
+        if (count($currentRun) >= 3) {
+            $runs[] = $currentRun;
+        }
+
+        $this->line("  Found " . count($runs) . " run(s) qualifying for a series.");
 
         $created = 0;
 
-        foreach ($groups as $g) {
+        foreach ($runs as $run) {
+            $first = $run[0];
+            $ids   = array_column((array) $run, 'id');
+
             if ($dry) {
-                $this->line("  [dry] Series: tutor={$g->tutor_id} student={$g->student_id} subj={$g->subject} time={$g->start_time} dow={$g->dow} ({$g->cnt} sessions)");
+                $label = "{$first->tutor_id}|{$first->student_id}|{$first->subject}|{$first->start_time}";
+                $this->line("  [dry] Series {$label}  dates {$first->date}…" . end($run)->date . " (" . count($run) . " sessions)");
                 continue;
             }
 
-            // Pick location from the first session of the group (best approximation)
-            $firstSession = DB::table('tutoring_sessions')
-                ->where('tutor_id',   $g->tutor_id)
-                ->where('student_id', $g->student_id)
-                ->where('subject',    $g->subject)
-                ->where('duration',   $g->duration)
-                ->where('start_time', $g->start_time)
-                ->whereRaw('DAYOFWEEK(date) = ?', [$g->dow])
-                ->where('recurs_weekly', true)
-                ->orderBy('date')
-                ->first();
-
             $seriesId = DB::table('session_series')->insertGetId([
-                'tutor_id'   => $g->tutor_id,
-                'student_id' => $g->student_id,
-                'subject'    => $g->subject,
-                'location'   => $firstSession?->location ?? null,
-                'duration'   => $g->duration,
-                'created_at' => $firstSession?->created_at ?? now(),
+                'tutor_id'   => $first->tutor_id,
+                'student_id' => $first->student_id,
+                'subject'    => $first->subject,
+                'location'   => $first->location ?? null,
+                'duration'   => $first->duration,
+                'created_at' => $first->created_at ?? now(),
                 'updated_at' => now(),
             ]);
 
             DB::table('tutoring_sessions')
-                ->where('tutor_id',   $g->tutor_id)
-                ->where('student_id', $g->student_id)
-                ->where('subject',    $g->subject)
-                ->where('duration',   $g->duration)
-                ->where('start_time', $g->start_time)
-                ->whereRaw('DAYOFWEEK(date) = ?', [$g->dow])
-                ->where('recurs_weekly', true)
-                ->whereNull('series_id')
+                ->whereIn('id', $ids)
                 ->update(['series_id' => $seriesId]);
 
             $created++;
         }
 
-        $suffix = $dry ? " <fg=yellow>✓ Dry-run: {$groups->count()} series would be created.</>" : " <fg=green>✓ {$created} series created.</>";
+        $suffix = $dry
+            ? " <fg=yellow>✓ Dry-run: " . count($runs) . " series would be created.</>"
+            : " <fg=green>✓ {$created} series created.</>";
         $this->line($suffix);
     }
 
