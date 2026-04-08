@@ -93,13 +93,13 @@
 
         initialCheck.addEventListener('change', function() {
             if(this.checked) {
-                const oneHourInput = document.querySelector('input[name="duration"][value="1:00"]');
+                const oneHourInput = document.querySelector('input[name="duration"][value="60"]');
                 if (oneHourInput) {
                     oneHourInput.checked = true;
                     oneHourInput.dispatchEvent(new Event('change')); 
                 }
                 durationInputs.forEach(input => {
-                    if(input.value !== '1:00') {
+                    if(input.value !== '60') {
                         input.disabled = true;
                         input.parentElement.classList.add('opacity-50', 'cursor-not-allowed');
                     }

@@ -19,7 +19,7 @@
                 <label class="label-premium">Tutor</label>
                 <select x-model="tutorId" name="tutor_id" class="input-premium text-sm" required>
                     <option value="">Select Tutor</option>
-                    @foreach($tutors as $t) <option value="{{ $t->id }}">{{ $t->full_name }}</option> @endforeach
+                    @foreach($tutors as $t) <option value="{{ $t->id }}">{{ $t->full_name }}{{ $t->role === 'admin' ? ' ★' : '' }}</option> @endforeach
                 </select>
             </div>
             <div class="space-y-1">
@@ -69,12 +69,12 @@
 
         <!-- Duration -->
         <div class="flex p-1 bg-slate-100 rounded-2xl">
-            <template x-for="val in ['0:30', '1:00', '1:30', '2:00']">
+            @foreach([30 => '30m', 60 => '1h', 90 => '1.5h', 120 => '2h'] as $val => $lbl)
                 <label class="flex-1">
-                    <input type="radio" name="duration" :value="val" x-model="duration" class="peer hidden">
-                    <div class="cursor-pointer text-center py-2 text-[10px] font-black text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all uppercase tracking-widest" x-text="val"></div>
+                    <input type="radio" name="duration" value="{{ $val }}" x-model="duration" class="peer hidden">
+                    <div class="cursor-pointer text-center py-2 text-[10px] font-black text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all uppercase tracking-widest">{{ $lbl }}</div>
                 </label>
-            </template>
+            @endforeach
         </div>
 
         <!-- Location -->
@@ -83,21 +83,45 @@
             <input type="text" name="location" x-model="sessionLocation" placeholder="Online" class="input-premium">
         </div>
 
+        <!-- Status (edit only) -->
+        <template x-if="isEdit">
+            <div class="space-y-1">
+                <label class="label-premium">Status</label>
+                <div class="grid grid-cols-4 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
+                    @foreach(['Scheduled' => 'indigo', 'Completed' => 'emerald', 'Billed' => 'teal', 'Cancelled' => 'slate'] as $st => $color)
+                        <label class="flex-1">
+                            <input type="radio" name="status" value="{{ $st }}" x-model="sessionStatus" class="peer hidden">
+                            <div class="cursor-pointer text-center py-2 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all
+                                        peer-checked:shadow-sm
+                                        @if($color === 'indigo') peer-checked:bg-indigo-600 peer-checked:text-white text-indigo-400
+                                        @elseif($color === 'emerald') peer-checked:bg-emerald-500 peer-checked:text-white text-emerald-400
+                                        @elseif($color === 'teal') peer-checked:bg-teal-500 peer-checked:text-white text-teal-400
+                                        @else peer-checked:bg-slate-400 peer-checked:text-white text-slate-400 @endif">
+                                {{ $st }}
+                            </div>
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+        </template>
+
         <!-- FLAGS -->
         <div class="flex items-center gap-6">
-            <label class="flex items-center gap-2 cursor-pointer">
+            <label class="flex items-center gap-2" :class="recurringWeekly ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'">
                 <input type="checkbox" name="is_initial" value="1"
                        :checked="isInitial"
-                       @change="isInitial = $event.target.checked"
-                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                       :disabled="recurringWeekly"
+                       @change="isInitial = $event.target.checked; if (isInitial) recurringWeekly = false"
+                       class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-40">
                 <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Initial Session</span>
             </label>
             <template x-if="!isEdit">
-                <label class="flex items-center gap-2 cursor-pointer">
+                <label class="flex items-center gap-2" :class="isInitial ? 'opacity-40 cursor-not-allowed' : 'cursor-pointer'">
                     <input type="checkbox" name="recurs_weekly" value="1"
                            :checked="recurringWeekly"
-                           @change="recurringWeekly = $event.target.checked"
-                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500">
+                           :disabled="isInitial"
+                           @change="recurringWeekly = $event.target.checked; if (recurringWeekly) isInitial = false"
+                           class="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500 disabled:opacity-40">
                     <span class="text-xs font-bold text-slate-700 uppercase tracking-widest">Recurring (weekly ×12)</span>
                 </label>
             </template>
@@ -105,7 +129,7 @@
 
         <!-- Recurring series edit option — only shown when editing a recurring session -->
         <template x-if="isEdit && isRecurring">
-            <div x-data="{ updateSeries: false }">
+            <div>
                 <input type="hidden" name="update_series" :value="updateSeries ? '1' : ''">
                 <div class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3 space-y-3">
                     <p class="text-[9px] font-black uppercase tracking-widest text-amber-700">
@@ -139,10 +163,10 @@
         </button>
 
         <template x-if="isEdit">
-            <button type="button" 
-                @click="$dispatch('confirm-delete', { name: subject + ' with ' + ($el.closest('form').querySelector('[name=student_id]').selectedOptions[0]?.text || 'student'), formId: 'delete-session-form', isRecurring: isRecurring, useAjax: true })"
-                class="text-[10px] font-black uppercase tracking-widest text-rose-500 hover:text-rose-700 transition-colors">
-                Cancel Session
+            <button type="button"
+                @click="$dispatch('confirm-delete', { name: subject + ' with ' + ($el.closest('form').querySelector('[name=student_id]').selectedOptions[0]?.text || 'student'), formId: 'delete-session-form', isRecurring: false, useAjax: true })"
+                class="w-full py-3.5 rounded-2xl bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-600 hover:text-rose-700 text-[10px] font-black uppercase tracking-widest transition-colors">
+                <i class="ti-trash mr-1.5"></i> Delete Session
             </button>
         </template>
     </form>
@@ -150,5 +174,6 @@
     <form id="delete-session-form" :action="'/admin/sessions/' + sessionId" method="POST" class="hidden">
         @csrf
         @method('DELETE')
+        <input type="hidden" name="delete_series" :value="updateSeries ? '1' : ''">
     </form>
 </div>

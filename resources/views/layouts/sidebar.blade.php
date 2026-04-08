@@ -1,4 +1,12 @@
-<aside class="fixed inset-y-0 left-0 z-40 w-20 hover:w-64 bg-[#212120] transition-all duration-500 ease-in-out overflow-hidden group border-r border-white/5 shadow-2xl">
+<aside x-cloak
+       :class="sidebarOpen ? 'translate-x-0 w-64' : '-translate-x-full sm:translate-x-0 sm:w-20 sm:hover:w-64'"
+       class="fixed inset-y-0 left-0 z-40 w-64 bg-[#212120] transition-all duration-300 ease-in-out overflow-hidden flex flex-col group border-r border-white/5 shadow-2xl">
+
+    {{-- Close button (mobile only) --}}
+    <button @click="sidebarOpen = false"
+            class="sm:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-10">
+        <i class="ti-close text-base"></i>
+    </button>
     <div class="flex flex-col h-full py-8 px-4 justify-between">
         
         <!-- Logo -->
@@ -30,20 +38,25 @@
             @foreach($links as $link)
                 @if(!isset($link['role']) || in_array(auth()->user()->role, (array)$link['role']))
                 <a href="{{ route($link['route']) }}"
+                    @click="sidebarOpen = false"
                     class="flex items-center p-3 rounded-2xl transition-all duration-300 group/item {{ request()->routeIs(str_replace('.index', '.*', $link['route'])) ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200' }}">
                     <i class="{{ $link['icon'] }} text-xl shrink-0"></i>
-                    <span class="ml-4 font-bold text-xs uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">{{ $link['label'] }}</span>
+                    <span class="ml-4 font-bold text-xs uppercase tracking-[0.2em] whitespace-nowrap
+                                transition-opacity duration-300
+                                opacity-0 group-hover:opacity-100"
+                          :class="sidebarOpen ? 'opacity-100' : ''">{{ $link['label'] }}</span>
                 </a>
                 @endif
             @endforeach
         </nav>
 
         <!-- Profile Link -->
-        <a href="{{ route('profile.edit') }}" class="flex items-center p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+        <a href="{{ route('profile.edit') }}" @click="sidebarOpen = false" class="flex items-center p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
             <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-700 shrink-0 border border-white/10">
-                <img src="{{ auth()->user()->photo_url ?? asset('images/generic-avatar.png') }}" class="w-full h-full object-cover">
+                <img src="{{ auth()->user()->photo_url }}" class="w-full h-full object-cover">
             </div>
-            <div class="ml-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div class="ml-3 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+                 :class="sidebarOpen ? 'opacity-100' : ''">
                 <p class="text-[10px] font-black text-white uppercase tracking-widest leading-none">{{ auth()->user()->first_name }}</p>
                 <p class="text-[8px] text-slate-500 font-bold uppercase mt-1">{{ auth()->user()->role }}</p>
             </div>
@@ -55,7 +68,9 @@
             <button type="submit" 
                     class="w-full flex items-center p-3 rounded-2xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all duration-300 group/logout">
                 <i class="ti-power-off text-xl shrink-0"></i>
-                <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] opacity-0 group-hover:opacity-100 transition-opacity duration-300 whitespace-nowrap">Sign Out</span>
+                <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] whitespace-nowrap
+                            transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+                      :class="sidebarOpen ? 'opacity-100' : ''">Sign Out</span>
             </button>
         </form>
     </div>

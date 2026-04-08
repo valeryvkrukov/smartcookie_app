@@ -14,14 +14,15 @@
          x-transition:enter="ease-out duration-300"
          x-transition:enter-start="opacity-0 scale-95"
          x-transition:enter-end="opacity-100 scale-100"
-         class="relative w-full max-w-lg bg-white p-10 rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden">
-        
-        <button @click="open = false" class="absolute top-8 right-8 text-slate-300 hover:text-slate-900 transition-colors">
+         class="relative w-full max-w-lg bg-white rounded-[2rem] sm:rounded-[3rem] shadow-2xl border border-slate-100 overflow-hidden
+                flex flex-col max-h-[90dvh] sm:max-h-[85vh]">
+
+        <button @click="open = false" class="absolute top-5 right-5 sm:top-8 sm:right-8 z-10 text-slate-300 hover:text-slate-900 transition-colors">
             <i class="ti-close text-lg"></i>
         </button>
 
-        <div class="text-center mb-10">
-            <h2 class="text-2xl font-black text-slate-900 tracking-tight" x-text="title"></h2>
+        <div class="text-center pt-8 px-8 pb-4 sm:pt-10 sm:px-10 sm:pb-6 shrink-0">
+            <h2 class="text-xl sm:text-2xl font-black text-slate-900 tracking-tight" x-text="title"></h2>
             <template x-if="date">
                 <p class="text-[10px] font-bold text-indigo-600 uppercase tracking-[0.2em] mt-1" 
                     x-text="new Date(date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })">
@@ -29,8 +30,8 @@
             </template>
         </div>
 
-        <!-- Content is loaded dynamically -->
-        <div class="space-y-6">
+        <!-- Scrollable content area -->
+        <div class="overflow-y-auto overscroll-contain px-8 pb-8 sm:px-10 sm:pb-10 space-y-6">
             <template x-if="type === 'tutor'">
                 @include('tutor.sessions.partials.quick-form')
             </template>
@@ -266,9 +267,9 @@
 
                         <!-- Duration -->
                         <div class="grid grid-cols-4 gap-2 bg-slate-50 p-1.5 rounded-2xl border border-slate-100">
-                            @foreach(['0:30' => '30m', '1:00' => '1h', '1:30' => '1.5h', '2:00' => '2h'] as $val => $lbl)
+                            @foreach([30 => '30m', 60 => '1h', 90 => '1.5h', 120 => '2h'] as $val => $lbl)
                                 <label class="flex-1">
-                                    <input type="radio" name="duration" value="{{ $val }}" {{ $val == '1:00' ? 'checked' : '' }} class="peer hidden">
+                                    <input type="radio" name="duration" value="{{ $val }}" x-model="duration" {{ $val == 60 ? 'checked' : '' }} class="peer hidden">
                                     <div class="cursor-pointer text-center py-2 text-[10px] font-black uppercase text-slate-400 peer-checked:bg-white peer-checked:text-[#212120] peer-checked:shadow-sm rounded-xl transition-all">
                                         {{ $lbl }}
                                     </div>
@@ -390,12 +391,12 @@
                             <label class="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duration</label>
                             <select name="duration" required
                                     class="w-full mt-2 border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-3 font-medium text-slate-800">
-                                <option value="0:30">30 min (0.5 credit)</option>
-                                <option value="1:00" selected>1 hour (1 credit)</option>
-                                <option value="1:30">1.5 hours (1.5 credits)</option>
-                                <option value="2:00">2 hours (2 credits)</option>
-                                <option value="2:30">2.5 hours (2.5 credits)</option>
-                                <option value="3:00">3 hours (3 credits)</option>
+                                <option value="30">30 min (0.5 credit)</option>
+                                <option value="60" selected>1 hour (1 credit)</option>
+                                <option value="90">1.5 hours (1.5 credits)</option>
+                                <option value="120">2 hours (2 credits)</option>
+                                <option value="150">2.5 hours (2.5 credits)</option>
+                                <option value="180">3 hours (3 credits)</option>
                             </select>
                         </div>
 
@@ -542,7 +543,7 @@
                         <div class="flex items-center justify-between px-5 py-3.5 bg-slate-50 rounded-2xl border border-slate-100">
                             <p class="text-[9px] font-black uppercase tracking-widest text-slate-400">Duration</p>
                             <p class="text-sm font-black text-slate-900"
-                               x-text="duration === '0:30' ? '30 min' : duration === '1:00' ? '1 hour' : duration === '1:30' ? '1.5 hours' : duration + ' hrs'"></p>
+                               x-text="duration == 30 || duration === '30' ? '30 min' : duration == 60 || duration === '60' ? '1 hour' : duration == 90 || duration === '90' ? '1.5 hours' : duration == 120 || duration === '120' ? '2 hours' : duration + ' min'"></p>
                         </div>
                         <div class="flex items-center justify-between px-5 py-3.5 rounded-2xl border"
                              :class="(sessionStatus === 'Billed' || sessionStatus === 'Completed') ? 'bg-emerald-50 border-emerald-100' : sessionStatus === 'Cancelled' ? 'bg-slate-50 border-slate-100' : 'bg-indigo-50 border-indigo-100'">
@@ -606,7 +607,7 @@
             formId: null,
             tutorId: '',
             subject: '',
-            duration: '1:00',
+            duration: '60',
             blurb: '',
             firstName: '',
             lastName: '',
@@ -633,6 +634,7 @@
             studentNameDisplay: '',
             insufficientCredits: false,
             cancellationReason: '',
+            updateSeries: false,
 
             openModal(event) {
                 const detail = event?.detail || {};
@@ -653,7 +655,7 @@
                 this.blurb = detail.blurb || '';
                 this.date = detail.date || '';
                 this.subject = detail.subject || '';
-                this.duration = detail.duration || '1:00';
+                this.duration = detail.duration !== undefined ? String(detail.duration) : '60';
                 this.time_h = detail.time_h || '09';
                 this.time_m = detail.time_m || '00';
                 this.time_ampm = detail.time_ampm || 'AM';
@@ -673,6 +675,7 @@
                 this.studentNameDisplay = detail.studentName || '';
                 this.insufficientCredits = detail.insufficientCredits || false;
                 this.cancellationReason = '';
+                this.updateSeries = false;
             },
 
             doCancelSession(series, el) {

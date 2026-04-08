@@ -12,6 +12,9 @@ use App\Models\TutoringSession;
 use App\Models\Timesheet;
 use App\Models\Agreement;
 use App\Models\AgreementRequest;
+use App\Models\TutorProfile;
+use App\Models\StudentProfile;
+use App\Models\SessionSeries;
 
 class DatabaseSeeder extends Seeder
 {
@@ -27,10 +30,13 @@ class DatabaseSeeder extends Seeder
         \DB::table('subject_rates')->truncate();
         \DB::table('tutor_student_assignments')->truncate();
         Timesheet::truncate();
+        SessionSeries::truncate();
         TutoringSession::truncate();
         CreditPurchase::truncate();
         Credit::truncate();
         \DB::table('agreements')->truncate();
+        TutorProfile::truncate();
+        StudentProfile::truncate();
         User::truncate();
         \Schema::enableForeignKeyConstraints();
 
@@ -63,9 +69,15 @@ class DatabaseSeeder extends Seeder
         $tutors = collect();
 
         foreach ($fixedTutors as $data) {
-            $tutors->push(User::factory()->tutor()->create(array_merge($data, [
+            $blurb = $data['blurb'] ?? null;
+            $userData = array_diff_key($data, ['blurb' => null]);
+            $tutor = User::factory()->tutor()->create(array_merge($userData, [
                 'password' => Hash::make('password'),
-            ])));
+            ]));
+            if ($blurb) {
+                $tutor->tutorProfile()->update(['blurb' => $blurb]);
+            }
+            $tutors->push($tutor);
         }
 
         $tutors = $tutors->concat(User::factory()->count(5)->tutor()->create());
@@ -102,7 +114,6 @@ class DatabaseSeeder extends Seeder
                 $ratePerCredit = $faker->randomElement([35, 40, 45, 50, 55]);
                 CreditPurchase::create([
                     'user_id'           => $customer->id,
-                    'amount'            => $credits,
                     'credits_purchased' => $credits,
                     'total_paid'        => $credits * $ratePerCredit,
                     'type'              => 'deposit',
@@ -156,7 +167,7 @@ class DatabaseSeeder extends Seeder
         // 5. TUTORING SESSIONS + TIMESHEETS
         // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
         $statuses = ['Scheduled', 'Completed', 'Canceled'];
-        $durations = ['0:30', '1:00', '1:30', '2:00'];
+        $durations = [30, 60, 90, 120];
 
         $sessions = collect();
 
@@ -202,10 +213,9 @@ class DatabaseSeeder extends Seeder
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id'            => $session->tutor_id,
-                'parent_id'           => $student->parent_id,
+                'billed_user_id'      => $student->parent_id,
                 'credits_spent'       => Timesheet::calculateCredits($session->duration),
                 'tutor_payout'        => $faker->randomFloat(2, 20, 65),
-                'period'              => \Carbon\Carbon::parse($session->date)->format('Y-m'),
             ]);
         });
 

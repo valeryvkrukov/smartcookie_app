@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TutoringSession;
+use App\Models\SessionSeries;
 use App\Models\User;
 use App\Models\AgreementRequest;
 use App\Notifications\CreditBalanceChanged;
@@ -21,40 +22,53 @@ class SessionService
         // Self-student: the customer IS the billed party (no separate parent account)
         $parent = $student->parent ?? $student;
 
-        // Check for Credit Record
-        if (!$parent->credit) {
-            throw new \Exception("Financial record missing for: {$parent->full_name}. Please update their profile.");
-        }
+        // Admin-tutors bypass all credit and agreement checks
+        $tutor = User::findOrFail($data['tutor_id']);
+        $isAdminTutor = $tutor->role === 'admin';
 
-        // Check for Credits
-        if ($parent->credit->credit_balance <= 0) {
-            throw new \Exception("Client has ZERO credits. Please ask parent to refill balance.");
-        }
+        if (!$isAdminTutor) {
+            // Check for Credit Record
+            if (!$parent->credit) {
+                throw new \Exception("Financial record missing for: {$parent->full_name}. Please update their profile.");
+            }
 
-        // Check for Agreements
-        $hasPending = AgreementRequest::where('user_id', $parent->id)
-            ->where('status', 'Awaiting signature')
-            ->exists();
-        
-        if ($hasPending) {
-            throw new \Exception("Client has unsigned agreements. Cannot schedule.");
+            // Check for Credits
+            if ($parent->credit->credit_balance <= 0) {
+                throw new \Exception("Client has ZERO credits. Please ask parent to refill balance.");
+            }
+
+            // Check for Agreements
+            $hasPending = AgreementRequest::where('user_id', $parent->id)
+                ->where('status', 'Awaiting signature')
+                ->exists();
+            
+            if ($hasPending) {
+                throw new \Exception("Client has unsigned agreements. Cannot schedule.");
+            }
         }
 
         // ?? Initial Session logic
         if (!empty($data['is_initial'])) {
-            $data['duration'] = '1:00';
+            $data['duration'] = 60; // 1 hour in minutes
             $data['recurs_weekly'] = false;
         }
 
-        // Generate Uniuqe ID for serie of sessions
+        // Generate series record for recurring sessions
         $isRecurring = !empty($data['recurs_weekly']);
-        $recurringId = $isRecurring ? uniqid('rec_') : null;
+        $series = null;
+        if ($isRecurring) {
+            $series = SessionSeries::create([
+                'tutor_id'   => $data['tutor_id'],
+                'student_id' => $data['student_id'],
+                'subject'    => $data['subject'],
+                'location'   => $data['location'] ?? null,
+                'duration'   => $data['duration'],
+            ]);
+        }
         $count = $isRecurring ? 12 : 1;
 
         $baseDate = Carbon::parse($data['date']);
         $startTime = Carbon::parse($data['start_time']);
-
-        list($hours, $minutes) = explode(':', $data['duration']);
 
         $createdSessions = [];
 
@@ -66,7 +80,7 @@ class SessionService
                 throw new \Exception("Time Conflict: You already have a session on {$currentDate->format('Y-m-d')} at {$data['start_time']}.");
             }
             $sessionData = array_merge($data, [
-                'recurring_id' => $recurringId,
+                'series_id'    => $series?->id,
                 'date'         => $currentDate->format('Y-m-d'),
                 'status'       => 'Scheduled',
                 // 'is_initial' set only for the first session
@@ -109,29 +123,26 @@ class SessionService
     }
 
     /**
-     * $excludeSessionId   – exclude a specific session (e.g. the one being updated)
-     * $excludeRecurringId – exclude all sessions in a recurring series (e.g. during series update)
+     * $excludeSessionId  – exclude a specific session (e.g. the one being updated)
+     * $excludeSeriesId   – exclude all sessions in a recurring series (e.g. during series update)
      */
-    public function hasConflict($tutorId, $date, $startTime, $duration, $excludeSessionId = null, $excludeRecurringId = null): bool
+    public function hasConflict($tutorId, $date, $startTime, $duration, $excludeSessionId = null, $excludeSeriesId = null): bool
     {
         $start = Carbon::parse("$date $startTime");
 
-        list($hours, $minutes) = explode(':', $duration);
-        $end = (clone $start)->addHours((int)$hours)->addMinutes((int)$minutes);
+        $end = (clone $start)->addMinutes((int)$duration);
 
         return TutoringSession::where('tutor_id', $tutorId)
-            ->where('date', $date)
+            ->whereDate('date', $date)
             ->where('status', 'Scheduled')   // only future scheduled sessions block a slot
-            ->when($excludeSessionId,   fn($q) => $q->where('id', '!=', $excludeSessionId))
-            ->when($excludeRecurringId, fn($q) => $q->where(function ($q) use ($excludeRecurringId) {
-                $q->whereNull('recurring_id')->orWhere('recurring_id', '!=', $excludeRecurringId);
+            ->when($excludeSessionId,  fn($q) => $q->where('id', '!=', $excludeSessionId))
+            ->when($excludeSeriesId,   fn($q) => $q->where(function ($q) use ($excludeSeriesId) {
+                $q->whereNull('series_id')->orWhere('series_id', '!=', $excludeSeriesId);
             }))
             ->get()
             ->filter(function ($session) use ($start, $end) {
                 $sStart = Carbon::parse($session->date->format('Y-m-d') . ' ' . $session->start_time);
-
-                list($h, $m) = explode(':', $session->duration);
-                $sEnd = (clone $sStart)->addHours((int)$h)->addMinutes((int)$m);
+                $sEnd   = (clone $sStart)->addMinutes($session->duration);
 
                 return $start->lt($sEnd) && $end->gt($sStart);
             })->isNotEmpty();

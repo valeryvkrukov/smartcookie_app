@@ -23,19 +23,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
     'role', 
     'address', 
     'phone', 
-    'is_admin', 
     'is_subscribed',
     'parent_id',
     'tutor_id',
-    'student_grade',
-    'student_school',
-    'tutoring_subject',
-    'tutoring_goals',
-    'photo',
-    'blurb',
     'can_tutor',
     'time_zone',
-    'is_self_student'
+    'is_self_student',
+    'is_inactive'
 ])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
@@ -55,9 +49,9 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'is_admin' => 'boolean',
             'is_subscribed' => 'boolean',
             'is_self_student' => 'boolean',
+            'is_inactive' => 'boolean',
         ];
     }
 
@@ -98,15 +92,63 @@ class User extends Authenticatable
      */
     public function getFullNameAttribute(): string
     {
-        return "{$this->first_name} {$this->last_name}";
+        return trim(implode(' ', array_filter([
+            $this->first_name,
+            $this->last_name,
+        ]))) ?: ($this->email ?? 'Unknown');
     }
 
     /**
      * Accessor for the resolved profile photo URL.
+     * Falls back to a ui-avatars.com generated avatar when no photo is set or the file is missing.
      */
-    public function getPhotoUrlAttribute(): ?string
+    public function getPhotoUrlAttribute(): string
     {
-        return PhotoPathResolver::resolve($this->photo);
+        $resolved = PhotoPathResolver::resolve($this->tutorProfile?->photo);
+
+        if ($resolved) {
+            return $resolved;
+        }
+
+        $name = urlencode(trim("{$this->first_name} {$this->last_name}") ?: 'User');
+
+        return "https://ui-avatars.com/api/?name={$name}&background=212120&color=fff";
+    }
+
+    // ── Transparent profile accessors ──────────────────────────────────────
+
+    public function getBlurbAttribute(): ?string
+    {
+        if ($this->role === 'tutor' || $this->can_tutor) {
+            return $this->tutorProfile?->blurb;
+        }
+
+        return $this->studentProfile?->blurb;
+    }
+
+    public function getPhotoAttribute(): ?string
+    {
+        return $this->tutorProfile?->photo;
+    }
+
+    public function getTutoringSubjectAttribute(): ?string
+    {
+        return $this->tutorProfile?->tutoring_subject;
+    }
+
+    public function getStudentGradeAttribute(): ?string
+    {
+        return $this->studentProfile?->student_grade;
+    }
+
+    public function getStudentSchoolAttribute(): ?string
+    {
+        return $this->studentProfile?->student_school;
+    }
+
+    public function getTutoringGoalsAttribute(): ?string
+    {
+        return $this->studentProfile?->tutoring_goals;
     }
 
     /**
@@ -115,6 +157,22 @@ class User extends Authenticatable
     public function credit(): HasOne
     {
         return $this->hasOne(Credit::class, 'user_id');
+    }
+
+    /**
+     * Relation to tutor profile (blurb, photo, tutoring_subject)
+     */
+    public function tutorProfile(): HasOne
+    {
+        return $this->hasOne(TutorProfile::class, 'user_id');
+    }
+
+    /**
+     * Relation to student profile (grade, school, goals, blurb)
+     */
+    public function studentProfile(): HasOne
+    {
+        return $this->hasOne(StudentProfile::class, 'user_id');
     }
 
     /**

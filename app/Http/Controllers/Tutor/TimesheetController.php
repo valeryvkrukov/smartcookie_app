@@ -18,10 +18,10 @@ class TimesheetController extends Controller
     {
         $tutorId = auth()->id();
 
-        // ── Sessions: all sessions for this tutor ordered by date descending
+        // ── Sessions: all sessions for this tutor ordered by date ascending
         $sessions = \App\Models\TutoringSession::where('tutor_id', $tutorId)
             ->with('student')
-            ->orderBy('date', 'desc')
+            ->orderBy('date', 'asc')
             ->paginate(config('app.pagination_num', 12));
 
         // ── Pending sessions: past sessions not yet logged or completed
@@ -75,10 +75,9 @@ class TimesheetController extends Controller
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id' => $session->tutor_id,
-                'parent_id' => $parent->id,
+                'billed_user_id' => $parent->id,
                 'credits_spent' => $creditsNeeded,
                 'tutor_payout' => $payout,
-                'period' => now()->day <= 15 ? '1-15' : '16-end'
             ]);
 
             // ── Status: mark session as Billed
@@ -115,12 +114,11 @@ class TimesheetController extends Controller
 
         // ── Guard: reject if session end time is still in the future
         $tutorTz = $session->tutor->time_zone ?? 'UTC';
-        [$dh, $dm] = explode(':', $session->duration);
         $sessionEnd = Carbon::createFromFormat(
             'Y-m-d H:i:s',
             $session->date->format('Y-m-d') . ' ' . $session->start_time,
             $tutorTz
-        )->addHours((int) $dh)->addMinutes((int) $dm);
+        )->addMinutes($session->duration);
 
         if ($sessionEnd->isFuture()) {
             $endsIn = $sessionEnd->diffForHumans(Carbon::now($tutorTz), ['parts' => 1]);
@@ -155,10 +153,9 @@ class TimesheetController extends Controller
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id'   => $session->tutor_id,
-                'parent_id'  => $parent->id,
+                'billed_user_id'  => $parent->id,
                 'credits_spent' => $creditsNeeded,
                 'tutor_payout'  => $payout,
-                'period' => now()->day <= 15 ? '1-15' : '16-end',
             ]);
 
             $session->update([
@@ -179,7 +176,7 @@ class TimesheetController extends Controller
                 $parent->notify(new LowCreditBalance($balanceAfter));
             }
 
-            $admins = User::where('is_admin', true)->get();
+            $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new SessionCompleted($session));
 
             return response()->json(['success' => true]);
@@ -195,7 +192,7 @@ class TimesheetController extends Controller
             'subject'     => 'required|string|max:255',
             'date'        => 'required|date|before_or_equal:today',
             'start_time'  => 'required|date_format:H:i',
-            'duration'    => 'required|in:0:30,1:00,1:30,2:00,2:30,3:00',
+            'duration'    => 'required|in:30,60,90,120,150,180',
             'tutor_notes' => 'required|string|min:10|max:3000',
         ]);
 
@@ -211,12 +208,11 @@ class TimesheetController extends Controller
 
         // ── Guard: session end must already be in the past
         $tutorTz = auth()->user()->time_zone ?? 'UTC';
-        [$dh, $dm] = explode(':', $validated['duration']);
         $sessionEnd = Carbon::createFromFormat(
             'Y-m-d H:i:s',
             $validated['date'] . ' ' . $validated['start_time'] . ':00',
             $tutorTz
-        )->addHours((int) $dh)->addMinutes((int) $dm);
+        )->addMinutes((int) $validated['duration']);
 
         if ($sessionEnd->isFuture()) {
             $endsIn = $sessionEnd->diffForHumans(Carbon::now($tutorTz), ['parts' => 1]);
@@ -258,10 +254,9 @@ class TimesheetController extends Controller
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id'            => $tutorId,
-                'parent_id'           => $parent->id,
+                'billed_user_id'      => $parent->id,
                 'credits_spent'       => $creditsNeeded,
                 'tutor_payout'        => $payout,
-                'period'              => now()->day <= 15 ? '1-15' : '16-end',
             ]);
 
             $parent->notify(new CreditBalanceChanged(
@@ -276,7 +271,7 @@ class TimesheetController extends Controller
                 $parent->notify(new LowCreditBalance($balanceAfter));
             }
 
-            $admins = User::where('is_admin', true)->get();
+            $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new SessionCompleted($session));
 
             return response()->json(['success' => true]);

@@ -20,7 +20,7 @@
                     <select name="tutor_id" required class="w-full border-slate-200 rounded-lg text-sm">
                         <option value="">Select Tutor...</option>
                         @foreach($tutors as $t)
-                            <option value="{{ $t->id }}">{{ $t->full_name }}</option>
+                            <option value="{{ $t->id }}">{{ $t->full_name }}{{ $t->role === 'admin' ? ' ★' : '' }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -54,10 +54,10 @@
                 <div>
                     <x-input-label value="Duration" class="text-[10px] font-bold uppercase" />
                     <select name="duration" class="w-full border-slate-200 rounded-lg text-sm">
-                        <option value="1:00">1:00 hour</option>
-                        <option value="0:30">0:30 mins</option>
-                        <option value="1:30">1:30 hours</option>
-                        <option value="2:00">2:00 hours</option>
+                        <option value="60">1h (1 credit)</option>
+                        <option value="30">30m (0.5 credit)</option>
+                        <option value="90">1.5h (1.5 credits)</option>
+                        <option value="120">2h (2 credits)</option>
                     </select>
                 </div>
             </div>

@@ -33,16 +33,13 @@
         })
         .then(r => r.json())
         .then(data => {
-            if (data.success) {
-                this.open = false;
-                if (window.calendar) window.calendar.refetchEvents();
-            } else {
-                this.open = false;
-                if (window.calendar) window.calendar.refetchEvents();
-            }
+            this.open = false;
+            window.dispatchEvent(new CustomEvent('close-modal'));
+            if (window.calendar) window.calendar.refetchEvents();
         })
         .catch(() => {
             this.open = false;
+            window.dispatchEvent(new CustomEvent('close-modal'));
             if (window.calendar) window.calendar.refetchEvents();
         });
     }

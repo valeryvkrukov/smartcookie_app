@@ -42,11 +42,7 @@ class SessionController extends Controller
             ->get()
             ->map(function ($session) {
                 $start = \Carbon\Carbon::parse($session->date->format('Y-m-d') . ' ' . $session->start_time);
-                $parts = explode(':', $session->duration);
-                $hours = (int) ($parts[0] ?? 0);
-                $minutes = (int) ($parts[1] ?? 0);
-
-                $end = (clone $start)->addHours($hours)->addMinutes($minutes);
+                $end   = (clone $start)->addMinutes($session->duration);
 
                 return [
                     'id' => $session->id,
@@ -121,7 +117,7 @@ class SessionController extends Controller
             'subject'       => 'required|string|max:255',
             'date'          => 'required|date',
             'start_time'    => 'required',
-            'duration'      => 'required|in:0:30,1:00,1:30,2:00',
+            'duration'      => 'required|in:30,60,90,120',
             'location'      => 'nullable|string|max:255',
             'is_initial'    => 'nullable|boolean',
             'recurs_weekly' => 'nullable|boolean',
@@ -143,6 +139,10 @@ class SessionController extends Controller
 
         $data['tutor_id'] = auth()->id();
         $data['recurs_weekly'] = $request->has('recurs_weekly');
+
+        if ($request->boolean('is_initial') && $data['recurs_weekly']) {
+            return response()->json(['success' => false, 'message' => 'A session cannot be both Initial and Recurring.'], 422);
+        }
 
         try {
             $this->sessionService->schedule($data);
@@ -184,15 +184,15 @@ class SessionController extends Controller
             'subject'    => 'required|string|max:255',
             'date'       => 'required|date',
             'start_time' => 'required',
-            'duration'   => 'required|in:0:30,1:00,1:30,2:00',
+            'duration'   => 'required|in:30,60,90,120',
             'location'   => 'nullable|string|max:255',
             'is_initial' => 'nullable|boolean',
         ]);
 
         $updateSeries = $request->input('update_series') === '1';
 
-        if ($updateSeries && $session->recurring_id) {
-            $futureSessions = TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($updateSeries && $session->series_id) {
+            $futureSessions = TutoringSession::where('series_id', $session->series_id)
                 ->where('date', '>=', $session->date)
                 ->where('status', 'Scheduled')
                 ->get();
@@ -204,7 +204,7 @@ class SessionController extends Controller
                 $newDate = $s->date->copy()->addDays($daysDiff);
                 if ($this->sessionService->hasConflict(
                     auth()->id(), $newDate->format('Y-m-d'), $data['start_time'], $data['duration'],
-                    null, $session->recurring_id
+                    null, $session->series_id
                 )) {
                     return response()->json([
                         'success' => false,
@@ -241,7 +241,7 @@ class SessionController extends Controller
                 'duration'     => $data['duration'],
                 'location'     => $data['location'] ?? null,
                 'is_initial'   => $request->boolean('is_initial'),
-                'recurring_id' => null,
+                'series_id'    => null,
             ]);
         }
 
@@ -267,8 +267,8 @@ class SessionController extends Controller
             return back()->withErrors(['error' => 'Permission Denied: You can only cancel your own sessions.']);
         }
 
-        if ($request->has('delete_series') && $session->recurring_id) {
-            TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($request->boolean('delete_series') && $session->series_id) {
+            TutoringSession::where('series_id', $session->series_id)
                 ->where('date', '>=', $session->date)
                 ->where('status', 'Scheduled')
                 ->delete();

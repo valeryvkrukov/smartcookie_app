@@ -16,7 +16,7 @@
     "src": "node_modules/ti-icons/fonts/themify.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-BcW9avQV.css",
+    "file": "assets/app-DNImvCi0.css",
     "name": "app",
     "names": [
       "app.css"
@@ -31,7 +31,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-CpObolYA.js",
+    "file": "assets/app-CcS6ks5-.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

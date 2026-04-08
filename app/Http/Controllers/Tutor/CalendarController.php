@@ -28,8 +28,7 @@ class CalendarController extends Controller
 
         $events = $sessions->map(function ($session) use ($tutorTz) {
             $start = Carbon::createFromFormat('Y-m-d H:i:s', $session->date->format('Y-m-d') . ' ' . $session->start_time, $tutorTz);
-            list($h, $m) = explode(':', $session->duration);
-            $end = $start->copy()->addHours((int)$h)->addMinutes((int)$m);
+            $end = $start->copy()->addMinutes($session->duration);
             $startIso = $start->toIso8601String();
             $endIso = $end->toIso8601String();
 
@@ -37,11 +36,11 @@ class CalendarController extends Controller
                 $session->status === 'Cancelled'              => ['bg' => '#94a3b8', 'border' => '#64748b'],
                 in_array($session->status, ['Billed','Completed']) => ['bg' => '#10b981', 'border' => '#059669'],
                 (bool)$session->is_initial                   => ['bg' => '#f59e0b', 'border' => '#d97706'],
-                !empty($session->recurring_id)               => ['bg' => '#6366f1', 'border' => '#4f46e5'],
+                $session->series_id !== null                 => ['bg' => '#6366f1', 'border' => '#4f46e5'],
                 default                                      => ['bg' => '#4f46e5', 'border' => '#4338ca'],
             };
 
-            $recurringPrefix = !empty($session->recurring_id) ? '↻ ' : '';
+            $recurringPrefix = $session->series_id !== null ? '↻ ' : '';
 
             return [
                 'id'                => $session->id,
@@ -58,7 +57,9 @@ class CalendarController extends Controller
                     'duration'      => $session->duration,
                     'location'      => $session->location,
                     'status'        => $session->status,
-                    'isRecurring'       => !empty($session->recurring_id),
+                    'tutorName'     => auth()->user()->full_name,
+                    'studentName'   => $session->student?->full_name ?? '?',
+                    'isRecurring'       => $session->series_id !== null,
                     'isInitial'         => (bool) $session->is_initial,
                     'isRecurringWeekly' => (bool) $session->recurs_weekly,
                     // ── Time props: pre-computed in tutor timezone to avoid client-side TZ bugs

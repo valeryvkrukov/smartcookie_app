@@ -15,7 +15,7 @@
                         <div class="relative group">
                             <div class="w-32 h-32 rounded-[2.5rem] overflow-hidden bg-slate-100 border-4 border-white shadow-xl">
                                 <template x-if="!photoPreview">
-                                    <img src="{{ $user->photo_url ?? 'https://ui-avatars.com/api/?name='.$user->full_name.'&background=212120&color=fff' }}" 
+                                    <img src="{{ $user->photo_url }}" 
                                          class="w-full h-full object-cover">
                                 </template>
                                 <template x-if="photoPreview">

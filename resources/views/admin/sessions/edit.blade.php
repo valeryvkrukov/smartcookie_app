@@ -35,7 +35,7 @@
                     <x-input-label value="Tutor" class="text-[10px] font-bold uppercase" />
                     <select name="tutor_id" class="w-full border-slate-200 rounded-lg text-sm">
                         @foreach($tutors as $t)
-                            <option value="{{ $t->id }}" {{ $session->tutor_id == $t->id ? 'selected' : '' }}>{{ $t->full_name }}</option>
+                            <option value="{{ $t->id }}" {{ $session->tutor_id == $t->id ? 'selected' : '' }}>{{ $t->full_name }}{{ $t->role === 'admin' ? ' ★' : '' }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -57,8 +57,8 @@
                 <div>
                     <x-input-label value="Duration" class="text-[10px] font-bold uppercase" />
                     <select name="duration" class="w-full border-slate-200 rounded-lg text-sm">
-                        @foreach(['0:30', '1:00', '1:30', '2:00'] as $d)
-                            <option value="{{ $d }}" {{ $session->duration == $d ? 'selected' : '' }}>{{ $d }}</option>
+                        @foreach([30 => '30m (0.5 cr)', 60 => '1h (1 cr)', 90 => '1.5h (1.5 cr)', 120 => '2h (2 cr)'] as $d => $label)
+                            <option value="{{ $d }}" {{ $session->duration == $d ? 'selected' : '' }}>{{ $label }}</option>
                         @endforeach
                     </select>
                 </div>

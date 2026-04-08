@@ -60,17 +60,16 @@ class CalendarController extends Controller
         $events = $query->with('tutor', 'student.parent.credit', 'student.credit')->get()->map(function($s) {
             $tutorTz = $s->tutor->time_zone ?? 'UTC';
             $start = Carbon::createFromFormat('Y-m-d H:i:s', $s->date->format('Y-m-d') . ' ' . $s->start_time, $tutorTz);
-            $end = $start->copy()
-                ->addHours((int)explode(':', $s->duration)[0])
-                ->addMinutes((int)explode(':', $s->duration)[1]);
+            $end = $start->copy()->addMinutes($s->duration);
 
             // ── Credit state: computed only for future Scheduled sessions
             $isFutureScheduled = $s->status === 'Scheduled' && $s->date->gte(now()->startOfDay());
+            $isAdminTutor = $s->tutor?->role === 'admin';
             $creditBalance = $s->student?->parent
                 ? ($s->student->parent->credit?->credit_balance ?? 0)
                 : ($s->student?->credit?->credit_balance ?? 0);
-            $noCredits  = $isFutureScheduled && $creditBalance <= 0;
-            $halfCredit = $isFutureScheduled && !$noCredits && $creditBalance <= 0.5;
+            $noCredits  = $isFutureScheduled && !$isAdminTutor && $creditBalance <= 0;
+            $halfCredit = $isFutureScheduled && !$isAdminTutor && !$noCredits && $creditBalance <= 0.5;
 
             $colors = match(true) {
                 $s->status === 'Cancelled'                   => ['bg' => '#94a3b8', 'border' => '#64748b'],
@@ -78,11 +77,11 @@ class CalendarController extends Controller
                 $noCredits                                   => ['bg' => '#ef4444', 'border' => '#dc2626'],
                 $halfCredit                                  => ['bg' => '#f59e0b', 'border' => '#d97706'],
                 (bool)$s->is_initial                         => ['bg' => '#f59e0b', 'border' => '#d97706'],
-                !empty($s->recurring_id)                     => ['bg' => '#6366f1', 'border' => '#4f46e5'],
+                $s->series_id !== null                       => ['bg' => '#6366f1', 'border' => '#4f46e5'],
                 default                                      => ['bg' => '#4f46e5', 'border' => '#4338ca'],
             };
 
-            $recurringPrefix  = !empty($s->recurring_id) ? '↻ ' : '';
+            $recurringPrefix  = $s->series_id !== null ? '↻ ' : '';
             $halfCreditSuffix = $halfCredit ? ' · half hour credit' : '';
 
             return [
@@ -99,8 +98,9 @@ class CalendarController extends Controller
                     'tutorName'           => $s->tutor?->full_name ?? 'TBD',
                     'studentName'         => $s->student?->full_name ?? '',
                     'location'            => $s->location ?? '',
-                    'recurringId'         => $s->recurring_id,
+                    'recurringId'         => $s->series_id,
                     'insufficientCredits' => $noCredits,
+                    'cancelReason'        => $s->tutor_notes,
                 ],
             ];
         });
@@ -141,8 +141,8 @@ class CalendarController extends Controller
 
         $cancelSeries = request()->boolean('series');
 
-        if ($cancelSeries && $session->recurring_id) {
-            TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($cancelSeries && $session->series_id) {
+            TutoringSession::where('series_id', $session->series_id)
                 ->where('status', 'Scheduled')
                 ->where('date', '>=', $session->date)
                 ->update(['status' => 'Cancelled']);

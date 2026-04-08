@@ -49,7 +49,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
-        $tutors = User::where('role', 'tutor')->orderBy('last_name')->get();
+        $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
         $parents = User::where('role', 'customer')->orderBy('last_name')->get();
 
         return view('admin.users.edit', compact('user', 'tutors', 'parents'));
@@ -71,9 +71,8 @@ class UserController extends Controller
         
         $user->update($data);
 
-        // ── Flags: update admin, subscription, and self-student flags
+        // ── Flags: update subscription and self-student flags
         $user->update([
-            'is_admin'        => $request->has('is_admin'),
             'is_subscribed'   => $request->has('is_subscribed'),
             'is_self_student' => $request->boolean('is_self_student'),
         ]);
@@ -161,7 +160,6 @@ class UserController extends Controller
         // ── Record purchase for financial reports
         CreditPurchase::create([
             'user_id'           => $user->id,
-            'amount'            => $credits,
             'credits_purchased' => $credits,
             'total_paid'        => $totalPaid,
             'stripe_session_id' => null,
@@ -189,7 +187,7 @@ class UserController extends Controller
         }
 
         // ── System log: notify all admins
-        $admins = User::where('is_admin', true)->get();
+        $admins = User::where('role', 'admin')->get();
         Notification::send($admins, new ManualPaymentConfirmed(
             client: $user,
             creditsPurchased: $credits,

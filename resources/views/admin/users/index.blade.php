@@ -55,6 +55,11 @@
                     {{ $user->role === 'student' ? 'bg-rose-50 text-rose-600' : '' }}">
                     {{ $user->role }}
                 </span>
+                @if($user->is_inactive)
+                <span class="px-2.5 py-1 bg-slate-100 text-slate-400 rounded-lg text-[7px] font-black uppercase tracking-widest">
+                    Inactive
+                </span>
+                @endif
                 <div class="flex items-center space-x-2">
                     @if($user->role === 'customer' && $user->credit?->pending_payment_amount)
                     <span class="px-2.5 py-1 bg-amber-100 text-amber-700 rounded-lg text-[7px] font-black uppercase tracking-widest flex items-center gap-1">

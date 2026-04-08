@@ -5,6 +5,8 @@ namespace App\Http\Controllers\Customer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Student;
+use App\Models\StudentProfile;
 
 class StudentController extends Controller
 {
@@ -12,7 +14,8 @@ class StudentController extends Controller
     {
         $user = auth()->user();
 
-        $linked = User::where('role', 'student')
+        // Include inactive — they remain visible to the owning customer with a badge
+        $linked = Student::withInactive()
             ->where('parent_id', $user->id)
             ->with(['subjectRates', 'assignedTutors'])
             ->get();
@@ -41,11 +44,9 @@ class StudentController extends Controller
             'student_email' => 'nullable|email|unique:users,email',
         ]);
 
-        User::create([
+        $newStudent = User::create([
             'first_name'    => $data['first_name'],
             'last_name'     => $data['last_name'],
-            'student_grade' => $data['student_grade'],
-            'blurb'         => $data['blurb'],
             'address'       => $data['address'],
             'phone'         => $data['phone'],
             'role'          => 'student',
@@ -54,6 +55,12 @@ class StudentController extends Controller
             'email'         => !empty($data['student_email'])
                 ? $data['student_email']
                 : strtolower($data['first_name'] . '.' . $data['last_name'] . '.' . uniqid() . '@smartcookie.local'),
+        ]);
+
+        StudentProfile::create([
+            'user_id'       => $newStudent->id,
+            'student_grade' => $data['student_grade'] ?? null,
+            'blurb'         => $data['blurb'] ?? null,
         ]);
 
         return response()->json(['success' => true]);
@@ -76,15 +83,19 @@ class StudentController extends Controller
         $updateData = [
             'first_name'    => $data['first_name'],
             'last_name'     => $data['last_name'],
-            'student_grade' => $data['student_grade'],
-            'blurb'         => $data['blurb'],
             'address'       => $data['address'],
             'phone'         => $data['phone'],
+        ];
+
+        $profileData = [
+            'student_grade' => $data['student_grade'],
+            'blurb'         => $data['blurb'],
         ];
 
         // ── Self-student: editing own profile (email managed via /profile page)
         if ($user->is_self_student && (int) $id === $user->id) {
             $user->update($updateData);
+            $user->studentProfile()->updateOrCreate(['user_id' => $user->id], $profileData);
             return response()->json(['success' => true]);
         }
 
@@ -99,6 +110,7 @@ class StudentController extends Controller
         }
 
         $student->update($updateData);
+        $student->studentProfile()->updateOrCreate(['user_id' => $student->id], $profileData);
 
         return response()->json(['success' => true]);
     }
@@ -111,13 +123,45 @@ class StudentController extends Controller
             return redirect()->route('customer.students.index')->with('error', 'You cannot remove your own account.');
         }
 
-        $student = User::where('id', $id)
-            ->where('role', 'student')
+        // Allow deleting inactive students too
+        $student = Student::withInactive()
+            ->where('id', $id)
             ->where('parent_id', $user->id)
             ->firstOrFail();
 
         $student->delete();
 
         return redirect()->route('customer.students.index')->with('success', 'Student removed.');
+    }
+
+    /**
+     * Toggle between "customer" (manage children) and "self student" modes.
+     * Switching TO self-student marks all linked child students as inactive.
+     * Switching BACK reactivates them.
+     */
+    public function toggleSelfStudent()
+    {
+        $user = auth()->user();
+        $becomingSelf = ! $user->is_self_student;
+
+        if ($becomingSelf) {
+            // Deactivate all linked students
+            User::where('role', 'student')
+                ->where('parent_id', $user->id)
+                ->update(['is_inactive' => true]);
+        } else {
+            // Reactivate all linked students
+            User::where('role', 'student')
+                ->where('parent_id', $user->id)
+                ->update(['is_inactive' => false]);
+        }
+
+        $user->update(['is_self_student' => $becomingSelf]);
+
+        return redirect()->route('customer.students.index')
+            ->with('success', $becomingSelf
+                ? 'You are now registered as a self-student. Your children\'s profiles have been deactivated.'
+                : 'Switched back to parent mode. Your children\'s profiles are active again.'
+            );
     }
 }

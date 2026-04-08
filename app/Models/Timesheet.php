@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 #[Fillable([
-    'tutoring_session_id', 'tutor_id', 'parent_id', 'credits_spent', 'tutor_payout', 'period'
+    'tutoring_session_id', 'tutor_id', 'billed_user_id', 'credits_spent', 'tutor_payout'
 ])]
 class Timesheet extends Model
 {
@@ -18,18 +18,23 @@ class Timesheet extends Model
     }
 
     // ── Relation: belongs to the billed party (parent/user)
-    public function parent(): BelongsTo
+    public function billedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'parent_id');
+        return $this->belongsTo(User::class, 'billed_user_id');
+    }
+
+    // ── Computed: billing period derived from creation date
+    public function getPeriodAttribute(): string
+    {
+        return $this->created_at && $this->created_at->day <= 15 ? '1-15' : '16-end';
     }
 
     /**
-     * Static method for conversion of duration into credits
-     * "0:30" -> 0.5, "1:00" -> 1.0
+     * Calculate credits from duration stored as integer minutes.
+     * 30 → 0.5, 60 → 1.0, 90 → 1.5, 120 → 2.0
      */
-    public static function calculateCredits($duration): float
+    public static function calculateCredits(int $duration): float
     {
-        list($hours, $minutes) = explode(':', $duration);
-        return (int)$hours + ((int)$minutes / 60);
+        return $duration / 60;
     }
 }

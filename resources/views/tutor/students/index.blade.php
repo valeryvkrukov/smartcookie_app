@@ -17,7 +17,12 @@
                             {{ substr($student->first_name, 0, 1) }}
                         </div>
                         <div>
-                            <h3 class="font-bold text-slate-900 text-lg leading-tight">{{ $student->full_name }}</h3>
+                            <div class="flex items-center gap-2">
+                                <h3 class="font-bold text-slate-900 text-lg leading-tight">{{ $student->full_name }}</h3>
+                                @if($student->is_inactive)
+                                    <span class="text-[7px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 px-2 py-0.5 rounded-full">Inactive</span>
+                                @endif
+                            </div>
                             <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{{ $student->tutoring_subject ?? 'General' }}</p>
                         </div>
                     </div>
@@ -77,7 +82,7 @@
                     <button type="button"
                         onclick="window.dispatchEvent(new CustomEvent('open-modal', {
                             detail: {
-                                type: 'tutor-schedule-session', 
+                                type: 'tutor', 
                                 studentId: '{{ $student->id }}',
                                 tutorId: '{{ auth()->id() }}',
                                 studentTimezone: '{{ $student->time_zone ?? 'UTC' }}',

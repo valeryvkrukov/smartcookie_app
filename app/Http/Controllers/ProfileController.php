@@ -30,12 +30,13 @@ class ProfileController extends Controller
         $validated = $request->validated();
 
         if ($request->hasFile('photo')) {
-            if ($user->photo) {
-                \Storage::disk('public')->delete($user->photo);
+            $oldPhoto = $user->tutorProfile?->photo;
+            if ($oldPhoto) {
+                \Storage::disk('public')->delete($oldPhoto);
             }
 
             $path = $request->file('photo')->store('profile-photos', 'public');
-            $user->photo = $path;
+            $user->tutorProfile()->updateOrCreate(['user_id' => $user->id], ['photo' => $path]);
         }
 
         $user->fill([
@@ -45,7 +46,6 @@ class ProfileController extends Controller
             'phone' => $validated['phone'] ?? null,
             'address' => $validated['address'] ?? null,
             'time_zone' => $validated['time_zone'],
-            'blurb' => $validated['blurb'] ?? null,
         ]);
 
         if ($user->isDirty('email')) {
@@ -57,6 +57,14 @@ class ProfileController extends Controller
         }
 
         $user->save();
+
+        // ── Update blurb on the appropriate profile table
+        $blurb = $validated['blurb'] ?? null;
+        if ($user->role === 'tutor' || $user->can_tutor) {
+            $user->tutorProfile()->updateOrCreate(['user_id' => $user->id], ['blurb' => $blurb]);
+        } elseif ($user->role === 'student') {
+            $user->studentProfile()->updateOrCreate(['user_id' => $user->id], ['blurb' => $blurb]);
+        }
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

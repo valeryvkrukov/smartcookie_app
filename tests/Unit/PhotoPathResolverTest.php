@@ -22,17 +22,9 @@ class PhotoPathResolverTest extends TestCase
         $this->assertSame($url, PhotoPathResolver::resolve($url));
     }
 
-    public function test_resolve_returns_asset_for_storage_path(): void
+    public function test_return_null_if_photo_not_exists_in_the_public_directory(): void
     {
         $path = 'storage/profile.png';
-
-        $this->assertStringContainsString('storage/profile.png', PhotoPathResolver::resolve($path));
-    }
-
-    public function test_resolve_prefixes_storage_for_relative_paths(): void
-    {
-        $path = 'profile.png';
-
-        $this->assertStringContainsString('storage/profile.png', PhotoPathResolver::resolve($path));
+        $this->assertNull(PhotoPathResolver::resolve($path));
     }
 }
