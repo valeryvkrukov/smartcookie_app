@@ -20,7 +20,7 @@
                     <select name="tutor_id" required class="w-full border-slate-200 rounded-lg text-sm">
                         <option value="">Select Tutor...</option>
                         @foreach($tutors as $t)
-                            <option value="{{ $t->id }}">{{ $t->full_name }}</option>
+                            <option value="{{ $t->id }}">{{ $t->full_name }}{{ $t->role === 'admin' ? ' ★' : '' }}</option>
                         @endforeach
                     </select>
                 </div>

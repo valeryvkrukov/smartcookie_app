@@ -28,7 +28,8 @@ class CalendarController extends Controller
             $end = $start->copy()->addMinutes($session->duration);
             $hasCredits = ($session->student?->parent?->credit?->credit_balance ?? 0) > 0;
 
-            $tutorName = $session->tutor?->full_name ?? 'N/A';
+            $isAdminTutor = $session->tutor?->role === 'admin';
+            $tutorName = ($session->tutor?->full_name ?? 'N/A') . ($isAdminTutor ? ' ★' : '');
             $studentName = $session->student?->full_name ?? 'Guest';
 
             $title = "{$tutorName}-{$session->duration_label} {$studentName}";
@@ -74,6 +75,8 @@ class CalendarController extends Controller
 
             $hasCredits = ($session->student?->parent?->credit?->credit_balance ?? 0) > 0;
 
+            $isAdminTutor = $session->tutor?->role === 'admin';
+
             $colors = match(true) {
                 $session->status === 'Cancelled'                  => ['bg' => '#94a3b8', 'border' => '#64748b'],
                 in_array($session->status, ['Billed','Completed']) => ['bg' => '#10b981', 'border' => '#059669'],
@@ -87,7 +90,7 @@ class CalendarController extends Controller
 
             return [
                 'id'                => $session->id,
-                'title'             => $recurringPrefix . ($session->tutor?->full_name ?? 'No Tutor') . ' | ' . ($session->subject ?? 'No Subject'),
+                'title'             => $recurringPrefix . ($session->tutor?->full_name ?? 'No Tutor') . ($isAdminTutor ? ' ★' : '') . ' | ' . ($session->subject ?? 'No Subject'),
                 'start'             => $startIso,
                 'end'               => $endIso,
                 'backgroundColor'   => $colors['bg'],
@@ -95,7 +98,7 @@ class CalendarController extends Controller
                 'extendedProps' => [
                     'studentId'     => (string)$session->student_id,
                     'tutorId'       => (string)$session->tutor_id,
-                    'tutorName'     => $session->tutor?->full_name ?? '—',
+                    'tutorName'     => ($session->tutor?->full_name ?? '—') . ($isAdminTutor ? ' ★' : ''),
                     'studentName'   => $session->student?->full_name ?? '—',
                     'subject'       => (string)$session->subject,
                     'duration'      => (string)$session->duration,
@@ -106,6 +109,7 @@ class CalendarController extends Controller
                     'isRecurring'        => $session->series_id !== null,
                     'isInitial'          => (bool) $session->is_initial,
                     'isRecurringWeekly'  => (bool) $session->recurs_weekly,
+                    'isAdminTutor'       => $isAdminTutor,
                     // ── Time props: pre-computed in tutor timezone to avoid client-side TZ bugs
                     'time_h'    => $start->format('h'),
                     'time_m'    => $start->format('i'),

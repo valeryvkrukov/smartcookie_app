@@ -35,7 +35,7 @@
                     <x-input-label value="Tutor" class="text-[10px] font-bold uppercase" />
                     <select name="tutor_id" class="w-full border-slate-200 rounded-lg text-sm">
                         @foreach($tutors as $t)
-                            <option value="{{ $t->id }}" {{ $session->tutor_id == $t->id ? 'selected' : '' }}>{{ $t->full_name }}</option>
+                            <option value="{{ $t->id }}" {{ $session->tutor_id == $t->id ? 'selected' : '' }}>{{ $t->full_name }}{{ $t->role === 'admin' ? ' ★' : '' }}</option>
                         @endforeach
                     </select>
                 </div>

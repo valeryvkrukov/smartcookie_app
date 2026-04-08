@@ -22,23 +22,29 @@ class SessionService
         // Self-student: the customer IS the billed party (no separate parent account)
         $parent = $student->parent ?? $student;
 
-        // Check for Credit Record
-        if (!$parent->credit) {
-            throw new \Exception("Financial record missing for: {$parent->full_name}. Please update their profile.");
-        }
+        // Admin-tutors bypass all credit and agreement checks
+        $tutor = User::findOrFail($data['tutor_id']);
+        $isAdminTutor = $tutor->role === 'admin';
 
-        // Check for Credits
-        if ($parent->credit->credit_balance <= 0) {
-            throw new \Exception("Client has ZERO credits. Please ask parent to refill balance.");
-        }
+        if (!$isAdminTutor) {
+            // Check for Credit Record
+            if (!$parent->credit) {
+                throw new \Exception("Financial record missing for: {$parent->full_name}. Please update their profile.");
+            }
 
-        // Check for Agreements
-        $hasPending = AgreementRequest::where('user_id', $parent->id)
-            ->where('status', 'Awaiting signature')
-            ->exists();
-        
-        if ($hasPending) {
-            throw new \Exception("Client has unsigned agreements. Cannot schedule.");
+            // Check for Credits
+            if ($parent->credit->credit_balance <= 0) {
+                throw new \Exception("Client has ZERO credits. Please ask parent to refill balance.");
+            }
+
+            // Check for Agreements
+            $hasPending = AgreementRequest::where('user_id', $parent->id)
+                ->where('status', 'Awaiting signature')
+                ->exists();
+            
+            if ($hasPending) {
+                throw new \Exception("Client has unsigned agreements. Cannot schedule.");
+            }
         }
 
         // ?? Initial Session logic

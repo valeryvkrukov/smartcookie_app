@@ -11,7 +11,7 @@
                 <select id="tutor-filter" class="border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-2 font-bold text-slate-800 transition-colors min-w-[200px]">
                     <option value="">All Tutors</option>
                     @foreach($tutors as $t)
-                        <option value="{{ $t->id }}">{{ $t->full_name }}</option>
+                        <option value="{{ $t->id }}">{{ $t->full_name }}{{ $t->role === 'admin' ? ' ★' : '' }}</option>
                     @endforeach
                 </select>
             </div>

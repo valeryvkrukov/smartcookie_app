@@ -19,7 +19,7 @@
                 <label class="label-premium">Tutor</label>
                 <select x-model="tutorId" name="tutor_id" class="input-premium text-sm" required>
                     <option value="">Select Tutor</option>
-                    @foreach($tutors as $t) <option value="{{ $t->id }}">{{ $t->full_name }}</option> @endforeach
+                    @foreach($tutors as $t) <option value="{{ $t->id }}">{{ $t->full_name }}{{ $t->role === 'admin' ? ' ★' : '' }}</option> @endforeach
                 </select>
             </div>
             <div class="space-y-1">
