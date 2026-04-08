@@ -36,7 +36,14 @@
             @endphp
 
             @foreach($links as $link)
-                @if(!isset($link['role']) || in_array(auth()->user()->role, (array)$link['role']))
+                @php
+                    $authUser = auth()->user();
+                    $linkRoles = (array)($link['role'] ?? []);
+                    $visible = !isset($link['role'])
+                        || in_array($authUser->role, $linkRoles)
+                        || (in_array('tutor', $linkRoles) && $authUser->role === 'admin' && $authUser->can_tutor);
+                @endphp
+                @if($visible)
                 <a href="{{ route($link['route']) }}"
                     @click="sidebarOpen = false"
                     class="flex items-center p-3 rounded-2xl transition-all duration-300 group/item {{ request()->routeIs(str_replace('.index', '.*', $link['route'])) ? 'bg-white/10 text-white shadow-inner' : 'text-slate-500 hover:bg-white/5 hover:text-slate-200' }}">

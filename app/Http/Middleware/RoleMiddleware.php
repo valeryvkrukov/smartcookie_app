@@ -15,8 +15,17 @@ class RoleMiddleware
      */
     public function handle(Request $request, Closure $next, ...$roles): Response
     {
-        if (!auth()->check() || !in_array(auth()->user()->role, $roles)) {
-            // If role is not existing or user is not authenticated, redirect to dashboard with error
+        $user = auth()->user();
+
+        if (!$user) {
+            return redirect('/dashboard')->with('error', 'You do not have access to this section.');
+        }
+
+        // Admin users with can_tutor=true get access to tutor-scoped routes
+        $allowed = in_array($user->role, $roles)
+            || (in_array('tutor', $roles) && $user->role === 'admin' && $user->can_tutor);
+
+        if (!$allowed) {
             return redirect('/dashboard')->with('error', 'You do not have access to this section.');
         }
 

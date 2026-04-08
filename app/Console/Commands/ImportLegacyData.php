@@ -532,6 +532,20 @@ class ImportLegacyData extends Command
 
         $bar->finish();
         $this->line(" <fg=green>✓ {$migrated} sessions (skipped: {$skipped})</>");
+
+        // ── Mark admins as can_tutor if they appear as tutor_id in any session
+        if (! $dry) {
+            $adminTutorIds = DB::table('tutoring_sessions')
+                ->join('users', 'users.id', '=', 'tutoring_sessions.tutor_id')
+                ->where('users.role', 'admin')
+                ->distinct()
+                ->pluck('tutoring_sessions.tutor_id');
+
+            if ($adminTutorIds->isNotEmpty()) {
+                DB::table('users')->whereIn('id', $adminTutorIds)->update(['can_tutor' => true]);
+                $this->line("  <fg=cyan>↳ Marked {$adminTutorIds->count()} admin(s) as can_tutor based on session records.</>");
+            }
+        }
     }
 
     // ── 8. Timesheets ────────────────────────────────────────────
