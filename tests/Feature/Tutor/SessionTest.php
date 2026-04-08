@@ -3,6 +3,7 @@
 namespace Tests\Feature\Tutor;
 
 use App\Models\Credit;
+use App\Models\SessionSeries;
 use App\Models\TutoringSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -127,10 +128,16 @@ class SessionTest extends TestCase
     {
         $tutor       = User::factory()->tutor()->create();
         $student     = User::factory()->student()->create();
-        $recurringId = 'series-tutor-001';
 
-        $first  = $this->makeSession($tutor, $student, ['recurring_id' => $recurringId, 'date' => now()->addDay()->format('Y-m-d')]);
-        $second = $this->makeSession($tutor, $student, ['recurring_id' => $recurringId, 'date' => now()->addDays(8)->format('Y-m-d')]);
+        $series = SessionSeries::create([
+            'tutor_id'   => $tutor->id,
+            'student_id' => $student->id,
+            'subject'    => 'Math',
+            'duration'   => 60,
+        ]);
+
+        $first  = $this->makeSession($tutor, $student, ['series_id' => $series->id, 'date' => now()->addDay()->format('Y-m-d')]);
+        $second = $this->makeSession($tutor, $student, ['series_id' => $series->id, 'date' => now()->addDays(8)->format('Y-m-d')]);
 
         $this->actingAs($tutor)
             ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])

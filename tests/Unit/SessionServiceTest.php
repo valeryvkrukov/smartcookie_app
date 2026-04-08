@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Models\Agreement;
 use App\Models\AgreementRequest;
 use App\Models\Credit;
+use App\Models\SessionSeries;
 use App\Models\SubjectRate;
 use App\Models\TutoringSession;
 use App\Models\User;
@@ -86,7 +87,7 @@ class SessionServiceTest extends TestCase
         ]);
 
         $this->assertCount(12, $sessions);
-        $this->assertNotNull($sessions[0]->recurring_id);
+        $this->assertNotNull($sessions[0]->series_id);
     }
 
     public function test_schedule_throws_if_student_is_not_self_student_but_has_no_parent(): void
@@ -252,27 +253,33 @@ class SessionServiceTest extends TestCase
         $this->assertFalse($service->hasConflict($tutor->id, '2030-06-01', '10:00:00', 60, $session->id));
     }
 
-    public function test_has_conflict_excludes_sessions_by_recurring_id(): void
+    public function test_has_conflict_excludes_sessions_by_series_id(): void
     {
         $tutor   = User::factory()->tutor()->create();
         $student = User::factory()->student()->create();
-        $recurringId = 'series-abc-123';
+
+        $series = SessionSeries::create([
+            'tutor_id'   => $tutor->id,
+            'student_id' => $student->id,
+            'subject'    => 'Math',
+            'duration'   => 60,
+        ]);
 
         TutoringSession::create([
-            'tutor_id'     => $tutor->id,
-            'student_id'   => $student->id,
-            'subject'      => 'Math',
-            'date'         => '2030-06-01',
-            'start_time'   => '10:00:00',
-            'duration'     => 60,
-            'status'       => 'Scheduled',
-            'recurring_id' => $recurringId,
+            'tutor_id'   => $tutor->id,
+            'student_id' => $student->id,
+            'subject'    => 'Math',
+            'date'       => '2030-06-01',
+            'start_time' => '10:00:00',
+            'duration'   => 60,
+            'status'     => 'Scheduled',
+            'series_id'  => $series->id,
         ]);
 
         $service = new SessionService();
 
         // Would conflict, but all sessions in the series are excluded
-        $this->assertFalse($service->hasConflict($tutor->id, '2030-06-01', '10:00:00', 60, null, $recurringId));
+        $this->assertFalse($service->hasConflict($tutor->id, '2030-06-01', '10:00:00', 60, null, $series->id));
     }
 
     // ── billSession ───────────────────────────────────────────────────────────

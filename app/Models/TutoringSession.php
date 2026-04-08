@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'tutor_id', 'student_id', 'subject', 'date', 'start_time', 'tutor_rate',
-    'duration', 'location', 'is_initial', 'recurs_weekly', 'status', 'recurring_id',
+    'duration', 'location', 'is_initial', 'recurs_weekly', 'status', 'series_id',
     'tutor_notes',
 ])]
 class TutoringSession extends Model
@@ -50,6 +50,11 @@ class TutoringSession extends Model
     public function tutor(): BelongsTo
     {
         return $this->belongsTo(User::class, 'tutor_id');
+    }
+
+    public function series(): BelongsTo
+    {
+        return $this->belongsTo(SessionSeries::class, 'series_id');
     }
 
     public function scopePendingLog($query)

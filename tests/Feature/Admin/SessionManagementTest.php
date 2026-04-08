@@ -3,6 +3,7 @@
 namespace Tests\Feature\Admin;
 
 use App\Models\Credit;
+use App\Models\SessionSeries;
 use App\Models\TutoringSession;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -85,12 +86,18 @@ class SessionManagementTest extends TestCase
         $admin       = User::factory()->admin()->create();
         $tutor       = User::factory()->tutor()->create();
         $student     = User::factory()->student()->create();
-        $recurringId = 'series-test-001';
+
+        $series = SessionSeries::create([
+            'tutor_id'   => $tutor->id,
+            'student_id' => $student->id,
+            'subject'    => 'Math',
+            'duration'   => 60,
+        ]);
 
         // 3 future scheduled sessions in the series
-        $first  = $this->makeSession($tutor, $student, ['recurring_id' => $recurringId, 'date' => now()->addDay()->format('Y-m-d')]);
-        $second = $this->makeSession($tutor, $student, ['recurring_id' => $recurringId, 'date' => now()->addDays(8)->format('Y-m-d')]);
-        $billed = $this->makeSession($tutor, $student, ['recurring_id' => $recurringId, 'date' => now()->addDays(15)->format('Y-m-d'), 'status' => 'Billed']);
+        $first  = $this->makeSession($tutor, $student, ['series_id' => $series->id, 'date' => now()->addDay()->format('Y-m-d')]);
+        $second = $this->makeSession($tutor, $student, ['series_id' => $series->id, 'date' => now()->addDays(8)->format('Y-m-d')]);
+        $billed = $this->makeSession($tutor, $student, ['series_id' => $series->id, 'date' => now()->addDays(15)->format('Y-m-d'), 'status' => 'Billed']);
 
         $this->actingAs($admin)
             ->withHeaders(['X-Requested-With' => 'XMLHttpRequest'])

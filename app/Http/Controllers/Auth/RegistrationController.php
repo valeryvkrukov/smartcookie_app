@@ -15,6 +15,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Student;
 use App\Models\Credit;
+use App\Models\StudentProfile;
 use App\Notifications\NewClientRegistered;
 use App\Notifications\WelcomeCustomerRegistered;
 
@@ -77,7 +78,7 @@ class RegistrationController extends Controller
             if (! $isSelfStudent) {
                 [$studentFirstName, $studentLastName] = User::splitName($request->student_name);
 
-                User::create([
+                $student = User::create([
                     'first_name'     => $studentFirstName,
                     'last_name'      => $studentLastName,
                     'email'          => $request->filled('student_email')
@@ -85,20 +86,22 @@ class RegistrationController extends Controller
                         : 'student_' . uniqid() . '@tutor.com',
                     'password'       => Hash::make(Str::random(16)),
                     'parent_id'      => $parent->id,
-                    'student_grade'  => $request->student_grade,
-                    'student_school' => $request->student_school,
-                    'student_address'=> $request->student_address,
-                    'student_phone'  => $request->student_phone,
                     'address'        => $request->student_address,
                     'phone'          => $request->student_phone,
-                    'tutoring_goals' => $request->tutoring_goals,
                     'role'           => 'student',
+                ]);
+
+                StudentProfile::create([
+                    'user_id'        => $student->id,
+                    'student_grade'  => $request->student_grade,
+                    'student_school' => $request->student_school,
+                    'tutoring_goals' => $request->tutoring_goals,
                 ]);
 
                 $studentName = $request->student_name;
             }
 
-            $admins = User::where('is_admin', true)->get();
+            $admins = User::where('role', 'admin')->get();
 
             if ($admins->isNotEmpty()) {
                 Notification::send($admins, new NewClientRegistered($parent, $request->only([

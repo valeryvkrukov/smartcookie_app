@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 
 #[Fillable([
-    'tutoring_session_id', 'tutor_id', 'parent_id', 'credits_spent', 'tutor_payout', 'period'
+    'tutoring_session_id', 'tutor_id', 'billed_user_id', 'credits_spent', 'tutor_payout'
 ])]
 class Timesheet extends Model
 {
@@ -18,9 +18,15 @@ class Timesheet extends Model
     }
 
     // ── Relation: belongs to the billed party (parent/user)
-    public function parent(): BelongsTo
+    public function billedUser(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'parent_id');
+        return $this->belongsTo(User::class, 'billed_user_id');
+    }
+
+    // ── Computed: billing period derived from creation date
+    public function getPeriodAttribute(): string
+    {
+        return $this->created_at && $this->created_at->day <= 15 ? '1-15' : '16-end';
     }
 
     /**

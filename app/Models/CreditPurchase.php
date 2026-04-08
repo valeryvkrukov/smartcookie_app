@@ -8,7 +8,6 @@ use App\Models\User;
 
 #[Fillable([
     'user_id',
-    'amount',
     'credits_purchased',
     'total_paid',
     'stripe_session_id',

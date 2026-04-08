@@ -180,11 +180,8 @@ class ImportData extends Command
                 'address'           => $address,
                 'phone'             => $old->phone,
                 'time_zone'         => $tz,
-                'blurb'             => $old->description,
-                'photo'             => $old->image,
                 //'stripe_id'         => $old->stripe_id,
                 'is_subscribed'     => ($old->automated_email === 'Subscribe'),
-                'is_admin'          => ($old->role === 'admin'),
                 'can_tutor'         => ($old->role === 'tutor'),
                 'email_verified_at' => now(),
                 'updated_at'        => now(),
@@ -206,6 +203,15 @@ class ImportData extends Command
                 }
 
                 $this->userMap[$old->id] = $newId;
+
+                // Migrate profile fields for tutors
+                if ($old->role === 'tutor' || $old->role === 'admin') {
+                    DB::table('tutor_profiles')->updateOrInsert(
+                        ['user_id' => $newId],
+                        ['blurb' => $old->description, 'photo' => $old->image, 'tutoring_subject' => $old->subject ?? null,
+                         'created_at' => now(), 'updated_at' => now()]
+                    );
+                }
             }
 
             $bar->advance();
@@ -248,10 +254,6 @@ class ImportData extends Command
                 'last_name'        => $lastName,
                 'role'             => 'student',
                 'parent_id'        => $parentNewId,
-                'student_grade'    => $old->grade,
-                'student_school'   => $old->college,
-                'tutoring_subject' => $old->subject,
-                'tutoring_goals'   => $old->goal,
                 'time_zone'        => 'America/New_York',
                 'is_subscribed'    => false,
                 'email_verified_at' => now(),
@@ -275,6 +277,14 @@ class ImportData extends Command
                 }
 
                 $this->studentMap[$old->student_id] = $newId;
+
+                // Migrate student profile fields
+                DB::table('student_profiles')->updateOrInsert(
+                    ['user_id' => $newId],
+                    ['student_grade' => $old->grade, 'student_school' => $old->college,
+                     'tutoring_goals' => $old->goal, 'blurb' => null,
+                     'created_at' => now(), 'updated_at' => now()]
+                );
             }
 
             $bar->advance();
@@ -614,16 +624,14 @@ class ImportData extends Command
             // Calculate credits spent from duration (e.g. "1:00" → 1.0, "0:30" → 0.5)
             $creditsSpent = Timesheet::calculateCredits($this->parseDuration($old->duration));
             $tutorPayout  = $creditsSpent * (float)($old->hourly_pay_rate ?? 0);
-            $period       = Carbon::parse($old->date)->format('F Y');
 
             if (! $dry) {
                 DB::table('timesheets')->insert([
                     'tutoring_session_id' => $session->id,
                     'tutor_id'            => $newTutorId,
-                    'parent_id'           => $billedUserId,
+                    'billed_user_id'      => $billedUserId,
                     'credits_spent'       => $creditsSpent,
                     'tutor_payout'        => $tutorPayout,
-                    'period'              => $period,
                     'created_at'          => $old->created_at ?? now(),
                     'updated_at'          => now(),
                 ]);
@@ -748,7 +756,6 @@ class ImportData extends Command
                 'email'             => $faker->unique()->safeEmail(),
                 'password'          => $hashedPw,
                 'role'              => 'admin',
-                'is_admin'          => true,
                 'is_subscribed'     => true,
                 'can_tutor'         => false,
                 'time_zone'         => 'America/New_York',
@@ -771,17 +778,22 @@ class ImportData extends Command
                 'email'             => $faker->unique()->safeEmail(),
                 'password'          => $hashedPw,
                 'role'              => 'tutor',
-                'is_admin'          => false,
                 'is_subscribed'     => true,
                 'can_tutor'         => true,
                 'time_zone'         => $faker->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles']),
                 'phone'             => $faker->phoneNumber(),
                 'address'           => $faker->address(),
-                'blurb'             => $faker->paragraph(3),
-                'tutoring_subject'  => implode(', ', $subjects),
                 'email_verified_at' => now(),
                 'created_at'        => now(),
                 'updated_at'        => now(),
+            ]);
+
+            DB::table('tutor_profiles')->insert([
+                'user_id'          => $id,
+                'blurb'            => $faker->paragraph(3),
+                'tutoring_subject' => implode(', ', $subjects),
+                'created_at'       => now(),
+                'updated_at'       => now(),
             ]);
 
             $tutors[] = $id;
@@ -810,7 +822,6 @@ class ImportData extends Command
                 'email'             => $faker->unique()->safeEmail(),
                 'password'          => $hashedPw,
                 'role'              => 'customer',
-                'is_admin'          => false,
                 'is_subscribed'     => $faker->boolean(80),
                 'can_tutor'         => false,
                 'time_zone'         => $faker->randomElement(['America/New_York', 'America/Chicago', 'America/Los_Angeles', 'America/Denver']),
@@ -844,15 +855,20 @@ class ImportData extends Command
                     'password'          => Hash::make(Str::random(16)),
                     'role'              => 'student',
                     'parent_id'         => $customerId,
-                    'student_grade'     => $grade,
-                    'student_school'    => $faker->company() . ' School',
-                    'tutoring_subject'  => implode(', ', $subjects),
-                    'tutoring_goals'    => $faker->sentence(12),
                     'time_zone'         => 'America/New_York',
                     'is_subscribed'     => false,
                     'email_verified_at' => now(),
                     'created_at'        => now(),
                     'updated_at'        => now(),
+                ]);
+
+                DB::table('student_profiles')->insert([
+                    'user_id'        => $studentId,
+                    'student_grade'  => $grade,
+                    'student_school' => $faker->company() . ' School',
+                    'tutoring_goals' => $faker->sentence(12),
+                    'created_at'     => now(),
+                    'updated_at'     => now(),
                 ]);
 
                 // Subject rates per student
@@ -990,15 +1006,13 @@ class ImportData extends Command
                     if ($status === 'Completed') {
                         $creditsSpent = Timesheet::calculateCredits($duration);
                         $payout       = $creditsSpent * $tutorPayout;
-                        $period       = Carbon::parse($date)->format('F Y');
 
                         DB::table('timesheets')->insert([
                             'tutoring_session_id' => $sessionId,
                             'tutor_id'            => $tutorId,
-                            'parent_id'           => $customerId,
+                            'billed_user_id'      => $customerId,
                             'credits_spent'       => $creditsSpent,
                             'tutor_payout'        => $payout,
-                            'period'              => $period,
                             'created_at'          => now()->addDays($daysOffset),
                             'updated_at'          => now(),
                         ]);
@@ -1037,7 +1051,6 @@ class ImportData extends Command
 
                 DB::table('credit_purchases')->insert([
                     'user_id'           => $customerId,
-                    'amount'            => $creditsBought,
                     'credits_purchased' => $creditsBought,
                     'total_paid'        => round($creditsBought * $rate, 2),
                     'stripe_session_id' => 'fake_' . \Illuminate\Support\Str::random(24),
@@ -1060,7 +1073,7 @@ class ImportData extends Command
         $this->line('<fg=yellow>→ Seeding notifications (system logs)…</>');
 
         $faker   = \Faker\Factory::create();
-        $adminId = DB::table('users')->where('is_admin', true)->value('id');
+        $adminId = DB::table('users')->where('role', 'admin')->value('id');
 
         if (! $adminId) {
             $this->warn('  ⚠ No admin found — notifications skipped.');
@@ -1075,7 +1088,11 @@ class ImportData extends Command
                 continue;
             }
 
-            $students = DB::table('users')->where('parent_id', $customerId)->get();
+            $students = DB::table('users')
+                ->leftJoin('student_profiles', 'student_profiles.user_id', '=', 'users.id')
+                ->where('users.parent_id', $customerId)
+                ->select('users.id', 'users.first_name', 'users.last_name', 'student_profiles.student_grade', 'student_profiles.student_school')
+                ->get();
 
             // NewClientRegistered
             DB::table('notifications')->insert([

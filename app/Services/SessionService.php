@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TutoringSession;
+use App\Models\SessionSeries;
 use App\Models\User;
 use App\Models\AgreementRequest;
 use App\Notifications\CreditBalanceChanged;
@@ -46,9 +47,18 @@ class SessionService
             $data['recurs_weekly'] = false;
         }
 
-        // Generate Uniuqe ID for serie of sessions
+        // Generate series record for recurring sessions
         $isRecurring = !empty($data['recurs_weekly']);
-        $recurringId = $isRecurring ? uniqid('rec_') : null;
+        $series = null;
+        if ($isRecurring) {
+            $series = SessionSeries::create([
+                'tutor_id'   => $data['tutor_id'],
+                'student_id' => $data['student_id'],
+                'subject'    => $data['subject'],
+                'location'   => $data['location'] ?? null,
+                'duration'   => $data['duration'],
+            ]);
+        }
         $count = $isRecurring ? 12 : 1;
 
         $baseDate = Carbon::parse($data['date']);
@@ -64,7 +74,7 @@ class SessionService
                 throw new \Exception("Time Conflict: You already have a session on {$currentDate->format('Y-m-d')} at {$data['start_time']}.");
             }
             $sessionData = array_merge($data, [
-                'recurring_id' => $recurringId,
+                'series_id'    => $series?->id,
                 'date'         => $currentDate->format('Y-m-d'),
                 'status'       => 'Scheduled',
                 // 'is_initial' set only for the first session
@@ -107,10 +117,10 @@ class SessionService
     }
 
     /**
-     * $excludeSessionId   – exclude a specific session (e.g. the one being updated)
-     * $excludeRecurringId – exclude all sessions in a recurring series (e.g. during series update)
+     * $excludeSessionId  – exclude a specific session (e.g. the one being updated)
+     * $excludeSeriesId   – exclude all sessions in a recurring series (e.g. during series update)
      */
-    public function hasConflict($tutorId, $date, $startTime, $duration, $excludeSessionId = null, $excludeRecurringId = null): bool
+    public function hasConflict($tutorId, $date, $startTime, $duration, $excludeSessionId = null, $excludeSeriesId = null): bool
     {
         $start = Carbon::parse("$date $startTime");
 
@@ -119,9 +129,9 @@ class SessionService
         return TutoringSession::where('tutor_id', $tutorId)
             ->whereDate('date', $date)
             ->where('status', 'Scheduled')   // only future scheduled sessions block a slot
-            ->when($excludeSessionId,   fn($q) => $q->where('id', '!=', $excludeSessionId))
-            ->when($excludeRecurringId, fn($q) => $q->where(function ($q) use ($excludeRecurringId) {
-                $q->whereNull('recurring_id')->orWhere('recurring_id', '!=', $excludeRecurringId);
+            ->when($excludeSessionId,  fn($q) => $q->where('id', '!=', $excludeSessionId))
+            ->when($excludeSeriesId,   fn($q) => $q->where(function ($q) use ($excludeSeriesId) {
+                $q->whereNull('series_id')->orWhere('series_id', '!=', $excludeSeriesId);
             }))
             ->get()
             ->filter(function ($session) use ($start, $end) {

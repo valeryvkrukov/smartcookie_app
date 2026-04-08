@@ -253,7 +253,6 @@ class CreditController extends Controller
         // 2. Record purchase
         CreditPurchase::create([
             'user_id'           => $user->id,
-            'amount'            => $creditsPurchased,
             'credits_purchased' => $creditsPurchased,
             'total_paid'        => $totalPaid,
             'stripe_session_id' => $sessionId,
@@ -262,7 +261,7 @@ class CreditController extends Controller
 
         // 3. First-time purchase: notify admins
         if ($isFirstPurchase) {
-            $admins = User::where('is_admin', true)->get();
+            $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new FirstCreditPurchase($user, $creditsPurchased, $totalPaid));
         }
 

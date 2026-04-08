@@ -74,8 +74,8 @@ class SessionController extends Controller
 
         $updateSeries = $request->input('update_series') === '1';
 
-        if ($updateSeries && $session->recurring_id) {
-            $futureSessions = TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($updateSeries && $session->series_id) {
+            $futureSessions = TutoringSession::where('series_id', $session->series_id)
                 ->where('date', '>=', $session->date)
                 ->where('status', 'Scheduled')
                 ->get();
@@ -87,7 +87,7 @@ class SessionController extends Controller
                 $newDate = $s->date->copy()->addDays($daysDiff);
                 if ($this->sessionService->hasConflict(
                     $data['tutor_id'], $newDate->format('Y-m-d'), $startTime, $data['duration'],
-                    null, $session->recurring_id
+                    null, $session->series_id
                 )) {
                     return response()->json([
                         'success' => false,
@@ -118,7 +118,7 @@ class SessionController extends Controller
                 'location'     => $request->location ?: null,
                 'is_initial'   => $request->boolean('is_initial'),
                 'recurs_weekly'=> $request->boolean('recurs_weekly'),
-                'recurring_id' => null,
+                'series_id'    => null,
                 ...($request->filled('status') ? ['status' => $request->status] : []),
             ]);
         }
@@ -179,8 +179,8 @@ class SessionController extends Controller
 
     public function destroy(Request $request, TutoringSession $session)
     {
-        if ($request->boolean('delete_series') && $session->recurring_id) {
-            TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($request->boolean('delete_series') && $session->series_id) {
+            TutoringSession::where('series_id', $session->series_id)
                 ->where('date', '>=', $session->date)
                 ->whereNotIn('status', ['Billed', 'Completed'])
                 ->delete();

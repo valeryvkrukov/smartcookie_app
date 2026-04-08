@@ -191,8 +191,8 @@ class SessionController extends Controller
 
         $updateSeries = $request->input('update_series') === '1';
 
-        if ($updateSeries && $session->recurring_id) {
-            $futureSessions = TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($updateSeries && $session->series_id) {
+            $futureSessions = TutoringSession::where('series_id', $session->series_id)
                 ->where('date', '>=', $session->date)
                 ->where('status', 'Scheduled')
                 ->get();
@@ -204,7 +204,7 @@ class SessionController extends Controller
                 $newDate = $s->date->copy()->addDays($daysDiff);
                 if ($this->sessionService->hasConflict(
                     auth()->id(), $newDate->format('Y-m-d'), $data['start_time'], $data['duration'],
-                    null, $session->recurring_id
+                    null, $session->series_id
                 )) {
                     return response()->json([
                         'success' => false,
@@ -241,7 +241,7 @@ class SessionController extends Controller
                 'duration'     => $data['duration'],
                 'location'     => $data['location'] ?? null,
                 'is_initial'   => $request->boolean('is_initial'),
-                'recurring_id' => null,
+                'series_id'    => null,
             ]);
         }
 
@@ -267,8 +267,8 @@ class SessionController extends Controller
             return back()->withErrors(['error' => 'Permission Denied: You can only cancel your own sessions.']);
         }
 
-        if ($request->boolean('delete_series') && $session->recurring_id) {
-            TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($request->boolean('delete_series') && $session->series_id) {
+            TutoringSession::where('series_id', $session->series_id)
                 ->where('date', '>=', $session->date)
                 ->where('status', 'Scheduled')
                 ->delete();

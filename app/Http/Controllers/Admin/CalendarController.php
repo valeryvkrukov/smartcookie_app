@@ -79,11 +79,11 @@ class CalendarController extends Controller
                 in_array($session->status, ['Billed','Completed']) => ['bg' => '#10b981', 'border' => '#059669'],
                 !$hasCredits                                      => ['bg' => '#ef4444', 'border' => '#dc2626'],
                 (bool)$session->is_initial                        => ['bg' => '#f59e0b', 'border' => '#d97706'],
-                !empty($session->recurring_id)                    => ['bg' => '#6366f1', 'border' => '#4f46e5'],
+                $session->series_id !== null                      => ['bg' => '#6366f1', 'border' => '#4f46e5'],
                 default                                           => ['bg' => '#4f46e5', 'border' => '#4338ca'],
             };
 
-            $recurringPrefix = !empty($session->recurring_id) ? '↻ ' : '';
+            $recurringPrefix = $session->series_id !== null ? '↻ ' : '';
 
             return [
                 'id'                => $session->id,
@@ -103,7 +103,7 @@ class CalendarController extends Controller
                     'status'        => $session->status,
                     'hasCredits'    => $hasCredits,
                     'creditBalance' => round((float)($session->student?->parent?->credit?->credit_balance ?? 0), 2),
-                    'isRecurring'        => !empty($session->recurring_id),
+                    'isRecurring'        => $session->series_id !== null,
                     'isInitial'          => (bool) $session->is_initial,
                     'isRecurringWeekly'  => (bool) $session->recurs_weekly,
                     // ── Time props: pre-computed in tutor timezone to avoid client-side TZ bugs

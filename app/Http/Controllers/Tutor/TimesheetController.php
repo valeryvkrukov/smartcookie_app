@@ -75,10 +75,9 @@ class TimesheetController extends Controller
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id' => $session->tutor_id,
-                'parent_id' => $parent->id,
+                'billed_user_id' => $parent->id,
                 'credits_spent' => $creditsNeeded,
                 'tutor_payout' => $payout,
-                'period' => now()->day <= 15 ? '1-15' : '16-end'
             ]);
 
             // ── Status: mark session as Billed
@@ -154,10 +153,9 @@ class TimesheetController extends Controller
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id'   => $session->tutor_id,
-                'parent_id'  => $parent->id,
+                'billed_user_id'  => $parent->id,
                 'credits_spent' => $creditsNeeded,
                 'tutor_payout'  => $payout,
-                'period' => now()->day <= 15 ? '1-15' : '16-end',
             ]);
 
             $session->update([
@@ -178,7 +176,7 @@ class TimesheetController extends Controller
                 $parent->notify(new LowCreditBalance($balanceAfter));
             }
 
-            $admins = User::where('is_admin', true)->get();
+            $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new SessionCompleted($session));
 
             return response()->json(['success' => true]);
@@ -256,10 +254,9 @@ class TimesheetController extends Controller
             Timesheet::create([
                 'tutoring_session_id' => $session->id,
                 'tutor_id'            => $tutorId,
-                'parent_id'           => $parent->id,
+                'billed_user_id'      => $parent->id,
                 'credits_spent'       => $creditsNeeded,
                 'tutor_payout'        => $payout,
-                'period'              => now()->day <= 15 ? '1-15' : '16-end',
             ]);
 
             $parent->notify(new CreditBalanceChanged(
@@ -274,7 +271,7 @@ class TimesheetController extends Controller
                 $parent->notify(new LowCreditBalance($balanceAfter));
             }
 
-            $admins = User::where('is_admin', true)->get();
+            $admins = User::where('role', 'admin')->get();
             Notification::send($admins, new SessionCompleted($session));
 
             return response()->json(['success' => true]);

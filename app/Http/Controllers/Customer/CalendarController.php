@@ -76,11 +76,11 @@ class CalendarController extends Controller
                 $noCredits                                   => ['bg' => '#ef4444', 'border' => '#dc2626'],
                 $halfCredit                                  => ['bg' => '#f59e0b', 'border' => '#d97706'],
                 (bool)$s->is_initial                         => ['bg' => '#f59e0b', 'border' => '#d97706'],
-                !empty($s->recurring_id)                     => ['bg' => '#6366f1', 'border' => '#4f46e5'],
+                $s->series_id !== null                       => ['bg' => '#6366f1', 'border' => '#4f46e5'],
                 default                                      => ['bg' => '#4f46e5', 'border' => '#4338ca'],
             };
 
-            $recurringPrefix  = !empty($s->recurring_id) ? '↻ ' : '';
+            $recurringPrefix  = $s->series_id !== null ? '↻ ' : '';
             $halfCreditSuffix = $halfCredit ? ' · half hour credit' : '';
 
             return [
@@ -97,7 +97,7 @@ class CalendarController extends Controller
                     'tutorName'           => $s->tutor?->full_name ?? 'TBD',
                     'studentName'         => $s->student?->full_name ?? '',
                     'location'            => $s->location ?? '',
-                    'recurringId'         => $s->recurring_id,
+                    'recurringId'         => $s->series_id,
                     'insufficientCredits' => $noCredits,
                 ],
             ];
@@ -139,8 +139,8 @@ class CalendarController extends Controller
 
         $cancelSeries = request()->boolean('series');
 
-        if ($cancelSeries && $session->recurring_id) {
-            TutoringSession::where('recurring_id', $session->recurring_id)
+        if ($cancelSeries && $session->series_id) {
+            TutoringSession::where('series_id', $session->series_id)
                 ->where('status', 'Scheduled')
                 ->where('date', '>=', $session->date)
                 ->update(['status' => 'Cancelled']);

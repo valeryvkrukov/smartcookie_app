@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Student;
+use App\Models\StudentProfile;
 
 class StudentController extends Controller
 {
@@ -43,11 +44,9 @@ class StudentController extends Controller
             'student_email' => 'nullable|email|unique:users,email',
         ]);
 
-        User::create([
+        $newStudent = User::create([
             'first_name'    => $data['first_name'],
             'last_name'     => $data['last_name'],
-            'student_grade' => $data['student_grade'] ?? null,
-            'blurb'         => $data['blurb'] ?? null,
             'address'       => $data['address'],
             'phone'         => $data['phone'],
             'role'          => 'student',
@@ -56,6 +55,12 @@ class StudentController extends Controller
             'email'         => !empty($data['student_email'])
                 ? $data['student_email']
                 : strtolower($data['first_name'] . '.' . $data['last_name'] . '.' . uniqid() . '@smartcookie.local'),
+        ]);
+
+        StudentProfile::create([
+            'user_id'       => $newStudent->id,
+            'student_grade' => $data['student_grade'] ?? null,
+            'blurb'         => $data['blurb'] ?? null,
         ]);
 
         return response()->json(['success' => true]);
@@ -78,15 +83,19 @@ class StudentController extends Controller
         $updateData = [
             'first_name'    => $data['first_name'],
             'last_name'     => $data['last_name'],
-            'student_grade' => $data['student_grade'],
-            'blurb'         => $data['blurb'],
             'address'       => $data['address'],
             'phone'         => $data['phone'],
+        ];
+
+        $profileData = [
+            'student_grade' => $data['student_grade'],
+            'blurb'         => $data['blurb'],
         ];
 
         // ── Self-student: editing own profile (email managed via /profile page)
         if ($user->is_self_student && (int) $id === $user->id) {
             $user->update($updateData);
+            $user->studentProfile()->updateOrCreate(['user_id' => $user->id], $profileData);
             return response()->json(['success' => true]);
         }
 
@@ -101,6 +110,7 @@ class StudentController extends Controller
         }
 
         $student->update($updateData);
+        $student->studentProfile()->updateOrCreate(['user_id' => $student->id], $profileData);
 
         return response()->json(['success' => true]);
     }
