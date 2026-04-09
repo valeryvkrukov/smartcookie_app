@@ -44,7 +44,7 @@ class TutoringSession extends Model
 
     public function student(): BelongsTo
     {
-        return $this->belongsTo(Student::class, 'student_id');
+        return $this->belongsTo(User::class, 'student_id');
     }
 
     public function tutor(): BelongsTo

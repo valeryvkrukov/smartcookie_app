@@ -109,6 +109,7 @@ class CalendarController extends Controller
                     'insufficientCredits' => $noCredits,
                     'cancelReason'        => $s->tutor_notes,
                     'studentTimezone'     => $s->student?->time_zone ?? '',
+                    'tutorTimezone'       => $s->tutor?->time_zone ?? '',
                 ],
             ];
         });

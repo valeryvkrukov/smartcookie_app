@@ -38,6 +38,30 @@
             // student_id -> timezone map, used by the modal to show the offset badge
             window.studentTimezoneMap = @json($students->pluck('time_zone', 'id'));
 
+            // ── Tooltip TZ helpers ───────────────────────────────────
+            function getTzOffsetMin(tz, date) {
+                const fmt = new Intl.DateTimeFormat('en-US', {
+                    timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric',
+                    hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false
+                });
+                const pts = Object.fromEntries(fmt.formatToParts(date).map(x => [x.type, x.value]));
+                const h = +pts.hour === 24 ? 0 : +pts.hour;
+                return (Date.UTC(+pts.year, +pts.month - 1, +pts.day, h, +pts.minute, +pts.second) - date.getTime()) / 60000;
+            }
+            function fmtTzRow(label, tz, viewerTz, date) {
+                if (!tz || tz === viewerTz || !date) return '';
+                const localTime = date.toLocaleString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true });
+                const tzAbbr = date.toLocaleTimeString('en-US', { timeZone: tz, timeZoneName: 'short' }).replace(/^.*\s/, '');
+                const diffMins = getTzOffsetMin(tz, date) - getTzOffsetMin(viewerTz, date);
+                const sign = diffMins >= 0 ? '+' : '\u2212';
+                const absMins = Math.abs(diffMins);
+                const dh = Math.floor(absMins / 60), dm = absMins % 60;
+                const diffStr = (dh && dm) ? sign+dh+'h\u202f'+dm+'m' : dm ? sign+dm+'m' : sign+dh+'h';
+                return '<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">'+label+'</span>'
+                     + '<span class="text-xs text-slate-500">'+localTime+' <span class="text-slate-400">'+tzAbbr+'</span>'
+                     + ' <span class="text-slate-300 text-[11px]">('+diffStr+')</span></span>';
+            }
+
             const calendar = new FullCalendar.Calendar(calendarEl, {
                 plugins: [
                     FullCalendar.timeGridPlugin,
@@ -75,25 +99,20 @@
                             <span class="text-xs font-medium">${p.studentName}</span>
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Time</span>
                             <span class="text-xs">${(function(){
-                                // Parse viewer time from startStr (FullCalendar already applied viewer TZ)
                                 const iso = info.event.startStr;
-                                const tPart = iso.split('T')[1];
-                                const hh = parseInt(tPart.split(':')[0]), mm = tPart.split(':')[1];
-                                const ampm = hh >= 12 ? 'PM' : 'AM';
-                                const h12 = hh % 12 || 12;
-                                const viewerTimeStr = h12 + ':' + mm + ' ' + ampm;
-                                // Student TZ annotation
-                                const viewerTz = '{{ auth()->user()->time_zone ?? '' }}';
-                                const studentTz = (window.studentTimezoneMap || {})[p.studentId];
-                                let annotation = '';
-                                if (studentTz && studentTz !== viewerTz && info.event.start) {
-                                    const stTime = info.event.start.toLocaleString('en-US', { timeZone: studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
-                                    const tzAbbr = info.event.start.toLocaleTimeString('en-US', { timeZone: studentTz, timeZoneName: 'short' }).replace(/^.*\s/, '');
-                                    annotation = ' <span class="text-slate-400">('+stTime+' '+tzAbbr+')</span>';
-                                }
+                                const tp = iso.split('T')[1];
+                                const hh = parseInt(tp.split(':')[0]), mm = tp.split(':')[1];
+                                const viewerTimeStr = (hh % 12 || 12) + ':' + mm + ' ' + (hh >= 12 ? 'PM' : 'AM');
                                 const dur = parseInt(p.duration);
-                                return viewerTimeStr + annotation + ' &bull; ' + (dur < 60 ? dur+'m' : dur/60+'h');
+                                return viewerTimeStr + ' &bull; ' + (dur < 60 ? dur+'m' : dur/60+'h');
                             })()}</span>
+                            ${(function(){
+                                const viewerTz = '{{ auth()->user()->time_zone ?? '' }}';
+                                const studentTz = (window.studentTimezoneMap || {})[p.studentId] || '';
+                                const tutorTz   = p.tutorTimezone || '';
+                                return fmtTzRow('Stu.\u00a0TZ', studentTz, viewerTz, info.event.start)
+                                     + fmtTzRow('Tutor\u00a0TZ', tutorTz, viewerTz, info.event.start);
+                            })()}
                             ${p.location ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Location</span><span class="text-xs">${p.location}</span>` : ''}
                             ${p.status === 'Cancelled' ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Reason</span><span class="text-xs italic text-slate-500">${p.cancelReason || 'No cancellation reason provided'}</span>` : ''}
                         </div>
