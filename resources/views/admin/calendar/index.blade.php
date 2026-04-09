@@ -89,7 +89,7 @@
                                 if (studentTz && studentTz !== viewerTz && info.event.start) {
                                     const stTime = info.event.start.toLocaleString('en-US', { timeZone: studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
                                     const tzAbbr = info.event.start.toLocaleTimeString('en-US', { timeZone: studentTz, timeZoneName: 'short' }).replace(/^.*\s/, '');
-                                    annotation = ' <span class="text-slate-400">('+stTime+' '+tzAbbr+')</span>';
+                                    annotation = ' <span class="text-slate-400">(Student: '+stTime+' '+tzAbbr+')</span>';
                                 }
                                 const dur = parseInt(p.duration);
                                 return viewerTimeStr + annotation + ' &bull; ' + (dur < 60 ? dur+'m' : dur/60+'h');
