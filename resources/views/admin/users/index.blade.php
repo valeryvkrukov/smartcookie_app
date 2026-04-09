@@ -79,8 +79,8 @@
                     <h3 class="font-black text-slate-900 tracking-tight">{{ $user->full_name }}</h3>
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter truncate w-32">{{ $user->email }}</p>
                 </div>
-                {{-- Send Policy Button (only for tutors) --}}
-                @if($user->role !== 'tutor' && $user->role !== 'admin')
+                {{-- Send Policy Button (only for customers) --}}
+                @if($user->role === 'customer')
                 <button type="button" 
                     onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { type: 'send-agreement', studentId: '{{ $user->id }}', title: {{ json_encode('Send Document to '.$user->full_name) }} } }))"
                     class="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-black transition-colors">
