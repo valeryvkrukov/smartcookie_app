@@ -27,10 +27,10 @@
 
             <div class="flex items-center gap-3 flex-wrap">
                 {{-- Self-student toggle --}}
-                <form method="POST" action="{{ route('customer.students.toggle-self-student') }}">
+                <form id="toggle-self-student-form" method="POST" action="{{ route('customer.students.toggle-self-student') }}">
                     @csrf
-                    <button type="submit"
-                        onclick="return confirm({{ json_encode(auth()->user()->is_self_student ? "Switch back to parent mode? Your children's profiles will be reactivated." : "Switch to self-student mode? Your children's profiles will be marked as inactive.") }})"
+                    <button type="button"
+                        @click="$dispatch('confirm-toggle-self-student')"
                         class="px-6 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border
                             {{ auth()->user()->is_self_student
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
@@ -162,4 +162,51 @@
             @endforelse
         </div>
     </div>
+
+    {{-- ── Toggle Self-Student confirmation modal ──────────────────────── --}}
+    @php $isSelf = auth()->user()->is_self_student; @endphp
+    <div x-data="{ open: false }"
+         @confirm-toggle-self-student.window="open = true"
+         x-show="open"
+         x-cloak
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+         style="display: none !important;">
+        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md" @click="open = false"></div>
+        <div x-show="open"
+             x-transition:enter="ease-out duration-300"
+             x-transition:enter-start="opacity-0 scale-95"
+             x-transition:enter-end="opacity-100 scale-100"
+             class="relative z-10 w-full max-w-sm bg-white rounded-[3rem] shadow-2xl border border-slate-100 p-10 text-center">
+
+            <div class="w-20 h-20 {{ $isSelf ? 'bg-amber-50' : 'bg-indigo-50' }} {{ $isSelf ? 'text-amber-500' : 'text-indigo-500' }} rounded-3xl flex items-center justify-center text-3xl mx-auto mb-6 shadow-sm">
+                <i class="{{ $isSelf ? 'ti-arrow-left' : 'ti-user' }}"></i>
+            </div>
+
+            <h3 class="text-2xl font-black text-slate-900 tracking-tight">
+                {{ $isSelf ? 'Switch to Parent Mode?' : 'Switch to Self-Student?' }}
+            </h3>
+            <p class="mt-4 text-slate-500 leading-relaxed text-sm">
+                @if($isSelf)
+                    You will be switched back to <strong class="text-slate-700">Parent Mode</strong>.<br>
+                    Your children's profiles will be <strong class="text-slate-700">reactivated</strong>.
+                @else
+                    You will be registered as <strong class="text-slate-700">the student</strong>.<br>
+                    Your children's profiles will be <strong class="text-slate-700">marked as inactive</strong>.
+                @endif
+            </p>
+
+            <div class="mt-10 space-y-3">
+                <button type="button"
+                        @click="open = false; document.getElementById('toggle-self-student-form').submit()"
+                        class="w-full py-4 {{ $isSelf ? 'bg-amber-500 hover:bg-amber-600 shadow-amber-100' : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-100' }} text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition shadow-lg leading-none">
+                    {{ $isSelf ? 'Yes, switch to Parent Mode' : 'Yes, I am the Student' }}
+                </button>
+                <button type="button" @click="open = false"
+                        class="w-full py-4 text-slate-400 text-[10px] font-bold uppercase tracking-widest hover:text-slate-600 transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
 </x-app-layout>
