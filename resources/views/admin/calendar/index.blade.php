@@ -74,7 +74,26 @@
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Student</span>
                             <span class="text-xs font-medium">${p.studentName}</span>
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Time</span>
-                            <span class="text-xs">${p.time_h}:${p.time_m} ${p.time_ampm} &bull; ${p.duration < 60 ? p.duration+'m' : p.duration/60+'h'}</span>
+                            <span class="text-xs">${(function(){
+                                // Parse viewer time from startStr (FullCalendar already applied viewer TZ)
+                                const iso = info.event.startStr;
+                                const tPart = iso.split('T')[1];
+                                const hh = parseInt(tPart.split(':')[0]), mm = tPart.split(':')[1];
+                                const ampm = hh >= 12 ? 'PM' : 'AM';
+                                const h12 = hh % 12 || 12;
+                                const viewerTimeStr = h12 + ':' + mm + ' ' + ampm;
+                                // Student TZ annotation
+                                const viewerTz = '{{ auth()->user()->time_zone ?? '' }}';
+                                const studentTz = (window.studentTimezoneMap || {})[p.studentId];
+                                let annotation = '';
+                                if (studentTz && studentTz !== viewerTz && info.event.start) {
+                                    const stTime = info.event.start.toLocaleString('en-US', { timeZone: studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
+                                    const tzAbbr = info.event.start.toLocaleTimeString('en-US', { timeZone: studentTz, timeZoneName: 'short' }).replace(/^.*\s/, '');
+                                    annotation = ' <span class="text-slate-400">('+stTime+' '+tzAbbr+')</span>';
+                                }
+                                const dur = parseInt(p.duration);
+                                return viewerTimeStr + annotation + ' &bull; ' + (dur < 60 ? dur+'m' : dur/60+'h');
+                            })()}</span>
                             ${p.location ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Location</span><span class="text-xs">${p.location}</span>` : ''}
                             ${p.status === 'Cancelled' ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Reason</span><span class="text-xs italic text-slate-500">${p.cancelReason || 'No cancellation reason provided'}</span>` : ''}
                         </div>

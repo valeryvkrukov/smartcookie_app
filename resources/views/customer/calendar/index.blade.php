@@ -148,8 +148,23 @@
                         'Cancelled': 'text-slate-400',
                     }[p.status] ?? 'text-slate-600';
 
-                    const startDate = new Date(info.event.startStr);
-                    const timeStr = startDate.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
+                    // Parse viewer time from startStr (FullCalendar applied viewer TZ)
+                    const _iso = info.event.startStr;
+                    const _tPart = _iso.split('T')[1];
+                    const _hh = parseInt(_tPart.split(':')[0]), _mm = _tPart.split(':')[1];
+                    const _ampm = _hh >= 12 ? 'PM' : 'AM';
+                    const _h12 = _hh % 12 || 12;
+                    const _viewerTimeStr = _h12 + ':' + _mm + ' ' + _ampm;
+                    // Student TZ annotation
+                    const _viewerTz = '{{ auth()->user()->time_zone ?? '' }}';
+                    const _studentTz = p.studentTimezone || '';
+                    let _annotation = '';
+                    if (_studentTz && _studentTz !== _viewerTz && info.event.start) {
+                        const _stTime = info.event.start.toLocaleString('en-US', { timeZone: _studentTz, hour: 'numeric', minute: '2-digit', hour12: true });
+                        const _tzAbbr = info.event.start.toLocaleTimeString('en-US', { timeZone: _studentTz, timeZoneName: 'short' }).replace(/^.*\s/, '');
+                        _annotation = ' <span class="text-slate-400">('+_stTime+' '+_tzAbbr+')</span>';
+                    }
+                    const timeStr = _viewerTimeStr + _annotation;
 
                     const creditBadge = p.insufficientCredits
                         ? '<span class="inline-block rounded-full bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5">No Credits</span>'
@@ -166,7 +181,7 @@
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Student</span>
                             <span class="text-xs font-medium">${p.studentName}</span>
                             <span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Time</span>
-                            <span class="text-xs">${timeStr} &bull; ${p.duration < 60 ? p.duration+'m' : p.duration/60+'h'}</span>
+                            <span class="text-xs">${timeStr} &bull; ${parseInt(p.duration) < 60 ? p.duration+'m' : p.duration/60+'h'}</span>
                             ${p.location ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Location</span><span class="text-xs">${p.location}</span>` : ''}
                             ${p.status === 'Cancelled' ? `<span class="text-slate-400 text-xs font-semibold uppercase tracking-wide">Reason</span><span class="text-xs italic text-slate-500">${p.cancelReason || 'No cancellation reason provided'}</span>` : ''}
                         </div>

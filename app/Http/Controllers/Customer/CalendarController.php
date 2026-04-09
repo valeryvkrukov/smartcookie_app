@@ -108,6 +108,7 @@ class CalendarController extends Controller
                     'recurringId'         => $s->series_id,
                     'insufficientCredits' => $noCredits,
                     'cancelReason'        => $s->tutor_notes,
+                    'studentTimezone'     => $s->student?->time_zone ?? '',
                 ],
             ];
         });
