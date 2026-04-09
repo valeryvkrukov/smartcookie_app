@@ -67,6 +67,10 @@ class SendSessionReminders extends Command
                 if (! $startUtc->between($cancelWindowStart, $cancelWindowEnd)) {
                     return false;
                 }
+                // ── Admin-tutors are exempt from auto-cancellation
+                if ($s->tutor?->role === 'admin') {
+                    return false;
+                }
                 $billedParty = $s->student?->parent ?? $s->student;
                 $balance     = (float) ($billedParty?->credit?->credit_balance ?? 0);
                 return $balance <= 0;

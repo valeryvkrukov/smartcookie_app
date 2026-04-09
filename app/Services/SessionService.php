@@ -151,7 +151,13 @@ class SessionService
     public function billSession(TutoringSession $session)
     {
         $student = $session->student;
-        
+
+        // ── Admin-tutors are exempt from credit deductions
+        if ($session->tutor?->role === 'admin') {
+            $session->update(['status' => 'Completed']);
+            return;
+        }
+
         // Searcch for subject-specific rate for this student
         $subjectRate = $student->subjectRates()
             ->where('subject', $session->subject)
