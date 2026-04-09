@@ -118,7 +118,6 @@ class SessionController extends Controller
                 'location'     => $request->location ?: null,
                 'is_initial'   => $request->boolean('is_initial'),
                 'recurs_weekly'=> $request->boolean('recurs_weekly'),
-                'series_id'    => null,
                 ...($request->filled('status') ? ['status' => $request->status] : []),
             ]);
         }
