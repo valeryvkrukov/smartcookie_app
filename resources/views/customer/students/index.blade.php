@@ -18,10 +18,10 @@
         <div class="flex justify-between items-start mb-12 gap-4 flex-wrap">
             <div>
                 <h2 class="text-2xl font-black text-slate-900 tracking-tight">
-                    {{ auth()->user()->is_self_student ? 'My Profile' : 'Family Profiles' }}
+                    {{ auth()->user()->is_self_student ? 'My Profile &amp; Students' : 'Family Profiles' }}
                 </h2>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">
-                    {{ auth()->user()->is_self_student ? 'You are registered as a self-student' : 'Manage your children\'s tutoring profiles' }}
+                    {{ auth()->user()->is_self_student ? 'You are enrolled as a student and can also manage children' : 'Manage your children\'s tutoring profiles' }}
                 </p>
             </div>
 
@@ -39,7 +39,6 @@
                     </button>
                 </form>
 
-                @if(!auth()->user()->is_self_student)
                 <button type="button"
                     onclick="window.dispatchEvent(new CustomEvent('open-modal', {
                         detail: {
@@ -52,7 +51,6 @@
                     class="px-8 py-4 bg-[#212120] text-white rounded-2xl text-[9px] font-black uppercase tracking-widest hover:bg-black shadow-xl shadow-slate-200 transition-all active:scale-95">
                     + Add Student
                 </button>
-                @endif
             </div>
         </div>
 
@@ -188,10 +186,10 @@
             <p class="mt-4 text-slate-500 leading-relaxed text-sm">
                 @if($isSelf)
                     You will be switched back to <strong class="text-slate-700">Parent Mode</strong>.<br>
-                    Your children's profiles will be <strong class="text-slate-700">reactivated</strong>.
+                    Your own student profile will be hidden, but your children's profiles and all sessions remain unchanged.
                 @else
-                    You will be registered as <strong class="text-slate-700">the student</strong>.<br>
-                    Your children's profiles will be <strong class="text-slate-700">marked as inactive</strong>.
+                    You will also appear as <strong class="text-slate-700">a student yourself</strong>.<br>
+                    Your children's profiles and all existing sessions remain unchanged.
                 @endif
             </p>
 

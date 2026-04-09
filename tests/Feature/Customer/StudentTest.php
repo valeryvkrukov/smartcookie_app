@@ -81,7 +81,7 @@ class StudentTest extends TestCase
 
     // ── Toggle self-student ───────────────────────────────────────────────────
 
-    public function test_toggle_to_self_student_deactivates_child_students(): void
+    public function test_toggle_to_self_student_sets_flag_without_touching_children(): void
     {
         $customer = $this->customerWithCredit();
         $student1 = User::factory()->student()->create(['parent_id' => $customer->id, 'is_inactive' => false]);
@@ -91,25 +91,27 @@ class StudentTest extends TestCase
             ->post('/customer/students/toggle-self-student')
             ->assertRedirect(route('customer.students.index'));
 
-        $this->assertDatabaseHas('users', ['id' => $student1->id, 'is_inactive' => true]);
-        $this->assertDatabaseHas('users', ['id' => $student2->id, 'is_inactive' => true]);
         $this->assertDatabaseHas('users', ['id' => $customer->id, 'is_self_student' => true]);
+        // Child students are not touched
+        $this->assertDatabaseHas('users', ['id' => $student1->id, 'is_inactive' => false]);
+        $this->assertDatabaseHas('users', ['id' => $student2->id, 'is_inactive' => false]);
     }
 
-    public function test_toggle_back_to_parent_mode_reactivates_child_students(): void
+    public function test_toggle_back_to_parent_mode_clears_flag_without_touching_children(): void
     {
         $customer = $this->customerWithCredit();
         $customer->update(['is_self_student' => true]);
 
-        $student1 = User::factory()->student()->create(['parent_id' => $customer->id, 'is_inactive' => true]);
-        $student2 = User::factory()->student()->create(['parent_id' => $customer->id, 'is_inactive' => true]);
+        $student1 = User::factory()->student()->create(['parent_id' => $customer->id, 'is_inactive' => false]);
+        $student2 = User::factory()->student()->create(['parent_id' => $customer->id, 'is_inactive' => false]);
 
         $this->actingAs($customer)
             ->post('/customer/students/toggle-self-student')
             ->assertRedirect(route('customer.students.index'));
 
+        $this->assertDatabaseHas('users', ['id' => $customer->id, 'is_self_student' => false]);
+        // Child students are not touched
         $this->assertDatabaseHas('users', ['id' => $student1->id, 'is_inactive' => false]);
         $this->assertDatabaseHas('users', ['id' => $student2->id, 'is_inactive' => false]);
-        $this->assertDatabaseHas('users', ['id' => $customer->id, 'is_self_student' => false]);
     }
 }

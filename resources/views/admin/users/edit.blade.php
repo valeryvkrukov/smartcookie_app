@@ -25,45 +25,6 @@
             </div>
         @endif
 
-        {{-- ── Self-student block modal: opened automatically when sessions would be orphaned --}}
-        @if(session('self_student_block'))
-        <div x-data="{ open: true }"
-             x-show="open"
-             x-cloak
-             class="fixed inset-0 z-[100] flex items-center justify-center p-4"
-             style="display: none !important;">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-md" @click="open = false"></div>
-            <div x-show="open"
-                 x-transition:enter="ease-out duration-300"
-                 x-transition:enter-start="opacity-0 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100"
-                 class="relative z-10 w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl shadow-slate-300/50 p-8 space-y-5">
-                <div class="pb-4 border-b border-slate-100">
-                    <p class="text-[10px] font-black uppercase tracking-widest text-rose-500 mb-1">Action blocked</p>
-                    <h3 class="text-lg font-black text-slate-800 leading-tight">Cannot disable Self-Enrolled</h3>
-                    <p class="text-xs text-slate-500 mt-1">
-                        This user has <span class="font-bold text-slate-700">{{ count(session('self_student_block')) }}</span>
-                        scheduled session(s) where they are the student.
-                        Cancel, complete, or reassign them first.
-                    </p>
-                </div>
-                <ul class="space-y-2">
-                    @foreach(session('self_student_block') as $s)
-                    <li class="grid grid-cols-[7rem_1fr_auto] items-center gap-2 text-xs bg-slate-50 rounded-2xl px-4 py-2.5 border border-slate-100">
-                        <span class="font-semibold text-slate-700">{{ $s['date'] }}</span>
-                        <span class="text-slate-600 truncate">{{ $s['subject'] }}</span>
-                        <span class="text-slate-400 text-right whitespace-nowrap">{{ $s['tutor'] }}</span>
-                    </li>
-                    @endforeach
-                </ul>
-                <button @click="open = false"
-                        class="w-full text-center text-sm font-bold text-white bg-indigo-500 hover:bg-indigo-600 active:bg-indigo-700 rounded-2xl py-3 transition-colors">
-                    OK, I understand
-                </button>
-            </div>
-        </div>
-        @endif
-
         <input type="hidden" name="role" value="{{ $user->role }}">
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">

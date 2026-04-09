@@ -14,12 +14,13 @@ class StudentController extends Controller
     {
         $user = auth()->user();
 
-        // Include inactive — they remain visible to the owning customer with a badge
+        // Always show linked child students (including inactive, with badge)
         $linked = Student::withInactive()
             ->where('parent_id', $user->id)
             ->with(['subjectRates', 'assignedTutors'])
             ->get();
 
+        // Prepend the customer themselves if they are also a self-student
         if ($user->is_self_student) {
             $user->loadMissing(['subjectRates', 'assignedTutors']);
             $students = collect([$user])->concat($linked);
@@ -136,32 +137,18 @@ class StudentController extends Controller
 
     /**
      * Toggle between "customer" (manage children) and "self student" modes.
-     * Switching TO self-student marks all linked child students as inactive.
-     * Switching BACK reactivates them.
+     * Only flips the is_self_student flag — child profiles are never deactivated.
      */
     public function toggleSelfStudent()
     {
         $user = auth()->user();
-        $becomingSelf = ! $user->is_self_student;
 
-        if ($becomingSelf) {
-            // Deactivate all linked students
-            User::where('role', 'student')
-                ->where('parent_id', $user->id)
-                ->update(['is_inactive' => true]);
-        } else {
-            // Reactivate all linked students
-            User::where('role', 'student')
-                ->where('parent_id', $user->id)
-                ->update(['is_inactive' => false]);
-        }
-
-        $user->update(['is_self_student' => $becomingSelf]);
+        $user->update(['is_self_student' => ! $user->is_self_student]);
 
         return redirect()->route('customer.students.index')
-            ->with('success', $becomingSelf
-                ? 'You are now registered as a self-student. Your children\'s profiles have been deactivated.'
-                : 'Switched back to parent mode. Your children\'s profiles are active again.'
+            ->with('success', $user->is_self_student
+                ? 'You are now shown as a self-enrolled student.'
+                : 'Switched back to parent mode.'
             );
     }
 }

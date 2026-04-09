@@ -9,7 +9,6 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Credit;
 use App\Models\CreditPurchase;
-use App\Models\TutoringSession;
 use App\Notifications\ClientRateSet;
 use App\Notifications\StudentAssigned;
 use App\Notifications\CreditBalanceChanged;
@@ -70,26 +69,6 @@ class UserController extends Controller
         ]);
         
         $user->update($data);
-
-        // ── Guard: block disabling self-student if Scheduled sessions exist
-        if ($user->is_self_student && !$request->boolean('is_self_student')) {
-            $blocked = TutoringSession::where('student_id', $user->id)
-                ->where('status', 'Scheduled')
-                ->with('tutor')
-                ->orderBy('date')
-                ->orderBy('start_time')
-                ->get();
-
-            if ($blocked->isNotEmpty()) {
-                return redirect()->back()
-                    ->withInput()
-                    ->with('self_student_block', $blocked->map(fn($s) => [
-                        'date'    => $s->date->format('M j, Y'),
-                        'subject' => $s->subject ?? '—',
-                        'tutor'   => $s->tutor?->full_name ?? '—',
-                    ])->values()->toArray());
-            }
-        }
 
         // ── Flags: update subscription and self-student flags
         $user->update([
