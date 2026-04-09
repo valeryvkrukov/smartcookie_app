@@ -15,21 +15,25 @@ class CalendarController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->is_self_student) {
-            $students = collect([$user]);
-        } else {
-            $students = User::where('parent_id', $user->id)
-                ->where('role', 'student')
-                ->orderBy('first_name')
-                ->get();
-        }
+        $children = User::where('parent_id', $user->id)
+            ->where('role', 'student')
+            ->orderBy('first_name')
+            ->get();
+
+        // Filter pill list: self first (if self-student), then children
+        $students = $user->is_self_student
+            ? collect([$user])->concat($children)
+            : $children;
 
         $selectedStudentId = $request->query('student_id');
 
-        // "Next 2 sessions" panel
+        // Show filter only when there are added children to switch between
+        $showFilter = $children->isNotEmpty();
+
+        // "Upcoming Sessions" spans all relevant student IDs
         $studentIds = $user->is_self_student
-            ? [$user->id]
-            : User::where('parent_id', $user->id)->where('role', 'student')->pluck('id')->toArray();
+            ? collect([$user->id])->concat($children->pluck('id'))->toArray()
+            : $children->pluck('id')->toArray();
 
         $nextSessions = TutoringSession::whereIn('student_id', $studentIds)
             ->where('status', 'Scheduled')
@@ -40,7 +44,7 @@ class CalendarController extends Controller
             ->with('student', 'tutor')
             ->get();
 
-        return view('customer.calendar.index', compact('students', 'selectedStudentId', 'nextSessions'));
+        return view('customer.calendar.index', compact('students', 'selectedStudentId', 'nextSessions', 'showFilter'));
     }
 
     public function events(Request $request)
