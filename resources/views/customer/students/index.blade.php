@@ -30,7 +30,7 @@
                 <form method="POST" action="{{ route('customer.students.toggle-self-student') }}">
                     @csrf
                     <button type="submit"
-                        onclick="return confirm('{{ auth()->user()->is_self_student ? 'Switch back to parent mode? Your children\'s profiles will be reactivated.' : 'Switch to self-student mode? Your children\'s profiles will be marked as inactive.' }}')"
+                        onclick="return confirm({{ json_encode(auth()->user()->is_self_student ? "Switch back to parent mode? Your children's profiles will be reactivated." : "Switch to self-student mode? Your children's profiles will be marked as inactive.") }})"
                         class="px-6 py-3.5 rounded-2xl text-[9px] font-black uppercase tracking-widest transition-all border
                             {{ auth()->user()->is_self_student
                                 ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
