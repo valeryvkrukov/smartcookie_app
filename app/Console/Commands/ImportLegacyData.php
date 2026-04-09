@@ -227,25 +227,47 @@ class ImportLegacyData extends Command
 
             $email = $old->email ?: ('student_' . $old->student_id . '@migrated.local');
 
-            $payload = [
-                'first_name'        => $firstName,
-                'last_name'         => $lastName,
-                'role'              => 'student',
-                'parent_id'         => $parentNewId,
-                'time_zone'         => 'America/New_York',
-                'is_subscribed'     => false,
-                'email_verified_at' => now(),
-                'updated_at'        => now(),
-            ];
-
             if (! $dry) {
                 $existing = DB::table('users')->where('email', $email)->first();
 
                 if ($existing) {
-                    DB::table('users')->where('id', $existing->id)->update($payload);
                     $newId = $existing->id;
+
+                    // ── Self-student: the student record belongs to the parent themselves
+                    if ($newId === $parentNewId) {
+                        DB::table('users')->where('id', $newId)->update([
+                            'is_self_student' => true,
+                            'updated_at'      => now(),
+                        ]);
+                        $this->studentMap[$old->student_id] = $newId;
+                        $bar->advance();
+                        $updated++;
+                        continue;
+                    }
+
+                    $payload = [
+                        'first_name'        => $firstName,
+                        'last_name'         => $lastName,
+                        'role'              => 'student',
+                        'parent_id'         => $parentNewId,
+                        'time_zone'         => 'America/New_York',
+                        'is_subscribed'     => false,
+                        'email_verified_at' => now(),
+                        'updated_at'        => now(),
+                    ];
+                    DB::table('users')->where('id', $newId)->update($payload);
                     $updated++;
                 } else {
+                    $payload = [
+                        'first_name'        => $firstName,
+                        'last_name'         => $lastName,
+                        'role'              => 'student',
+                        'parent_id'         => $parentNewId,
+                        'time_zone'         => 'America/New_York',
+                        'is_subscribed'     => false,
+                        'email_verified_at' => now(),
+                        'updated_at'        => now(),
+                    ];
                     $newId = DB::table('users')->insertGetId(array_merge($payload, [
                         'email'      => $email,
                         'password'   => Hash::make(Str::random(16)),
