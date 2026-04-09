@@ -24,8 +24,8 @@
                 <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center text-3xl text-white mb-8 shadow-inner">
                     <i class="ti-id-badge"></i>
                 </div>
-                <h3 class="text-2xl font-black text-white tracking-tight">My Students</h3>
-                <p class="text-sky-100 text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Manage Profiles</p>
+                <h3 class="text-2xl font-black text-white tracking-tight">{{ auth()->user()->is_self_student ? 'Student' : 'Family Profiles' }}</h3>
+                <p class="text-sky-100 text-[10px] font-black uppercase tracking-[0.2em] mt-3 opacity-70">Manage Profile(s)</p>
             </div>
         </a>
 

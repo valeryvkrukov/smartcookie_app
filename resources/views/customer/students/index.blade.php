@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header_title">My Students</x-slot>
+    <x-slot name="header_title">{{ auth()->user()->is_self_student ? 'My Student Profile' : 'Family Profiles' }}</x-slot>
 
     <div class="max-w-6xl mx-auto pb-20">
 
@@ -18,7 +18,7 @@
         <div class="flex justify-between items-start mb-12 gap-4 flex-wrap">
             <div>
                 <h2 class="text-2xl font-black text-slate-900 tracking-tight">
-                    {{ auth()->user()->is_self_student ? 'My Profile &amp; Students' : 'Family Profiles' }}
+                    {{ auth()->user()->is_self_student ? 'My Profile and Students' : 'Family Profiles' }}
                 </h2>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">
                     {{ auth()->user()->is_self_student ? 'You are enrolled as a student and can also manage children' : 'Manage your children\'s tutoring profiles' }}
