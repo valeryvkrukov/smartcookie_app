@@ -100,12 +100,27 @@
                             </select>
                             <p class="text-[9px] text-white/30 mt-2 italic">* This ensures your 1:45 PM is correctly synced across all devices.</p>
                         </div>
-                        
-                        <button type="submit" class="w-full py-5 bg-white text-slate-900 rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-indigo-50 transition-all active:scale-95">
-                            Update All Settings
-                        </button>
                     </div>
                 </div>
+            </div>
+
+            {{-- ── Save: full-width submit button spanning both columns --}}
+            <div>
+                @if (session('status') === 'profile-updated')
+                    <p class="text-center text-[10px] font-black uppercase tracking-widest text-emerald-600 mb-4">Saved successfully.</p>
+                @endif
+                @if ($errors->any())
+                    <div class="mb-4 p-4 bg-rose-50 rounded-2xl text-rose-600 text-[11px] font-bold">
+                        <ul class="list-disc list-inside space-y-1">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+                <button type="submit" class="w-full py-5 bg-[#212120] text-white rounded-2xl font-black uppercase tracking-[0.3em] text-[11px] shadow-xl hover:bg-indigo-600 transition-all active:scale-95">
+                    Save All Changes
+                </button>
             </div>
         </form>
 
