@@ -66,6 +66,7 @@
 
                 {{-- ── Search: filters transaction log by client name --}}
                 <form action="{{ route('admin.financials.index') }}" method="GET" class="relative w-full md:w-80">
+                    <input type="hidden" name="period" value="{{ request('period', 'all') }}">
                     <input type="text" name="search" value="{{ request('search') }}"
                            class="w-full pl-6 pr-12 py-4 bg-slate-50 border-none rounded-2xl text-[11px] font-bold focus:ring-2 focus:ring-indigo-500 transition-all"
                            placeholder="SEARCH CLIENT...">

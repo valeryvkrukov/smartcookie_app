@@ -54,8 +54,18 @@ class FinancialController extends Controller
         // ── Net profit: revenue minus tutor payouts
         $stats['net_profit'] = $stats['total_revenue'] - $stats['tutor_payouts'];
 
+        // ── Search: filter transactions by client name or email
+        if ($search = $request->get('search')) {
+            $query->whereHas('user', function ($q) use ($search) {
+                $q->where('first_name', 'like', "%{$search}%")
+                  ->orWhere('last_name',  'like', "%{$search}%")
+                  ->orWhere('email',      'like', "%{$search}%")
+                  ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$search}%"]);
+            });
+        }
+
         // ── Transactions: filtered and paginated payment history
-        $transactions = $query->orderBy('created_at', 'desc')->paginate(config('app.pagination_num', 12));
+        $transactions = $query->orderBy('created_at', 'desc')->paginate(config('app.pagination_num', 12))->withQueryString();
 
         return view('admin.financials.index', compact('stats', 'transactions', 'period'));
     }
