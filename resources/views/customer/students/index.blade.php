@@ -96,7 +96,7 @@
                                         blurb: {{ json_encode($student->blurb ?? '') }},
                                         studentAddress: {{ json_encode($student->address ?? '') }},
                                         studentPhone: {{ json_encode($student->phone ?? '') }},
-                                        studentEmail: {{ json_encode($isSelf || str_ends_with($student->email ?? '', '@smartcookie.local') ? '' : ($student->email ?? '')) }},
+                                        studentEmail: {{ json_encode($isSelf ? '' : ($student->email ?? '')) }},
                                     } 
                                 }))"
                                 class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center hover:bg-[#212120] hover:text-white transition-all">

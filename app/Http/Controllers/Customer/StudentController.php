@@ -53,9 +53,7 @@ class StudentController extends Controller
             'role'          => 'student',
             'parent_id'     => auth()->id(),
             'password'      => \Illuminate\Support\Facades\Hash::make(\Illuminate\Support\Str::random(12)),
-            'email'         => !empty($data['student_email'])
-                ? $data['student_email']
-                : strtolower($data['first_name'] . '.' . $data['last_name'] . '.' . uniqid() . '@smartcookie.local'),
+            'email'         => !empty($data['student_email']) ? $data['student_email'] : null,
         ]);
 
         StudentProfile::create([

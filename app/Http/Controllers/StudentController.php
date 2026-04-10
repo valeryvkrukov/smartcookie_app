@@ -41,7 +41,7 @@ class StudentController extends Controller
 
         $request->user()->students()->create([
             'first_name'       => $data['first_name'],
-            'email'            => $data['student_email'] ?? 'student_'.Str::random(8).'@tutor.com',
+            'email'            => $data['student_email'] ?? null,
             'password'         => Hash::make(Str::random(16)),
             'role'             => 'student',
             'student_grade'    => $data['student_grade'],

@@ -81,9 +81,7 @@ class RegistrationController extends Controller
                 $student = User::create([
                     'first_name'     => $studentFirstName,
                     'last_name'      => $studentLastName,
-                    'email'          => $request->filled('student_email')
-                        ? $request->student_email
-                        : 'student_' . uniqid() . '@tutor.com',
+                    'email'          => $request->filled('student_email') ? $request->student_email : null,
                     'password'       => Hash::make(Str::random(16)),
                     'parent_id'      => $parent->id,
                     'address'        => $request->student_address,
