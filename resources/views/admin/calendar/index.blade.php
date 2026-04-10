@@ -5,7 +5,7 @@
 
     <div class="bg-white p-6 shadow-sm border border-slate-200 rounded-2xl">
         <!-- Filter in Glassmorphism style -->
-        <div class="mb-8 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center justify-between">
+        <div class="mb-8 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div id="filter-tutor-wrap" class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 gap-2 sm:gap-0">
                 <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tutor Filter</label>
                 <select id="tutor-filter" class="border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-2 font-bold text-slate-800 transition-colors min-w-[200px]">
@@ -16,7 +16,7 @@
                 </select>
             </div>
             <div id="filter-student-wrap" class="hidden flex-col sm:flex-row sm:items-center sm:space-x-6 gap-2 sm:gap-0">
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Student Filter</label>
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">My Students Filter</label>
                 <select id="student-filter" class="border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-2 font-bold text-slate-800 transition-colors min-w-[200px]">
                     <option value="">All Students</option>
                     @foreach($myStudents as $s)
@@ -26,14 +26,14 @@
             </div>
 
             @if(auth()->user()->can_tutor)
-            <div id="schedule-toggle" class="flex bg-slate-100 rounded-2xl p-1 gap-1">
+            <div id="schedule-toggle" class="flex bg-slate-100 rounded-2xl p-1 gap-1 sm:flex-row sm:w-auto">
                 <button type="button" id="toggle-mine"
-                        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 transition-all duration-200">
-                    My Schedule
+                        class="w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 transition-all duration-200">
+                    Tutor
                 </button>
                 <button type="button" id="toggle-all"
-                        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] bg-white text-slate-800 shadow-sm transition-all duration-200">
-                    All Schedules
+                        class="w-full sm:w-auto px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] bg-white text-slate-800 shadow-sm transition-all duration-200">
+                    Admin
                 </button>
             </div>
             @endif
