@@ -7,7 +7,8 @@
             class="sm:hidden absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors z-10">
         <i class="ti-close text-base"></i>
     </button>
-    <div class="flex flex-col h-full py-8 px-4 justify-between">
+    <!--div class="flex flex-col h-full py-8 px-4 justify-between"-->
+    <div class="flex flex-col h-full py-8 px-4">
         
         <!-- Logo -->
         <div class="flex items-center mb-12 px-2">
@@ -18,7 +19,7 @@
         </div>
 
         <!-- Menu items -->
-        <nav class="flex-1 space-y-3 overflow-y-auto min-h-0">
+        <nav class="flex-1 space-y-3 overflow-y-auto overflow-x-hidden min-h-0">
             @php
                 $links = [
                     ['route' => 'dashboard', 'icon' => 'ti-layout-grid2', 'label' => 'Dashboard'],
@@ -55,30 +56,33 @@
                 </a>
                 @endif
             @endforeach
+
+            <div class="mt-auto pt-4 border-t border-white/10">
+                <!-- Profile Link -->
+                <a href="{{ route('profile.edit') }}" @click="sidebarOpen = false" class="flex items-center p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
+                    <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-700 shrink-0 border border-white/10">
+                        <img src="{{ auth()->user()->photo_url }}" class="w-full h-full object-cover">
+                    </div>
+                    <div class="ml-3 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+                        :class="sidebarOpen ? 'opacity-100' : ''">
+                        <p class="text-[10px] font-black text-white uppercase tracking-widest leading-none">{{ auth()->user()->first_name }}</p>
+                        <p class="text-[8px] text-slate-500 font-bold uppercase mt-1">{{ auth()->user()->role }}</p>
+                    </div>
+                </a>
+
+                <!-- Logout Button -->
+                <form method="POST" action="{{ route('logout') }}" class="mt-4">
+                    @csrf
+                    <button type="submit" 
+                            class="w-full flex items-center p-3 rounded-2xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all duration-300 group/logout">
+                        <i class="ti-power-off text-xl shrink-0"></i>
+                        <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] whitespace-nowrap
+                                    transition-opacity duration-300 opacity-0 group-hover:opacity-100"
+                            :class="sidebarOpen ? 'opacity-100' : ''">Sign Out</span>
+                    </button>
+                </form>
+            </div>
         </nav>
 
-        <!-- Profile Link -->
-        <a href="{{ route('profile.edit') }}" @click="sidebarOpen = false" class="flex items-center p-2 rounded-2xl bg-white/5 hover:bg-white/10 transition-colors">
-            <div class="w-8 h-8 rounded-xl overflow-hidden bg-slate-700 shrink-0 border border-white/10">
-                <img src="{{ auth()->user()->photo_url }}" class="w-full h-full object-cover">
-            </div>
-            <div class="ml-3 transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-                 :class="sidebarOpen ? 'opacity-100' : ''">
-                <p class="text-[10px] font-black text-white uppercase tracking-widest leading-none">{{ auth()->user()->first_name }}</p>
-                <p class="text-[8px] text-slate-500 font-bold uppercase mt-1">{{ auth()->user()->role }}</p>
-            </div>
-        </a>
-
-        <!-- Logout Button -->
-        <form method="POST" action="{{ route('logout') }}" class="mt-4">
-            @csrf
-            <button type="submit" 
-                    class="w-full flex items-center p-3 rounded-2xl text-rose-400 hover:bg-rose-500/10 hover:text-rose-500 transition-all duration-300 group/logout">
-                <i class="ti-power-off text-xl shrink-0"></i>
-                <span class="ml-4 font-bold text-[10px] uppercase tracking-[0.2em] whitespace-nowrap
-                            transition-opacity duration-300 opacity-0 group-hover:opacity-100"
-                      :class="sidebarOpen ? 'opacity-100' : ''">Sign Out</span>
-            </button>
-        </form>
     </div>
 </aside>
