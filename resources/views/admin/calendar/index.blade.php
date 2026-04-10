@@ -6,8 +6,8 @@
     <div class="bg-white p-6 shadow-sm border border-slate-200 rounded-2xl">
         <!-- Filter in Glassmorphism style -->
         <div class="mb-8 p-6 bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 flex items-center justify-between">
-            <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 gap-2 sm:gap-0">
-                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Filter by Tutor</label>
+            <div id="filter-tutor-wrap" class="flex flex-col sm:flex-row sm:items-center sm:space-x-6 gap-2 sm:gap-0">
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Tutor Filter</label>
                 <select id="tutor-filter" class="border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-2 font-bold text-slate-800 transition-colors min-w-[200px]">
                     <option value="">All Tutors</option>
                     @foreach($tutors as $t)
@@ -15,6 +15,28 @@
                     @endforeach
                 </select>
             </div>
+            <div id="filter-student-wrap" class="hidden flex-col sm:flex-row sm:items-center sm:space-x-6 gap-2 sm:gap-0">
+                <label class="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Student Filter</label>
+                <select id="student-filter" class="border-0 border-b-2 border-slate-100 focus:border-[#212120] focus:ring-0 bg-transparent py-2 font-bold text-slate-800 transition-colors min-w-[200px]">
+                    <option value="">All Students</option>
+                    @foreach($myStudents as $s)
+                        <option value="{{ $s->id }}">{{ $s->full_name }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            @if(auth()->user()->can_tutor)
+            <div id="schedule-toggle" class="flex bg-slate-100 rounded-2xl p-1 gap-1">
+                <button type="button" id="toggle-mine"
+                        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 transition-all duration-200">
+                    My Schedule
+                </button>
+                <button type="button" id="toggle-all"
+                        class="px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] bg-white text-slate-800 shadow-sm transition-all duration-200">
+                    All Schedules
+                </button>
+            </div>
+            @endif
         </div>
 
         <x-calendar-legend :show-no-credits="true" />
@@ -195,11 +217,11 @@
                 },
                 events: {
                     url: "{{ route('admin.calendar.events') }}",
-                    extraParams: function() { 
-                        // Calls on refetchEvents
-                        return {
-                            tutor_id: document.getElementById('tutor-filter').value
-                        };
+                    extraParams: function() {
+                        const isMine = @if(auth()->user()->can_tutor) document.getElementById('toggle-mine').classList.contains('bg-white') @else false @endif;
+                        return isMine
+                            ? { tutor_id: '{{ auth()->id() }}', student_id: document.getElementById('student-filter')?.value ?? '' }
+                            : { tutor_id: document.getElementById('tutor-filter').value, student_id: '' };
                     }
                 },
                 lazyFetching: false,
@@ -225,8 +247,54 @@
             window.calendar = calendar;
 
             filterEl.addEventListener('change', function() {
+                @if(auth()->user()->can_tutor)
+                syncToggle();
+                @endif
                 window.calendar.refetchEvents();
             });
+
+            @if(auth()->user()->can_tutor)
+            const adminId    = '{{ auth()->id() }}';
+            const toggleMine = document.getElementById('toggle-mine');
+            const toggleAll  = document.getElementById('toggle-all');
+
+            const tutorFilterWrap   = document.getElementById('filter-tutor-wrap');
+            const studentFilterWrap = document.getElementById('filter-student-wrap');
+            const studentFilterEl   = document.getElementById('student-filter');
+
+            studentFilterEl.addEventListener('change', function() {
+                window.calendar.refetchEvents();
+            });
+
+            function syncToggle() {
+                const isMine = filterEl.value === adminId;
+                toggleMine.classList.toggle('bg-white',       isMine);
+                toggleMine.classList.toggle('shadow-sm',      isMine);
+                toggleMine.classList.toggle('text-slate-800', isMine);
+                toggleMine.classList.toggle('text-slate-500', !isMine);
+                toggleAll.classList.toggle('bg-white',        !isMine);
+                toggleAll.classList.toggle('shadow-sm',       !isMine);
+                toggleAll.classList.toggle('text-slate-800',  !isMine);
+                toggleAll.classList.toggle('text-slate-500',  isMine);
+                tutorFilterWrap.classList.toggle('hidden',  isMine);
+                studentFilterWrap.classList.toggle('hidden',  !isMine);
+                studentFilterWrap.classList.toggle('flex',     isMine);
+            }
+
+            toggleMine.addEventListener('click', function() {
+                filterEl.value = adminId;
+                syncToggle();
+                window.calendar.refetchEvents();
+            });
+
+            toggleAll.addEventListener('click', function() {
+                filterEl.value = '';
+                syncToggle();
+                window.calendar.refetchEvents();
+            });
+
+            syncToggle();
+            @endif
 
             // ── Auto-refresh: re-fetch events every 2 minutes so credit colour
             // changes (e.g. after a top-up) and session deletions made elsewhere

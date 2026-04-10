@@ -48,12 +48,17 @@ class CalendarController extends Controller
         $students = User::where('role', 'student')
             ->orWhere(fn($q) => $q->where('role', 'customer')->where('is_self_student', true))
             ->orderBy('last_name')
-            ->get(['id', 'time_zone']);
+            ->get(['id', 'first_name', 'last_name', 'time_zone']);
+
+        $myStudents = auth()->user()->can_tutor
+            ? auth()->user()->assignedStudents()->orderBy('last_name')->get(['users.id', 'users.first_name', 'users.last_name', 'users.time_zone'])
+            : collect();
 
         return view('admin.calendar.index', [
             'eventsJson' => $events->toJson(),
             'tutors'     => $tutors,
             'students'   => $students,
+            'myStudents' => $myStudents,
         ]);
     }
 
@@ -64,6 +69,11 @@ class CalendarController extends Controller
         // ── Filter: narrow sessions by tutor_id when provided
         if ($request->filled('tutor_id')) {
             $query->where('tutor_id', $request->tutor_id);
+        }
+
+        // ── Filter: narrow sessions by student_id when provided
+        if ($request->filled('student_id')) {
+            $query->where('student_id', $request->student_id);
         }
 
         // ── Filter: narrow to the visible date range sent by FullCalendar
