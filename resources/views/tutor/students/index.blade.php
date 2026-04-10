@@ -67,14 +67,15 @@
                 {{-- ── Footer: quick-action buttons (call/email parent) --}}
                 <div class="px-6 py-4 bg-slate-50 flex items-center justify-between border-t border-slate-100">
                     <div class="flex items-center space-x-3">
-                        {{-- ── Call parent: tel link, shown only if phone exists --}}
-                        @if($student->parent->phone)
-                        <a href="tel:{{ $student->parent->phone }}" class="p-2 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm transition-colors">
+                        {{-- ── Call parent (or self-student): tel link, shown only if phone exists --}}
+                        @php $contactUser = $student->parent ?? $student; @endphp
+                        @if($contactUser->phone)
+                        <a href="tel:{{ $contactUser->phone }}" class="p-2 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm transition-colors">
                             <i class="ti-mobile text-sm"></i>
                         </a>
                         @endif
-                        {{-- ── Write to parent: mailto link --}}
-                        <a href="mailto:{{ $student->parent->email }}" class="p-2 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm transition-colors">
+                        {{-- ── Write to parent (or self-student): mailto link --}}
+                        <a href="mailto:{{ $contactUser->email }}" class="p-2 bg-white border border-slate-200 rounded-xl flex items-center justify-center text-slate-600 hover:text-indigo-600 shadow-sm transition-colors">
                             <i class="ti-email text-sm"></i>
                         </a>
                     </div>
