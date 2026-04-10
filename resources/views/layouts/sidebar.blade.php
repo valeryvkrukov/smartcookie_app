@@ -18,7 +18,7 @@
         </div>
 
         <!-- Menu items -->
-        <nav class="flex-1 space-y-3">
+        <nav class="flex-1 space-y-3 overflow-y-auto min-h-0">
             @php
                 $links = [
                     ['route' => 'dashboard', 'icon' => 'ti-layout-grid2', 'label' => 'Dashboard'],
