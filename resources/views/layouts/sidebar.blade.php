@@ -21,15 +21,16 @@
         <!-- Menu items -->
         <nav class="flex-1 space-y-3 overflow-y-auto overflow-x-hidden min-h-0">
             @php
+                $authUser = auth()->user();
                 $links = [
                     ['route' => 'dashboard', 'icon' => 'ti-layout-grid2', 'label' => 'Dashboard'],
-                    ['route' => auth()->user()->role === 'admin' ? 'admin.calendar.index' : 'tutor.calendar.index', 'icon' => 'ti-calendar', 'label' => 'Schedule', 'role' => ['admin', 'tutor']],
+                    ['route' => $authUser->role === 'admin' ? 'admin.calendar.index' : 'tutor.calendar.index', 'icon' => 'ti-calendar', 'label' => 'Schedule', 'role' => ['admin', 'tutor']],
                     ['route' => 'tutor.students.index', 'icon' => 'ti-id-badge', 'label' => 'My Students', 'role' => 'tutor'],
-                    ['route' => 'customer.calendar.index', 'icon' => 'ti-calendar', 'label' => auth()->user()->is_self_student ? 'My Schedule' : 'Family Schedule', 'role' => 'customer'],
-                    ['route' => 'customer.students.index', 'icon' => 'ti-id-badge', 'label' => auth()->user()->is_self_student ? 'Student' : 'Family Profiles', 'role' => 'customer'],
+                    ['route' => 'customer.calendar.index', 'icon' => 'ti-calendar', 'label' => $authUser->is_self_student ? 'My Schedule' : 'Family Schedule', 'role' => 'customer'],
+                    ['route' => 'customer.students.index', 'icon' => 'ti-id-badge', 'label' => $authUser->is_self_student ? 'Student' : 'Family Profiles', 'role' => 'customer'],
                     ['route' => 'admin.users.index', 'icon' => 'ti-user', 'label' => 'Directory', 'role' => 'admin'],
                     ['route' => 'admin.financials.index', 'icon' => 'ti-wallet', 'label' => 'Financials', 'role' => 'admin'],
-                    ['route' => auth()->user()->role === 'admin' ? 'admin.agreements.index' : 'customer.agreements.index', 'icon' => 'ti-write', 'label' => 'Agreements', 'role' => ['admin', 'customer']],
+                    ['route' => $authUser->role === 'admin' ? 'admin.agreements.index' : 'customer.agreements.index', 'icon' => 'ti-write', 'label' => 'Agreements', 'role' => ['admin', 'customer']],
                     ['route' => 'tutor.timesheets.index', 'icon' => 'ti-timer', 'label' => 'Timesheets', 'role' => 'tutor'],
                     ['route' => 'customer.credits.index', 'icon' => 'ti-money', 'label' => 'Billing & Credits', 'role' => 'customer'],
                     ['route' => 'admin.system-logs.index', 'icon' => 'ti-settings', 'label' => 'System Logs', 'role' => 'admin'],
@@ -38,11 +39,10 @@
 
             @foreach($links as $link)
                 @php
-                    $authUser = auth()->user();
                     $linkRoles = (array)($link['role'] ?? []);
                     $visible = !isset($link['role'])
                         || in_array($authUser->role, $linkRoles)
-                        || (in_array('tutor', $linkRoles) && $authUser->role === 'admin' && $authUser->can_tutor);
+                        || (in_array('tutor', $linkRoles) && in_array('tutor', $linkRoles) && $authUser->can_tutor);
                 @endphp
                 @if($visible)
                 <a href="{{ route($link['route']) }}"
@@ -52,7 +52,7 @@
                     <span class="ml-4 font-bold text-xs uppercase tracking-[0.2em] whitespace-nowrap
                                 transition-opacity duration-300
                                 opacity-0 group-hover:opacity-100"
-                          :class="sidebarOpen ? 'opacity-100' : ''">{{ $link['label'] }}</span>
+                        :class="sidebarOpen ? 'opacity-100' : ''">{{ $link['label'] }}</span>
                 </a>
                 @endif
             @endforeach

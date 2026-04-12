@@ -1,5 +1,5 @@
 <x-app-layout>
-    <x-slot name="header_title">Policies & Compliance</x-slot>
+    <x-slot name="header_title">Agreements and Policies</x-slot>
 
     <div class="max-w-4xl mx-auto space-y-6 pb-20">
         
