@@ -32,6 +32,7 @@
 
             <!-- Search -->
             <form action="{{ route('admin.users.index') }}" method="GET" class="relative group w-full md:w-72">
+                <input type="hidden" name="role" value="{{ request('role') }}">
                 <input type="text" name="search" value="{{ request('search') }}" 
                        class="w-full pl-5 pr-12 py-3 bg-white border-none rounded-2xl text-xs font-bold shadow-sm focus:ring-2 focus:ring-indigo-500 transition-all" 
                        placeholder="Search directory...">
