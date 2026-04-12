@@ -42,11 +42,61 @@
         </div>
     </div>
 
-    <!-- User Grid -->
+    <ul class="divide-y divide-slate-100 bg-white rounded-2xl border border-slate-100 shadow-xl shadow-slate-200/40">
+        @foreach($users as $user)
+            <li class="flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 bg-slate-50 text-slate-400 rounded-xl flex items-center justify-center text-lg font-bold">
+                        {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
+                    </div>
+                    <div>
+                        <div class="font-black text-slate-900">{{ $user->full_name }}</div>
+                        <div class="text-xs text-slate-400">{{ $user->email }}</div>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <span class="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-widest {{ $user->role === 'admin' ? 'bg-indigo-50 text-indigo-600' : ($user->role === 'tutor' ? 'bg-emerald-50 text-emerald-600' : ($user->role === 'customer' ? 'bg-amber-50 text-amber-600' : 'bg-rose-50 text-rose-600')) }}">
+                        {{ $user->role }}
+                    </span>
+                    @if($user->role === 'customer')
+                    <button type="button" 
+                        onclick="window.dispatchEvent(new CustomEvent('open-modal', { detail: { type: 'send-agreement', studentId: '{{ $user->id }}', title: {{ json_encode('Send Document to '.$user->full_name) }} } }))"
+                        class="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:text-black transition-colors">
+                        Send Policy
+                    </button>
+                    @endif
+                    <a href="{{ route('admin.users.edit', $user->id) }}" class="text-slate-300 hover:text-indigo-600 transition-colors"><i class="ti-pencil"></i></a>
+                    <button type="button"
+                        onclick="
+                            event.preventDefault();
+                            event.stopPropagation();
+                            window.dispatchEvent(new CustomEvent('confirm-user-delete', {
+                                detail: {
+                                    name: '{{ $user->full_name }}',
+                                    formId: 'delete-user-{{ $user->id }}'
+                                }
+                            }));
+                        "
+                        class="text-slate-300 hover:text-rose-500 transition-colors ml-2"
+                        title="Delete"
+                    >
+                        <i class="ti-trash"></i>
+                    </button>
+                    <form id="delete-user-{{ $user->id }}" action="{{ route('admin.users.destroy', $user) }}" method="POST" style="display:none;">
+                        @csrf
+                        @method('DELETE')
+                    </form>
+                </div>
+            </li>
+        @endforeach
+    </ul>
+
+    <!-- User Grid --
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
         @foreach($users as $user)
         <div class="bg-white rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/40 p-8 flex flex-col group hover:-translate-y-1 transition-all duration-500">
-            <!-- Role Badge & Actions -->
+            <!- Role Badge & Actions --
             <div class="flex justify-between items-start mb-6">
                 <span class="px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest 
                     {{ $user->role === 'admin' ? 'bg-indigo-50 text-indigo-600' : '' }}
@@ -70,7 +120,7 @@
                 </div>
             </div>
 
-            <!-- User Info -->
+            <!- User Info --
             <div class="flex items-center space-x-4 mb-6">
                 <div class="w-14 h-14 bg-slate-50 text-slate-400 rounded-2xl flex items-center justify-center text-xl font-bold group-hover:bg-[#212120] group-hover:text-white transition-colors duration-500">
                     {{ substr($user->first_name, 0, 1) }}{{ substr($user->last_name, 0, 1) }}
@@ -89,7 +139,7 @@
                 @endif
             </div>
 
-            <!-- Stats/Meta -->
+            <!- Stats/Meta --
             <div class="mt-auto pt-6 border-t border-slate-50 flex justify-between items-center">
                 <a href="mailto:{{ $user->email }}" class="text-[9px] font-black uppercase tracking-widest text-indigo-600 hover:underline">Message</a>
                 
@@ -115,7 +165,7 @@
             </form>
         </div>
         @endforeach
-    </div>
+    </div>-->
 
     <!-- Pagination -->
     <div class="mt-12">

@@ -41,6 +41,10 @@
 
         <x-calendar-legend :show-no-credits="true" />
         <div id="cal-date-title" class="text-center font-bold text-slate-800 mb-2 sm:hidden" style="font-size:1.05rem;"></div>
+        <!--div class="flex justify-end gap-2 mb-4">
+            <input type="date" id="calendar-goto-date" class="border border-slate-200 rounded-lg px-2 py-1 text-xs text-slate-700 focus:border-indigo-500 focus:ring-0" />
+            <button type="button" id="calendar-goto-btn" class="px-3 py-1 rounded-lg bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition">Go</button>
+        </div-->
         <div id="calendar" style="min-height: 700px;"></div>
     </div>
 
@@ -50,6 +54,7 @@
          style="transition: opacity .12s ease;">
         <div id="cal-tooltip-inner" class="p-4 space-y-2"></div>
     </div>
+
 
     @push('scripts')
     <script>
