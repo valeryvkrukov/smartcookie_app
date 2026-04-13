@@ -155,19 +155,25 @@
                 @endif
 
                 @if($user->role === 'customer')
+                @php
+                    $students = $user->students()->get();
+                @endphp
                 <div class="bg-white p-8 rounded-[3rem] border border-slate-100 shadow-xl mt-6">
-                    <h3 class="label-premium mb-6">Account Type</h3>
-                    <label class="flex items-center justify-between cursor-pointer group">
-                        <div>
-                            <span class="text-xs font-bold text-slate-600 group-hover:text-slate-900 transition-colors">Self-Enrolled Student</span>
-                            <p class="text-[9px] text-slate-400 mt-1 leading-relaxed max-w-xs">This customer IS also the student in sessions. No separate student account is needed.</p>
-                        </div>
-                        <div class="relative ml-6 flex-shrink-0">
-                            <input type="checkbox" name="is_self_student" value="1" {{ $user->is_self_student ? 'checked' : '' }} class="peer hidden">
-                            <div class="w-12 h-6 bg-slate-200 rounded-full peer-checked:bg-indigo-500 transition-colors duration-300"></div>
-                            <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform duration-300 peer-checked:translate-x-6 shadow-sm"></div>
-                        </div>
-                    </label>
+                    <h3 class="label-premium mb-6">Associated Students</h3>
+                    @if($students->isNotEmpty())
+                        <ul class="space-y-2">
+                            @foreach($students as $student)
+                                <li>
+                                    <a href="{{ route('admin.users.edit', $student->id) }}" class="text-indigo-600 hover:underline font-bold">
+                                        {{ $student->full_name }}
+                                    </a>
+                                    <span class="text-xs text-slate-400 ml-2">{{ $student->email }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <p class="text-xs text-slate-400">No students associated with this parent.</p>
+                    @endif
                 </div>
 
                 {{-- ── Manual Payment / Credit Top-up ─────────────────────────── --}}
@@ -185,61 +191,61 @@
 
                 {{-- Apply Manual Payment — only shown when a pending payment exists --}}
                 @if($pendingAmount)
-                @php
-                    $pendingCredits = ($rate > 0) ? round($pendingAmount / $rate, 2) : null;
-                @endphp
-                <div class="bg-white p-8 rounded-[2.5rem] border border-amber-200 shadow-xl mt-3">
+                    @php
+                        $pendingCredits = ($rate > 0) ? round($pendingAmount / $rate, 2) : null;
+                    @endphp
+                    <div class="bg-white p-8 rounded-[2.5rem] border border-amber-200 shadow-xl mt-3">
 
-                    <div class="flex items-center gap-2 mb-5">
-                        <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
-                        <p class="label-premium !text-amber-600">Pending Payment</p>
+                        <div class="flex items-center gap-2 mb-5">
+                            <span class="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            <p class="label-premium !text-amber-600">Pending Payment</p>
+                        </div>
+
+                        {{-- Hidden form values --}}
+                        <input form="apply-payment-form" type="hidden" name="total_paid"     value="{{ $pendingAmount }}">
+                        <input form="apply-payment-form" type="hidden" name="payment_method" value="{{ $pendingMethod }}">
+                        @if($pendingCredits)
+                            <input form="apply-payment-form" type="hidden" name="credits" value="{{ $pendingCredits }}">
+                        @endif
+
+                        <div class="space-y-4">
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <div class="space-y-2">
+                                    <p class="label-premium">Amount Paid</p>
+                                    <p class="input-premium bg-slate-50 font-black text-slate-800">${{ number_format($pendingAmount, 2) }}</p>
+                                </div>
+                                <div class="space-y-2">
+                                    <p class="label-premium">Credits</p>
+                                    @if($pendingCredits)
+                                        <p class="input-premium bg-slate-50 text-indigo-700 font-black">{{ $pendingCredits }}</p>
+                                        <p class="text-[8px] text-slate-400 ml-1">@ ${{ $rate }}/cr</p>
+                                    @else
+                                        <input form="apply-payment-form" type="number" name="credits" step="0.5" min="0.5"
+                                            class="input-premium" required placeholder="Enter manually">
+                                        <p class="text-[8px] text-rose-400 ml-1">Rate not set — enter credits manually</p>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="space-y-2">
+                                <p class="label-premium">Payment Method</p>
+                                <p class="input-premium bg-slate-50 font-black text-slate-800">{{ ucfirst($pendingMethod) }}</p>
+                            </div>
+
+                            <div class="space-y-2">
+                                <label class="label-premium">Note (optional)</label>
+                                <input form="apply-payment-form" type="text" name="note" maxlength="255" class="input-premium"
+                                    placeholder="e.g. transaction ref or memo">
+                            </div>
+
+                            <button form="apply-payment-form" type="submit"
+                                    class="w-full py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
+                                Confirm Payment &amp; Apply Credits
+                            </button>
+                        </div>
                     </div>
-
-                    {{-- Hidden form values --}}
-                    <input form="apply-payment-form" type="hidden" name="total_paid"     value="{{ $pendingAmount }}">
-                    <input form="apply-payment-form" type="hidden" name="payment_method" value="{{ $pendingMethod }}">
-                    @if($pendingCredits)
-                        <input form="apply-payment-form" type="hidden" name="credits" value="{{ $pendingCredits }}">
                     @endif
-
-                    <div class="space-y-4">
-
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div class="space-y-2">
-                                <p class="label-premium">Amount Paid</p>
-                                <p class="input-premium bg-slate-50 font-black text-slate-800">${{ number_format($pendingAmount, 2) }}</p>
-                            </div>
-                            <div class="space-y-2">
-                                <p class="label-premium">Credits</p>
-                                @if($pendingCredits)
-                                    <p class="input-premium bg-slate-50 text-indigo-700 font-black">{{ $pendingCredits }}</p>
-                                    <p class="text-[8px] text-slate-400 ml-1">@ ${{ $rate }}/cr</p>
-                                @else
-                                    <input form="apply-payment-form" type="number" name="credits" step="0.5" min="0.5"
-                                           class="input-premium" required placeholder="Enter manually">
-                                    <p class="text-[8px] text-rose-400 ml-1">Rate not set — enter credits manually</p>
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <p class="label-premium">Payment Method</p>
-                            <p class="input-premium bg-slate-50 font-black text-slate-800">{{ ucfirst($pendingMethod) }}</p>
-                        </div>
-
-                        <div class="space-y-2">
-                            <label class="label-premium">Note (optional)</label>
-                            <input form="apply-payment-form" type="text" name="note" maxlength="255" class="input-premium"
-                                   placeholder="e.g. transaction ref or memo">
-                        </div>
-
-                        <button form="apply-payment-form" type="submit"
-                                class="w-full py-3 bg-emerald-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition-all">
-                            Confirm Payment &amp; Apply Credits
-                        </button>
-                    </div>
-                </div>
-                @endif
                 @endif
             </div>
 

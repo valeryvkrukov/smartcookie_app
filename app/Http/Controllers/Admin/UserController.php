@@ -51,9 +51,9 @@ class UserController extends Controller
     {
         $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
         $parents = User::where('role', 'customer')->orderBy('last_name')->get();
-        $students = $user->students()->get();
+        //$students = $user->students()->get();
 
-        return view('admin.users.edit', compact('user', 'tutors', 'parents', 'students'));
+        return view('admin.users.edit', compact('user', 'tutors', 'parents'));
     }
 
     public function update(Request $request, User $user)
