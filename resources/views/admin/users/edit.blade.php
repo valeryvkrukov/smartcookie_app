@@ -303,12 +303,23 @@
                             </div>
                             <div class="space-y-1 pt-4">
                                 <label class="label-premium">Parent / Client</label>
-                                <select name="parent_id" class="input-premium">
-                                    <option value="">None</option>
-                                    @foreach($parents as $p)
-                                        <option value="{{ $p->id }}" {{ $user->parent_id == $p->id ? 'selected' : '' }}>{{ $p->full_name }}</option>
-                                    @endforeach
-                                </select>
+                                <input type="hidden" name="parent_id" value="{{ $user->parent_id ?? '' }}">
+                                @if($user->parent_id && $parents->count())
+                                    <ul class="space-y-1">
+                                        @foreach($parents as $p)
+                                            @if($user->parent_id == $p->id)
+                                                <li>
+                                                    <a href="{{ route('admin.users.edit', $p->id) }}" class="text-indigo-600 hover:underline font-bold">
+                                                        {{ $p->full_name }}
+                                                    </a>
+                                                    <span class="text-xs text-slate-400 ml-2">{{ $p->email }}</span>
+                                                </li>
+                                            @endif
+                                        @endforeach
+                                    </ul>
+                                @else
+                                    <span class="text-xs text-slate-400">No parent assigned.</span>
+                                @endif
                             </div>
                         </div>
                     @endif
