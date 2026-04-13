@@ -10,6 +10,7 @@
             
             <div class="bg-white p-10 rounded-[3rem] border border-slate-100 shadow-2xl shadow-slate-200/40">
                 <div class="flex flex-col md:flex-row gap-12">
+                    @if ($user->role !== 'customer')
                     {{-- ── Photo column: avatar with live file-reader preview --}}
                     <div class="flex flex-col items-center space-y-4">
                         <div class="relative group">
@@ -34,6 +35,7 @@
                         </div>
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest">Profile Photo</p>
                     </div>
+                    @endif
 
                     {{-- ── Name & bio column: first name, last name, tagline --}}
                     <div class="flex-1 space-y-8">
@@ -47,10 +49,12 @@
                                 <input name="last_name" type="text" class="input-premium" value="{{ old('last_name', $user->last_name) }}" required>
                             </div>
                         </div>
+                        @if ($user->role !== 'customer')
                         <div class="space-y-2">
                             <x-input-label value="Short Blurb (Tagline)" class="label-premium" />
                             <input name="blurb" type="text" class="input-premium" value="{{ old('blurb', $user->blurb) }}" placeholder="e.g. Expert SAT Math Tutor with 5+ years experience">
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -78,6 +82,7 @@
                 {{-- ── Section 3: System preferences and timezone --}}
                 <div class="bg-[#212120] p-10 rounded-[3rem] shadow-2xl text-white">
                     <h3 class="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] mb-8">System Preferences</h3>
+                    @if ($user->role !== 'customer')
                     <div class="space-y-6 pt-4 border-t border-white/10">
                         <label class="flex items-center justify-between cursor-pointer group">
                             <span class="text-[10px] font-black uppercase tracking-[0.2em] text-white/60">Email Notifications</span>
@@ -85,10 +90,14 @@
                                 <input type="checkbox" name="is_subscribed" value="1" {{ $user->is_subscribed ? 'checked' : '' }} class="peer hidden">
                                 <div class="w-10 h-5 bg-white/10 rounded-full peer-checked:bg-indigo-500 transition-all"></div>
                                 <div class="absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+                                
                             </div>
                         </label>
                         <p class="text-[8px] text-white/20 uppercase tracking-widest italic">Receive session reminders & updates</p>
                     </div>
+                    @else
+                    <input type="hidden" name="is_subscribed" value="1" />
+                    @endif
                     
                     <div class="space-y-8">
                         <div class="space-y-2">
