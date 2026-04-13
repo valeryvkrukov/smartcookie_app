@@ -18,16 +18,24 @@
         <div class="flex justify-between items-start mb-12 gap-4 flex-wrap">
             <div>
                 <h2 class="text-2xl font-black text-slate-900 tracking-tight">
+                    {{ auth()->user()->full_name }}
+                </h2>
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">
+                    Manage your children's tutoring profiles
+                </p>
+            </div>
+            <!--div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight">
                     {{ auth()->user()->is_self_student ? 'My Profile and Students' : 'Family Profiles' }}
                 </h2>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] mt-2">
                     {{ auth()->user()->is_self_student ? 'You are enrolled as a student and can also manage children' : 'Manage your children\'s tutoring profiles' }}
                 </p>
-            </div>
+            </div-->
 
             <div class="flex items-center gap-3 flex-wrap">
                 {{-- Self-student toggle --}}
-                <form id="toggle-self-student-form" method="POST" action="{{ route('customer.students.toggle-self-student') }}">
+                <!--form id="toggle-self-student-form" method="POST" action="{{ route('customer.students.toggle-self-student') }}">
                     @csrf
                     <button type="button"
                         @click="$dispatch('confirm-toggle-self-student')"
@@ -37,7 +45,7 @@
                                 : 'bg-slate-50 text-slate-500 border-slate-200 hover:bg-slate-100' }}">
                         {{ auth()->user()->is_self_student ? '↩ Switch to Parent Mode' : '⇄ I am the Student' }}
                     </button>
-                </form>
+                </form-->
 
                 <button type="button"
                     onclick="window.dispatchEvent(new CustomEvent('open-modal', {

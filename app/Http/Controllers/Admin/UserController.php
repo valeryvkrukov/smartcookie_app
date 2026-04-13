@@ -51,8 +51,9 @@ class UserController extends Controller
     {
         $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
         $parents = User::where('role', 'customer')->orderBy('last_name')->get();
+        $students = $user->students()->get();
 
-        return view('admin.users.edit', compact('user', 'tutors', 'parents'));
+        return view('admin.users.edit', compact('user', 'tutors', 'parents', 'students'));
     }
 
     public function update(Request $request, User $user)
@@ -63,7 +64,7 @@ class UserController extends Controller
             'email'           => 'required|email|unique:users,email,' . $user->id,
             'role'            => 'required|in:admin,tutor,customer,student',
             'parent_id'       => 'nullable|exists:users,id',
-            'tutor_id'        => 'nullable|exists:users,id',
+            //'tutor_id'        => 'nullable|exists:users,id', // ── No longer directly assignable on user update form
             'hourly_payout'   => 'sometimes|array',
             'hourly_payout.*' => 'nullable|numeric|min:0',
         ]);

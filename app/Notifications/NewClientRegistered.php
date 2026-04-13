@@ -41,7 +41,7 @@ class NewClientRegistered extends Notification
             ->line('Phone: ' . $this->parent->phone)
             ->line('Address: ' . $this->parent->address)
             ->line('--- Student Details ---')
-            ->line('Student Name: ' . $this->studentData['student_name'])
+            ->line('Student Name: ' . $this->studentData['student_first_name'] . ' ' . $this->studentData['student_last_name'])
             ->line('Grade: ' . $this->studentData['student_grade'])
             ->line('School: ' . $this->studentData['student_school'])
             ->line('Goals: ' . ($this->studentData['tutoring_goals'] ?? 'Not specified'))

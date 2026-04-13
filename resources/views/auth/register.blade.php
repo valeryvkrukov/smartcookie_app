@@ -22,7 +22,7 @@
         <input type="hidden" name="is_self_student" :value="selfStudent ? '1' : '0'">
 
         <!-- TYPE SELECTOR -->
-        <div>
+        <!--div>
             <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">I am registering as...</p>
             <div class="flex rounded-2xl border border-slate-200 overflow-hidden text-[10px] font-black uppercase tracking-widest">
                 <button type="button" @click="selfStudent = false"
@@ -36,16 +36,26 @@
                     Student (Self)
                 </button>
             </div>
-        </div>
+        </div-->
 
         <!-- SECTION 1: CLIENT INFO -->
         <div class="space-y-6">
             <h3 class="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em] border-b border-slate-100 pb-2"
                 x-text="selfStudent ? '1. Your Info' : '1. Parent / Client Info'"></h3>
 
-            <div class="space-y-1">
+            <!--div class="space-y-1">
                 <x-input-label value="Full Name" class="label-premium" />
                 <x-text-input name="parent_name" :value="old('parent_name')" class="input-premium" required />
+            </div-->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <x-input-label value="First Name" class="label-premium" />
+                    <x-text-input name="parent_first_name" :value="old('parent_first_name')" class="input-premium" required />
+                </div>
+                <div class="space-y-1">
+                    <x-input-label value="Last Name" class="label-premium" />
+                    <x-text-input name="parent_last_name" :value="old('parent_last_name')" class="input-premium" required />
+                </div>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -75,9 +85,20 @@
              class="space-y-6">
             <h3 class="text-[11px] font-black text-indigo-600 uppercase tracking-[0.3em] border-b border-slate-100 pb-2">2. Student Details</h3>
 
-            <div class="space-y-1">
+            <!--div class="space-y-1">
                 <x-input-label value="Student Full Name" class="label-premium" />
                 <x-text-input name="student_name" :value="old('student_name')" class="input-premium" />
+            </div-->
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="space-y-1">
+                    <x-input-label value="First Name" class="label-premium" />
+                    <x-text-input name="student_first_name" :value="old('student_first_name')" class="input-premium" />
+                </div>
+                <div class="space-y-1">
+                    <x-input-label value="Last Name" class="label-premium" />
+                    <x-text-input name="student_last_name" :value="old('student_last_name')" class="input-premium" />
+                </div>
             </div>
 
             <div class="space-y-1">
@@ -92,19 +113,19 @@
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="space-y-1">
-                    <x-input-label value="Student Phone" class="label-premium" />
+                    <x-input-label value="Phone" class="label-premium" />
                     <span class="text-slate-300 text-[8px] font-black uppercase tracking-widest ml-1">optional</span>
                     <x-text-input name="student_phone" :value="old('student_phone')" class="input-premium" placeholder="555-0123" />
                 </div>
                 <div class="space-y-1">
-                    <x-input-label value="Student Email" class="label-premium" />
+                    <x-input-label value="Email" class="label-premium" />
                     <span class="text-slate-300 text-[8px] font-black uppercase tracking-widest ml-1">optional</span>
                     <x-text-input name="student_email" type="email" :value="old('student_email')" class="input-premium" placeholder="student@email.com" />
                 </div>
             </div>
 
             <div class="space-y-1">
-                <x-input-label value="Student Home Address" class="label-premium" />
+                <x-input-label value="Home Address" class="label-premium" />
                 <span class="text-slate-300 text-[8px] font-black uppercase tracking-widest ml-1">optional</span>
                 <x-text-input name="student_address" :value="old('student_address')" class="input-premium" placeholder="123 Street, City, State" />
             </div>

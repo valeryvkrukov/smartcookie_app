@@ -36,13 +36,16 @@ class RegistrationController extends Controller
 
         $request->validate([
             // Parent / client fields
-            'parent_name'    => 'required|string|max:255',
+            //'parent_name'    => 'required|string|max:255',
+            'parent_first_name'    => 'required|string|max:255',
+            'parent_last_name'    => 'required|string|max:255',
             'parent_email'   => 'required|email|unique:users,email',
             'password'       => 'required|min:8',
             'address'        => 'required|string',
             'phone'          => 'required|string',
             // Student fields — required only when NOT self-student
-            'student_name'    => $isSelfStudent ? 'nullable|string|max:255' : 'required|string|max:255',
+            'student_first_name'    => $isSelfStudent ? 'nullable|string|max:255' : 'required|string|max:255',
+            'student_last_name'    => $isSelfStudent ? 'nullable|string|max:255' : 'required|string|max:255',
             'student_grade'   => $isSelfStudent ? 'nullable|string' : 'required|string',
             'student_school'  => $isSelfStudent ? 'nullable|string' : 'required|string',
             'student_email'   => 'nullable|email|unique:users,email',
@@ -56,14 +59,14 @@ class RegistrationController extends Controller
 
             // Create Parent / Client account
             $parent = User::create([
-                'first_name'      => $parentFirstName,
-                'last_name'       => $parentLastName,
+                'first_name'      => $request->parent_first_name,
+                'last_name'       => $request->parent_last_name,
                 'email'           => $request->parent_email,
                 'password'        => Hash::make($request->password),
                 'address'         => $request->address,
                 'phone'           => $request->phone,
                 'role'            => 'customer',
-                'is_self_student' => $isSelfStudent,
+                //'is_self_student' => $isSelfStudent,
             ]);
 
             // Wallet initialization
@@ -73,14 +76,14 @@ class RegistrationController extends Controller
                 'dollar_cost_per_credit' => config('payments.default_rate_per_credit'),
             ]);
 
-            $studentName = null;
+            //$studentName = null;
 
-            if (! $isSelfStudent) {
-                [$studentFirstName, $studentLastName] = User::splitName($request->student_name);
+            //if (! $isSelfStudent) {
+                //[$studentFirstName, $studentLastName] = User::splitName($request->student_name);
 
                 $student = User::create([
-                    'first_name'     => $studentFirstName,
-                    'last_name'      => $studentLastName,
+                    'first_name'     => $request->student_first_name,
+                    'last_name'      => $request->student_last_name,
                     'email'          => $request->filled('student_email') ? $request->student_email : null,
                     'password'       => Hash::make(Str::random(16)),
                     'parent_id'      => $parent->id,
@@ -96,15 +99,22 @@ class RegistrationController extends Controller
                     'tutoring_goals' => $request->tutoring_goals,
                 ]);
 
-                $studentName = $request->student_name;
-            }
+                $studentName = $request->student_first_name . ' ' . $request->student_last_name;
+            //}
 
             $admins = User::where('role', 'admin')->get();
 
             if ($admins->isNotEmpty()) {
-                Notification::send($admins, new NewClientRegistered($parent, $request->only([
-                    'student_name', 'student_grade', 'student_school', 'tutoring_goals'
-                ])));
+                /*Notification::send($admins, new NewClientRegistered($parent, $request->only([
+                    'student_first_name', 'student_last_name', 'student_grade', 'student_school', 'tutoring_goals'
+                ])));*/
+                Notification::send($admins, new NewClientRegistered($parent, [
+                    'student_first_name' => $request->student_first_name,
+                    'student_last_name'  => $request->student_last_name,
+                    'student_grade'      => $request->student_grade,
+                    'student_school'     => $request->student_school,
+                    'tutoring_goals'     => $request->tutoring_goals,
+                ]));
             }
 
             $parent->notify(new WelcomeCustomerRegistered($parent, $studentName));
