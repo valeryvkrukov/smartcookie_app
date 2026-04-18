@@ -16,9 +16,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('timesheets', function (Blueprint $table) {
-            $table->dropForeign(['parent_id']); 
+            if (Schema::hasColumn('timesheets', 'parent_id')) {
+                $table->dropForeign(['parent_id']); 
+            }
             // billed_user_id: drop old FK (kept the original name after column rename) and re-add with cascade
-            $table->dropForeign('timesheets_parent_id_foreign');
+            if (Schema::hasColumn('timesheets', 'timesheets_parent_id_foreign')) {
+                $table->dropForeign('timesheets_parent_id_foreign');
+            }
             $table->foreign('billed_user_id')->references('id')->on('users')->cascadeOnDelete();
 
             // tutor_id: no FK constraint exists yet, just add one with cascade
@@ -29,7 +33,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('timesheets', function (Blueprint $table) {
-            $table->dropForeign(['parent_id']);
+            if (Schema::hasColumn('timesheets', 'parent_id')) {
+                $table->dropForeign(['parent_id']); 
+            }
+            if (Schema::hasColumn('timesheets', 'timesheets_parent_id_foreign')) {
+                $table->dropForeign('timesheets_parent_id_foreign');
+            }
             $table->dropForeign(['billed_user_id']);
             $table->dropForeign(['tutor_id']);
 
