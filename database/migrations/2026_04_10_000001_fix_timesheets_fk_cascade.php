@@ -20,8 +20,10 @@ return new class extends Migration
                 $table->dropForeign(['parent_id']); 
             }
             // billed_user_id: drop old FK (kept the original name after column rename) and re-add with cascade
-            if (Schema::hasColumn('timesheets', 'timesheets_parent_id_foreign')) {
+            if (Schema::hasColumn('timesheets', 'timesheets_billed_user_id_foreign')) {
                 $table->dropForeign('timesheets_billed_user_id_foreign');
+            }
+            if (Schema::hasColumn('timesheets', 'timesheets_parent_id_foreign')) {
                 $table->dropForeign('timesheets_parent_id_foreign');
             }
             $table->foreign('billed_user_id')->references('id')->on('users')->cascadeOnDelete();
@@ -37,8 +39,10 @@ return new class extends Migration
             if (Schema::hasColumn('timesheets', 'parent_id')) {
                 $table->dropForeign(['parent_id']); 
             }
-            if (Schema::hasColumn('timesheets', 'timesheets_parent_id_foreign')) {
+            if (Schema::hasColumn('timesheets', 'timesheets_billed_user_id_foreign')) {
                 $table->dropForeign('timesheets_billed_user_id_foreign');
+            }
+            if (Schema::hasColumn('timesheets', 'timesheets_parent_id_foreign')) {
                 $table->dropForeign('timesheets_parent_id_foreign');
             }
             $table->dropForeign(['billed_user_id']);
