@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Credit;
 use App\Models\CreditPurchase;
+use App\Models\Timesheet;
 use App\Notifications\ClientRateSet;
 use App\Notifications\StudentAssigned;
 use App\Notifications\CreditBalanceChanged;
@@ -127,6 +128,8 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         $name = $user->full_name;
+
+        Timesheet::where('tutor_id', $user->id)->delete();
         
         $user->delete();
 
