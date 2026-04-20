@@ -48,6 +48,11 @@ class UserController extends Controller
         return view('admin.users.index', compact('users', 'pendingCount'));
     }
 
+    public function create()
+    {
+        return view('admin.users.create');
+    }
+
     public function edit(User $user)
     {
         $tutors = User::where('can_tutor', true)->orderBy('last_name')->get();
@@ -55,6 +60,22 @@ class UserController extends Controller
         //$students = $user->students()->get();
 
         return view('admin.users.edit', compact('user', 'tutors', 'parents'));
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'first_name'      => 'required|string|max:255',
+            'last_name'       => 'required|string|max:255',
+            'email'           => 'required|email|unique:users,email',
+            'role'            => 'required|in:admin,tutor,customer,student',
+            'parent_id'       => 'nullable|exists:users,id',
+            'password'        => 'required|string|min:8|confirmed',
+        ]);
+
+        $user = User::create($data);
+
+        return redirect()->route('admin.users.edit', $user->id)->with('success', 'User created! You can now set role-specific settings.');
     }
 
     public function update(Request $request, User $user)

@@ -19,6 +19,15 @@
 
     <!-- Header: Search & Tabs -->
     <div class="mb-10 space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-end gap-4">
+            <div class="flex items-center gap-4">
+                <a href="{{ route('admin.users.create') }}" 
+                   class="px-5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest bg-indigo-600 text-white shadow-lg hover:bg-indigo-700 transition-colors whitespace-nowrap">
+                    + New User
+                </a>
+            </div>
+        </div>
+
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <!-- Tabs (Modern Segmented Control) -->
             <div class="flex bg-white p-1.5 rounded-2xl border border-slate-100 shadow-sm overflow-x-auto">
