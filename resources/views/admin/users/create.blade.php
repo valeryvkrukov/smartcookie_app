@@ -58,11 +58,11 @@
 
                 <div class="space-y-2">
                     <label class="label-premium">Password</label>
-                    <input type="password" name="password" class="input-premium" {{ isset($user) ? '' : 'required' }}>
+                    <input type="password" name="password" class="input-premium" value="{{ $temporaryPassword }}" {{ isset($user) ? '' : 'required' }}>
                 </div>
                 <div class="space-y-2">
                     <label class="label-premium">Confirm Password</label>
-                    <input type="password" name="password_confirmation" class="input-premium" {{ isset($user) ? '' : 'required' }}>
+                    <input type="password" name="password_confirmation" value="{{ $temporaryPassword }}" class="input-premium" {{ isset($user) ? '' : 'required' }}>
                 </div>
             </div>
 

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use App\Http\Controllers\Controller;
@@ -51,7 +53,9 @@ class UserController extends Controller
 
     public function create()
     {
-        return view('admin.users.create');
+        $temporaryPassword = Str::password(12);
+
+        return view('admin.users.create', compact('temporaryPassword'));
     }
 
     public function edit(User $user)
