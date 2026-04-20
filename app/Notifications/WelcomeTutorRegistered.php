@@ -6,6 +6,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use App\Models\User;
 
 class WelcomeTutorRegistered extends Notification
 {
@@ -14,7 +15,7 @@ class WelcomeTutorRegistered extends Notification
     /**
      * Create a new notification instance.
      */
-    public function __construct(public User $tutor)
+    public function __construct(public User $tutor, protected string $temporaryPassword)
     {
     }
 
@@ -36,7 +37,8 @@ class WelcomeTutorRegistered extends Notification
         $message = (new MailMessage)
             ->subject('Welcome to SmartCookie Tutors')
             ->greeting('Hello, ' . $this->tutor->first_name . '!')
-            ->line('Your account has been created successfully.');
+            ->line('Your account has been created successfully.')
+            ->line('Temporary password is: ' . $this->temporaryPassword);
 
         return $message
             ->action('Open Dashboard', url('/dashboard'))

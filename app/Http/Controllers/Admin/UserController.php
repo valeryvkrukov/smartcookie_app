@@ -15,6 +15,7 @@ use App\Notifications\StudentAssigned;
 use App\Notifications\CreditBalanceChanged;
 use App\Notifications\CreditsPurchased;
 use App\Notifications\ManualPaymentConfirmed;
+use App\Notifications\WelcomeTutorRegistered;
 
 class UserController extends Controller
 {
@@ -74,6 +75,8 @@ class UserController extends Controller
         ]);
 
         $user = User::create($data);
+
+        $user->notify(new WelcomeTutorRegistered($user, $request->password));
 
         return redirect()->route('admin.users.edit', $user->id)->with('success', 'User created! You can now set role-specific settings.');
     }
