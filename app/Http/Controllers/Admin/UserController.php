@@ -80,7 +80,9 @@ class UserController extends Controller
 
         $user = User::create($data);
 
-        $user->notify(new WelcomeTutorRegistered($user, $request->password));
+        if ($data->role === 'tutor') {
+            $user->notify(new WelcomeTutorRegistered($user, $request->password));
+        }
 
         return redirect()->route('admin.users.edit', $user->id)->with('success', 'User created! You can now set role-specific settings.');
     }
